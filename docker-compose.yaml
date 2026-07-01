@@ -1,0 +1,19 @@
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        VITE_ORG: ${VITE_ORG:-local}
+        VITE_PRJ: ${VITE_PRJ:-digital_twin_afdd}
+        VITE_MQTT_USERNAME: ${VITE_MQTT_USERNAME:-afdd_ui}
+        VITE_MQTT_PASSWORD: ${VITE_MQTT_PASSWORD:-indie123}
+        VITE_MQTT_NOTIFICATION_TOPIC: ${VITE_MQTT_NOTIFICATION_TOPIC:-AFDD_NOTIFICATION}
+    image: digital-twin-afdd-frontend:latest
+    restart: unless-stopped
+    environment:
+      BACKEND_UPSTREAM: ${BACKEND_UPSTREAM:-https://host.docker.internal:4500}
+      MQTT_UPSTREAM: ${MQTT_UPSTREAM:-https://host.docker.internal:9002}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${FRONTEND_PORT:-8082}:80"

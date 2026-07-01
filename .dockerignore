@@ -1,0 +1,11 @@
+node_modules
+dist
+coverage
+.git
+.nx
+.vite
+.env
+.env.*
+!.env.example
+ssl
+*.log
