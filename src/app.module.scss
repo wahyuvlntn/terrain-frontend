@@ -1,0 +1,86 @@
+@import './shared/components/lib/color';
+
+// react-toastify 11: the toast has no body wrapper any more (icon + content + close button are
+// direct children), so text styles go on the toast itself; `&:global(.Toastify__toast)` beats the
+// library's theme backgrounds (same element, higher specificity).
+@mixin toast-base {
+  border-radius: 8px;
+  padding: 12px;
+  height: unset;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+
+  :global(.Toastify__toast-body) {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+    padding: 0;
+    gap: 8px;
+  }
+
+  :global(.Toastify__close-button) {
+    color: $toast-close-button;
+    opacity: 1;
+    align-self: center;
+  }
+}
+
+.toast-success {
+  @include toast-base;
+
+  &:global(.Toastify__toast) {
+    background: $toast-success-background;
+    color: $toast-success-text;
+  }
+
+  :global(.Toastify__toast-body) {
+    color: $toast-success-text;
+  }
+}
+
+.toast-error {
+  @include toast-base;
+
+  &:global(.Toastify__toast) {
+    background: $persimmon-50;
+    color: $condition-critical-primary;
+  }
+
+  :global(.Toastify__toast-body) {
+    color: $condition-critical-primary;
+  }
+}
+
+.toast-warning {
+  @include toast-base;
+
+  &:global(.Toastify__toast) {
+    background: $toast-warning-background;
+    color: $toast-warning-text;
+  }
+
+  :global(.Toastify__toast-body) {
+    color: $toast-warning-text;
+  }
+}
+
+.toast-info {
+  @include toast-base;
+
+  &:global(.Toastify__toast) {
+    background: $toast-info-background;
+    color: $brand-text-label-primary;
+  }
+
+  :global(.Toastify__toast-body) {
+    color: $brand-text-label-primary;
+  }
+}
