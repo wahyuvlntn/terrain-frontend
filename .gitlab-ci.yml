@@ -1,0 +1,27 @@
+image: node:22-alpine
+stages:
+  - validate
+  - build
+variables:
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - .npm/
+before_script:
+  - npm ci
+validate:
+  stage: validate
+  script:
+    - npm run typecheck
+    - npm test
+build:
+  stage: build
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 7 days
