@@ -1,0 +1,62 @@
+@import './size';
+
+@mixin flex-row-gap($gap) {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: $gap;
+}
+
+@mixin flex-col-gap($gap) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $gap;
+}
+
+.flex-row-space-between {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.field-label {
+  font-size: $fontSizeNormal;
+  font-weight: 500;
+  line-height: 17px;
+}
+
+.list-item-text {
+  font-size: $fontSizeNormal;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 36px;
+}
+
+.input-field {
+  font-size: $fontSizeNormal;
+  font-weight: 500;
+  line-height: 22px; /* 137.5% */
+}
+
+.body-2 {
+  font-family: 'Lato', sans-serif;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+}
+
+.body-ideal-normal_body_text {
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 160%;
+}

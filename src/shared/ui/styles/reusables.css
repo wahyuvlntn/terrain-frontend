@@ -1,0 +1,215 @@
+/*
+ * Styles of the local shared UI components and Tailwind 4 for the app.
+ * Imported once, before src/shared/components/lib/app.scss, which
+ * defines the --afdd-* design tokens (the theme editor overrides them at runtime).
+ *
+ * Tailwind's Preflight reset is NOT loaded: the app keeps normalize.css (as with the 4.x package);
+ * the base layer below adds only what the components need. Layers lose to the app's unlayered
+ * styles, so existing pages keep their look.
+ */
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "./normalize.css" layer(base);
+@import "./fonts.css";
+
+@source "../lib";
+@source "../../..";
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    box-sizing: border-box;
+  }
+
+  * {
+    font-family: "Roboto", sans-serif;
+  }
+
+  button {
+    background-color: transparent;
+    background-image: none;
+    border: 0 solid;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0;
+  }
+}
+
+/* ===== react-date-range overrides (from the library's tailwind.css) ===== */
+/* ===== react-date-range overrides ===== */
+/* Note: :root prefix added for specificity (0,2,0) to beat react-date-range's (0,1,0) */
+:root .rdrDefinedRangesWrapper {
+  display: flex;
+  flex-direction: column;
+  border: none;
+  flex: 1;
+  padding: 8px;
+}
+
+:root .rdrInputRanges {
+  display: none;
+}
+
+:root .rdrDayStartOfMonth .rdrInRange,
+:root .rdrDayStartOfMonth .rdrEndEdge,
+:root .rdrDayStartOfWeek .rdrInRange,
+:root .rdrDayStartOfWeek .rdrEndEdge {
+  border-radius: 0px;
+}
+
+:root .rdrDayEndOfMonth .rdrInRange,
+:root .rdrDayEndOfMonth .rdrStartEdge,
+:root .rdrDayEndOfWeek .rdrInRange,
+:root .rdrDayEndOfWeek .rdrStartEdge {
+  border-radius: 0px;
+}
+
+:root .rdrStartEdge,
+:root .rdrEndEdge {
+  border-radius: 0px;
+  border: 2px solid var(--afdd-brand-border-light-primary);
+}
+
+:root .rdrDefinedRangesWrapper .rdrStaticRangeSelected span {
+  color: var(--afdd-neutral-text-body-light);
+  font-weight: 400;
+  font-size: 16px;
+  background-color: var(--afdd-brand-surface-default-primary);
+  border-radius: 4px;
+  border: none;
+}
+
+:root .rdrStaticRangeLabel {
+  color: var(--afdd-neutral-text-title-heading);
+  font-size: 16px;
+  padding: 9px 20px;
+}
+
+:root .rdrMonthAndYearWrapper {
+  display: none;
+}
+
+:root .rdrDateRangePickerWrapper {
+  flex-direction: row-reverse;
+}
+
+:root .rdrCalendarWrapper,
+:root .rdrStaticRange,
+:root .rdrDefinedRangesWrapper {
+  background: var(--afdd-background-low);
+}
+
+:root .rdrStaticRangeSelected {
+  color: var(--afdd-neutral-text-title-heading) !important;
+}
+
+:root .rdrWeekDay {
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--afdd-neutral-text-title-heading);
+}
+
+:root .rdrStartEdge,
+:root .rdrEndEdge {
+  color: var(--afdd-brand-surface-default-primary) !important;
+}
+
+:root .rdrInRange {
+  color: var(--afdd-brand-surface-dark-primary) !important;
+}
+
+:root .rdrDayNumber span {
+  color: var(--afdd-neutral-text-title-heading);
+  font-weight: 400;
+  font-size: 16px;
+}
+
+:root .rdrDayDisabled,
+:root .rdrDayPassive {
+  background-color: unset !important;
+}
+
+:root .rdrDayDisabled span,
+:root .rdrDayPassive span {
+  color: var(--afdd-neutral-text-disabled) !important;
+}
+
+:root .rdrStaticRange {
+  border: none;
+  flex: 1;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+:root .rdrStaticRanges {
+  border: none;
+  flex: 1;
+  font-size: 12px;
+  font-weight: 400;
+  height: 100%;
+}
+
+:root .rdrStaticRange:hover .rdrStaticRangeLabel,
+:root .rdrStaticRange:focus .rdrStaticRangeLabel {
+  color: var(--afdd-neutral-text-title-heading) !important;
+  background: var(--afdd-brand-surface-default-primary);
+  border-radius: 4px;
+}
+
+/* ===== Custom utilities (from the library's tailwind.css) ===== */
+/* ===== Reusable Utility Classes (from _util.scss mixins) ===== */
+@utility flex-row-gap-* {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: --value([length]);
+}
+
+@utility flex-col-gap-* {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: --value([length]);
+}
+
+@utility flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@utility icon-color-* {
+  path {
+    fill: --value([color]);
+  }
+}
+
+/* ===== react-toastify overrides (from the library's tailwind.css) ===== */
+/* ===== react-toastify overrides ===== */
+.Toastify__toast-theme--colored.Toastify__toast--info {
+  background-color: var(--afdd-brand-surface-dark-primary);
+}
+
+.Toastify__toast-theme--colored.Toastify__toast--success {
+  background-color: var(--afdd-status-running-primary);
+}
+
+.Toastify__toast-theme--colored.Toastify__toast--warning {
+  background-color: var(--afdd-status-planned-down-primary);
+}
+
+.Toastify__toast-theme--colored.Toastify__toast--error {
+  background-color: var(--afdd-status-unplanned-down-primary);
+}
