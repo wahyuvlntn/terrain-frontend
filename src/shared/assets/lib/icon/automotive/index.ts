@@ -1,0 +1,11 @@
+export { ReactComponent as Carbon } from './carbon.svg';
+export { ReactComponent as EnergyFlowAnalysis } from './energy-flow-analysis.svg';
+export { ReactComponent as EnergyFlowAnalysisFill } from './energy-flow-analysis-fill.svg';
+export { ReactComponent as Factory } from './factory.svg';
+export { ReactComponent as SingleLineDiagramOverview } from './single-line-diagram-overview.svg';
+export { ReactComponent as Tree } from './tree.svg';
+export { ReactComponent as UtilityDataQueryExport } from './utility-data-query-export.svg';
+export { ReactComponent as UtilityHistoricalCondition } from './utility-historical-condition.svg';
+export { ReactComponent as UtilityPerformance } from './utility-performance.svg';
+export { ReactComponent as UtilitySystemDetail } from './utility-system-detail.svg';
+export { ReactComponent as UtilitySystemSummary } from './utility-system-summary.svg';
