@@ -1,0 +1,11 @@
+export { ReactComponent as Analysis } from './analysis.svg';
+export { ReactComponent as ElectricalSubstation } from './electrical-substation.svg';
+export { ReactComponent as HandlerDetails } from './handler-details.svg';
+export { ReactComponent as HandlerIssue } from './handler-issue.svg';
+export { ReactComponent as HandlerNormal } from './handler-normal.svg';
+export { ReactComponent as Handler } from './handler.svg';
+export { ReactComponent as MachineDetails } from './machine-details.svg';
+export { ReactComponent as Rca } from './rca.svg';
+export { ReactComponent as TempCold } from './temp-cold.svg';
+export { ReactComponent as TempHot } from './temp-hot.svg';
+export { ReactComponent as TempThermometer } from './temp-thermometer.svg';
