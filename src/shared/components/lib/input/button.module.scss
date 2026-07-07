@@ -1,0 +1,46 @@
+@import '../color';
+@import '../size';
+
+.button {
+  position: relative;
+
+  &.loading {
+    color: transparent;
+    cursor: default;
+
+    > *:first-child {
+      opacity: 0;
+    }
+
+    .loading-container {
+      opacity: 1;
+    }
+  }
+}
+
+.button-success {
+  background: $status-running-primary !important;
+  color: $neutral-text-body-light;
+
+  &:hover {
+    filter: brightness(105%);
+  }
+}
+
+.button-warning {
+  background: $condition-warning-secondary !important;
+  color: $neutral-text-body-light;
+
+  &:hover {
+    filter: brightness(105%);
+  }
+}
+
+.button-error {
+  background: $status-unplanned_down-primary !important;
+  color: $neutral-text-body-light;
+
+  &:hover {
+    filter: brightness(105%);
+  }
+}
