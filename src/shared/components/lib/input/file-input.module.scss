@@ -1,0 +1,93 @@
+@import '../size';
+@import '../color';
+@import '../util-class.module';
+
+.file-input {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: $neutral-text-title-heading;
+  &.left-label {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .field-button-container {
+    @include flex-row-gap(16px);
+    align-items: flex-start;
+
+    .input-field-error {
+      width: 100%;
+      @include flex-col-gap(4px);
+      align-items: flex-start;
+    }
+
+    label {
+      @include flex-row-gap(4px);
+      padding: 4px 8px;
+      height: 36px;
+      box-sizing: border-box;
+      background: $brand-surface-default-primary;
+      color: $neutral-text-title-heading;
+      border-radius: 8px;
+      cursor: pointer;
+
+      span {
+        white-space: nowrap;
+      }
+
+      input[type='file'] {
+        display: none;
+      }
+
+      &:hover {
+        background-color: $background-highest;
+      }
+    }
+  }
+}
+
+.input-field-wrapper {
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  box-sizing: border-box;
+
+  background: $background-low;
+  // border-radius: $borderRadiusMedium;
+  border-radius: 8px;
+  color: $neutral-text-title-heading;
+
+  transition: border 0.2s ease-in-out;
+  border: 1px solid $border-default;
+
+  width: 100%;
+
+  &:has(input.input-field:read-only) {
+    opacity: 0.6;
+    border: 1px dashed $neutral-text-title-heading;
+  }
+
+  &:has(.input-field:focus) {
+    filter: brightness(105%);
+  }
+}
+
+.input-label {
+  color: $neutral-text-title-heading;
+}
+
+.input-error {
+  .input-field-wrapper {
+    border: 1px solid $condition-critical-primary;
+    // background: $condition-critical-secondary;
+    color: $condition-critical-primary;
+  }
+
+  .input-detail {
+    font-size: 13px;
+    color: $condition-critical-primary;
+  }
+}
