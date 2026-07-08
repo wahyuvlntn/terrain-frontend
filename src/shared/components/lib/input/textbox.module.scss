@@ -1,0 +1,19 @@
+@import '../color';
+
+.detail {
+  textarea {
+    border-color: var(--afdd-border-default, #68747d);
+
+    & + div {
+      & > span {
+        color: unset;
+      }
+    }
+  }
+}
+
+.dark textarea {
+  // background: $background-lowest;
+  background: $background-low;
+  border-radius: 8px !important;
+}

@@ -1,0 +1,196 @@
+@import '../size';
+@import '../color';
+@import '../util-class.module';
+
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+  transition: background-color 0s 600000s, color 0s 600000s !important;
+}
+
+/**
+ * Hide number input arrows
+ * https://stackoverflow.com/questions/3790935/can-i-hide-the-html5-number-input-s-spin-box
+*/
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  display: none;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/**
+ * Hide password input eye
+ * https://stackoverflow.com/questions/61449079/how-to-hide-the-eye-from-a-password-input-in-ms-edge-and-ie
+*/
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+input[type='number'] {
+  appearance: textfield; /* Firefox */
+  -moz-appearance: textfield; /* Firefox */
+}
+
+input {
+  &::placeholder {
+    color: $neutral-text-title-heading;
+    opacity: 0.7; /* Firefox */
+  }
+
+  &::-ms-input-placeholder {
+    /* Edge 12 -18 */
+    color: $neutral-text-title-heading;
+    opacity: 0.7;
+  }
+}
+
+.input {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: $neutral-text-title-heading;
+  &.left-label {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.input-operation {
+  cursor: pointer;
+}
+
+.input-field-wrapper {
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  box-sizing: border-box;
+
+  background: $background-lowest;
+  border-radius: $borderRadiusMedium;
+  color: $neutral-text-title-heading;
+
+  transition: border 0.2s ease-in-out;
+  border: 1px solid $border-default;
+
+  &:has(input.input-field:read-only) {
+    opacity: 0.6;
+    border: 1px dashed $neutral-text-title-heading;
+  }
+
+  &:has(textarea.input-field:read-only) {
+    opacity: 0.6;
+    border: 1px dashed $neutral-text-title-heading;
+  }
+
+  &:has(.input-field:focus) {
+    filter: brightness(105%);
+  }
+}
+
+.input-label {
+  color: $neutral-text-title-heading;
+  width: fit-content;
+  position: relative;
+}
+
+.input-icon {
+  max-height: 24px;
+  color: $neutral-text-title-heading;
+  display: flex;
+  svg {
+    margin: auto;
+    height: 100%;
+    max-height: 24px;
+  }
+}
+
+select {
+  appearance: none;
+  /* for Firefox */
+  -moz-appearance: none;
+  /* for Chrome */
+  -webkit-appearance: none;
+}
+
+.dropdown-field {
+  pointer-events: none;
+}
+
+.input-field {
+  padding: 0;
+  border: none;
+  color: $neutral-text-title-heading;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  height: 100%;
+}
+
+.input-align-right {
+  text-align: right;
+}
+.input-align-center {
+  text-align: center;
+}
+.input-align-left {
+  text-align: left;
+}
+
+.input-error {
+  .input-field-wrapper {
+    border: 1px solid $condition-critical-primary;
+    // background: $condition-critical-secondary;
+
+    &:has(.input-field:focus) {
+      filter: brightness(105%);
+    }
+  }
+
+  .input-field {
+    color: $condition-critical-primary;
+  }
+
+  .input-detail {
+    color: $condition-critical-primary;
+  }
+
+  .input-icon {
+    color: $condition-critical-primary;
+  }
+}
+
+// .input:has(.input-field:disabled) {
+//   .input-field-wrapper {
+//     background: $neutral-text-title-heading;
+//     border: 1px solid $neutral-text-title-heading;
+
+//     &:has(.input-field:focus) {
+//       border: 1px solid rgba($neutral-text-title-heading, 0.05);
+//     }
+//   }
+
+//   .input-label {
+//     color: $neutral-text-title-heading;
+//   }
+
+//   .input-field {
+//     color: $neutral-text-title-heading;
+//   }
+// }
+
+.input-error-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dark > div > div {
+  background-color: $background-low;
+  border-radius: 8px !important;
+
+}
