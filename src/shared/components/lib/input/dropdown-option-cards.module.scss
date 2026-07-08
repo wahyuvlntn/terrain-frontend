@@ -1,0 +1,65 @@
+@import '../color';
+
+.wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  &--number {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  background-color: $background-default;
+  border: 1px solid $brand-border-default-primary;
+  border-radius: 8px;
+
+  &--number {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  &__number {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    flex-shrink: 0;
+  }
+
+  &__text {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__delete {
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  &--disabled {
+    opacity: 0.4;
+  }
+
+  &--disabled &__delete {
+    cursor: not-allowed;
+  }
+
+  &--read-only {
+    border-style: dashed;
+  }
+
+  &--read-only &__delete {
+    display: none;
+  }
+}

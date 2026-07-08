@@ -1,0 +1,6 @@
+@import '../color';
+
+.dark > div > div {
+  background: $background-low;
+  border-radius: 8px;
+}
