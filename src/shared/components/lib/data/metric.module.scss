@@ -1,0 +1,94 @@
+@import '../util-class.module';
+@import '../color';
+
+.metric {
+  border-style: none;
+  // border-width: 0 0 6px 0;
+  border-radius: 8px;
+  padding: 8px 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  gap: 8px;
+
+  background: $background-low;
+  color: $foundation-neutral-white;
+  position: relative;
+
+  &.small {
+    padding: 20px 8px 15px;
+  }
+
+  .content {
+    @include flex-row-gap(4px);
+
+    .badge {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+
+      .value {
+        font-size: 32px;
+        font-weight: 500;
+      }
+
+      .unit {
+        font-size: 20px;
+        font-weight: 400;
+      }
+
+      color: $foundation-neutral-white;
+
+      h1,
+      h3 {
+        line-height: 100%;
+      }
+
+      h1.small {
+        font-weight: 600;
+      }
+
+      span {
+        color: $foundation-neutral-white;
+        font-size: 32px;
+      }
+    }
+  }
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    > span {
+      font-size: 20px;
+      font-weight: 400;
+    }
+  }
+
+  .tooltip {
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    top: 100%;
+    left: 50%;
+    margin-left: -60px; /* Use half of the width (120/2 = 60), to center the tooltip */
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  &:hover {
+    .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+  }
+}
