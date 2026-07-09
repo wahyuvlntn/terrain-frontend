@@ -1,0 +1,17 @@
+@import '../color';
+@import '../size';
+
+.button {
+  color: $neutral-text-title-heading;
+  cursor: pointer;
+  width: 24px;
+  aspect-ratio: 1;
+}
+
+.legend {
+  height: 654px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  background: $background-lowest;
+}

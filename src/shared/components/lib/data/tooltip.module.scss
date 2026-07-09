@@ -1,0 +1,243 @@
+@import '../color';
+
+.tooltip-content {
+  position: relative;
+  padding: 8px;
+  background-color: $background-highest;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  border-radius: 8px;
+  color: $neutral-text-title-heading;
+  font-weight: 600;
+  font-size: 16px;
+  min-height: 34px;
+  min-width: 74px;
+  display: flex;
+  box-sizing: border-box;
+  gap: 4px;
+  border: 1px solid $brand-border-light-primary;
+  // bounded: long text wraps and the content scrolls (the arrow stays visible)
+  max-width: min(420px, calc(100vw - 32px));
+  max-height: min(360px, 60vh);
+  overflow-wrap: anywhere;
+  white-space: normal;
+
+  flex-direction: column;
+
+  .title {
+    width: 100%;
+    height: fit-content;
+    flex-shrink: 0;
+  }
+
+  .content {
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 25.6px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  &::after {
+    content: '\0020';
+    display: block;
+    position: absolute;
+    z-index: 2;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    border: solid 5px transparent;
+  }
+
+  &.bottom,
+  &.top {
+    &::after {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+
+  &.top,
+  &.top-start,
+  &.top-end {
+    &::after {
+      top: -8px;
+      border-top: 0;
+      border-bottom-color: $brand-border-light-primary;
+      border-bottom-width: 8px;
+    }
+  }
+
+  &.bottom,
+  &.bottom-start,
+  &.bottom-end {
+    &::after {
+      bottom: -8px;
+      border-bottom: 0;
+      border-top-color: $brand-border-light-primary;
+      border-top-width: 8px;
+    }
+  }
+
+  &.left,
+  &.right {
+    &::after {
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+
+  &.left,
+  &.left-start,
+  &.left-end {
+    &::after {
+      left: -8px;
+      border-left: 0;
+      border-right-color: $brand-border-light-primary;
+      border-right-width: 8px;
+    }
+  }
+
+  &.right,
+  &.right-start,
+  &.right-end {
+    &::after {
+      right: -8px;
+      border-right: 0;
+      border-left-color: $brand-border-light-primary;
+      border-left-width: 8px;
+    }
+  }
+
+  &.top-start,
+  &.bottom-start {
+    &::after {
+      left: 0;
+      transform: translateX(50%);
+    }
+  }
+
+  &.top-end,
+  &.bottom-end {
+    &::after {
+      right: 0;
+      transform: translateX(-50%);
+    }
+  }
+
+  &.left-start,
+  &.right-start {
+    &::after {
+      top: 0;
+      transform: translateY(50%);
+    }
+  }
+
+  &.left-end,
+  &.right-end {
+    &::after {
+      bottom: 0;
+      transform: translateY(-50%);
+    }
+  }
+
+  &.large {
+    width: fit-content;
+    padding: 0;
+    border: unset;
+
+    .content {
+      font-weight: 500;
+      font-size: 24px;
+      width: fit-content;
+      padding: 12px;
+      white-space: nowrap;
+    }
+
+    &::after {
+      content: '\0020';
+      display: block;
+      position: absolute;
+      z-index: 2;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+      border: solid 14px transparent;
+    }
+
+    &.top,
+    &.top-start,
+    &.top-end {
+      &::after {
+        top: -24px;
+        border-top: 0;
+        border-bottom-color: $background-highest;
+        border-bottom-width: 24px;
+      }
+    }
+
+    &.bottom,
+    &.bottom-start,
+    &.bottom-end {
+      &::after {
+        bottom: -24px;
+        border-bottom: 0;
+        border-top-color: $background-highest;
+        border-top-width: 24px;
+      }
+    }
+
+    &.left,
+    &.left-start,
+    &.left-end {
+      &::after {
+        left: -24px;
+        border-left: 0;
+        border-right-color: $background-highest;
+        border-right-width: 24px;
+      }
+    }
+
+    &.right,
+    &.right-start,
+    &.right-end {
+      &::after {
+        right: -23px;
+        border-right: 0;
+        border-left-color: $background-highest;
+        border-left-width: 24px;
+      }
+    }
+  }
+}
+
+.icon {
+  color: $neutral-text-title-heading;
+  cursor: pointer;
+}
+
+.wrapper {
+  border: none;
+  padding: 0;
+
+  &.top-start {
+    //margin-left: 1px;
+    margin-top: 5px;
+  }
+
+  &.top-end {
+    //margin-left: 13px;
+    margin-top: 5px;
+  }
+
+  &.bottom-start {
+    //margin-left: 1px;
+    margin-top: -5px;
+  }
+
+  &.bottom-end {
+    //margin-left: 13px;
+    margin-top: -5px;
+  }
+}
