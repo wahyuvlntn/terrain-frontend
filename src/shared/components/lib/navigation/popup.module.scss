@@ -1,0 +1,33 @@
+@import '../util-class.module';
+@import '../color';
+@import '../size';
+
+.form {
+  position: relative;
+  @include flex-col-gap(18px);
+  height: 100%;
+  width: 100%;
+
+  .body {
+    height: 100%;
+    width: 100%;
+    border-radius: 4px;
+    overflow: hidden;
+    color: $neutral-text-title-heading;
+
+    &--dark {
+      background: $background-lowest;
+      border: 1px solid $border-default;
+    }
+
+    &--none {
+      padding: 16px 0px;
+      box-sizing: border-box;
+    }
+  }
+
+  .footer {
+    @include flex-row-gap(12px);
+    align-self: flex-end;
+  }
+}
