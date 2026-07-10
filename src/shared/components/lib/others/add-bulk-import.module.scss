@@ -1,0 +1,64 @@
+@import '../color';
+@import '../size';
+
+.container {
+  display: flex;
+
+  &:hover {
+    filter: brightness(90%);
+  }
+}
+
+.button {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 36px;
+  gap: 4px;
+  padding: 8px;
+  font-weight: 600;
+  background-color: $brand-surface-default-primary;
+  color: $neutral-text-body-light;
+  border: none;
+
+  &--add {
+    border-radius: 8px 0 0 8px;
+    padding-right: 12px;
+  }
+
+  &--more {
+    border-radius: 0 8px 8px 0;
+    border-left: solid 1px $neutral-text-body-light;
+  }
+
+  &--disabled {
+    opacity: 0.5;
+  }
+}
+
+.icon {
+  height: 20px;
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  background: $background-highest !important;
+  z-index: 0 !important;
+}
+
+.action {
+  background: $background-highest;
+  cursor: pointer;
+  box-sizing: border-box;
+  padding: 6px;
+  width: 100%;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}

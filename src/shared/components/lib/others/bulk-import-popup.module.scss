@@ -1,0 +1,160 @@
+@import '../color';
+@import '../size';
+
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 750px;
+  height: 535px;
+  gap: 10px;
+}
+
+.preview {
+  flex: 1 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: $neutral-text-title-heading;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  &__label {
+    color: $neutral-text-title-heading;
+    width: fit-content;
+    position: relative;
+  }
+
+  &__value {
+    flex: 1 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__table {
+    position: relative;
+    border-radius: 8px;
+    flex: 1 0 0;
+    width: 100%;
+    height: 0;
+    overflow: auto;
+    box-sizing: border-box;
+    // background: $background-default;
+
+    // & > table,
+    // tr,
+    // td {
+    //   border: none;
+    //   border-radius: 0 !important;
+    // }
+  }
+
+  &__pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+}
+
+.csv-file {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: $neutral-text-title-heading;
+
+  &__label {
+    color: $neutral-text-title-heading;
+    width: fit-content;
+    position: relative;
+  }
+
+  &__input-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__name {
+    width: 0;
+    flex: 1 0 0;
+  }
+
+  &__input-file {
+    display: none;
+  }
+
+  &__button {
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    box-sizing: border-box;
+    height: 33px;
+    padding: 1px 10px;
+    border-radius: $borderRadiusMedium;
+
+    &--disabled {
+      opacity: 0.6;
+    }
+
+    &:hover {
+      filter: brightness(105%);
+    }
+
+    svg {
+      height: 24px;
+      width: 24px;
+      flex-shrink: 0;
+    }
+
+    &--choose-file {
+      // background: $brand-surface-default-primary;
+      // color: $neutral-text-body-light;
+      background: $background-high;
+      color: $neutral-text-title-heading;
+    }
+
+    &--template {
+      background: $background-high;
+      color: $neutral-text-title-heading;
+    }
+  }
+}
+
+.license-information {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: $neutral-text-title-heading;
+
+  &__label {
+    color: $neutral-text-title-heading;
+    width: fit-content;
+    position: relative;
+  }
+
+  &__result {
+    padding: 10px;
+    position: relative;
+    height: 160px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: $background-lowest;
+    border: 1px solid $border-default;
+    border-radius: $borderRadiusMedium;
+    overflow: auto;
+
+    &__kv {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+  }
+}
