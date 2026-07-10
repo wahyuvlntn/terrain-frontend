@@ -1,0 +1,22 @@
+@import '../color';
+@import '../size';
+
+.legends {
+  display: flex;
+  gap: $spacingXL;
+
+  & .legend {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    color: $neutral-text-title-heading;
+
+    & .legend-color {
+      background: currentColor;
+      width: 12px;
+      height: 12px;
+      border: 1px solid $neutral-text-title-heading;
+      border-radius: 50%;
+    }
+  }
+}

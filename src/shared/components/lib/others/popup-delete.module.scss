@@ -1,0 +1,59 @@
+@import '../color';
+@import '../size';
+
+.wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.popup-delete {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  font-size: $fontSizeNormal;
+  word-break: break-all;
+  width: 0;
+  flex-grow: 1;
+
+  > span {
+    text-align: center;
+  }
+
+  &--multiples > span {
+    text-align: left;
+  }
+
+  &__entity-name {
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+
+  &__multiples {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    overflow: auto;
+    max-height: 110px;
+    background-color: $background-lowest;
+    border-radius: 4px;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+
+  &__row {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+  }
+}
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grow-horizontal {
+  flex-grow: 1;
+  width: 0;
+}
