@@ -1,0 +1,54 @@
+@import '../color';
+
+.pagination {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  align-items: center;
+
+  .buttons {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: $brand-surface-dark-primary;
+  color: $neutral-text-body-light;
+  border-radius: 8px;
+  gap: -10px;
+}
+
+.button:hover {
+  cursor: pointer;
+}
+
+.page-state {
+  display: flex;
+  align-items: center;
+  color: $neutral-text-title-heading;
+
+  &__page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+    color: $neutral-text-title-heading;
+    border-radius: 8px;
+    height: 32px;
+    border: 1px solid $brand-surface-default-primary;
+    text-align: center;
+  }
+
+  &__of {
+    width: 40px;
+    display: flex;
+    justify-content: center;
+  }
+}
