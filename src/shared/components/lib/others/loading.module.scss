@@ -1,0 +1,69 @@
+@import '../color';
+@import '../size';
+
+.reusable-loading-data {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  background-color: transparent;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  z-index: 20;
+  top: 0;
+  left: 0;
+
+  &__cover {
+    background-color: $background-low;
+    opacity: 0.3;
+  }
+
+  &__container {
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    gap: 20px;
+    z-index: 22;
+
+    > div {
+      > svg {
+        > rect {
+          fill: $background-default;
+        }
+        path {
+          fill: $neutral-text-title-heading;
+        }
+      }
+    }
+
+    &__loading1 {
+      animation: loading-animation 1.5s -0.75s ease-in-out infinite;
+    }
+    &__loading2 {
+      animation: loading-animation 1.5s -0.5s ease-in-out infinite;
+    }
+    &__loading3 {
+      animation: loading-animation 1.5s -0.25s ease-in-out infinite;
+    }
+    &__loading4 {
+      animation: loading-animation 1.5s 0s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes loading-animation {
+  0%,
+  100% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1);
+  }
+}
