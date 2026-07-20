@@ -1,0 +1,101 @@
+@import '../../util-class.module';
+@import '../../color';
+
+.progress-modal {
+  //TODO: remove overwritten display
+  //display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  box-sizing: border-box;
+  background-color: $background-low;
+  border-radius: 4px;
+  border: 1px solid $border-default;
+  position: fixed;
+  left: 10px;
+  bottom: 10px;
+  display: flex;
+  align-items: flex-start;
+  //TODO: remove overwritten justify-content
+  //justify-content: flex-start;
+  z-index: 99999;
+  transition: all 1s ease-in-out;
+  justify-content: stretch;
+  color: $neutral-text-label;
+
+  .trigger{
+    display: flex;
+    width: 100%;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+
+    font-size: 16px;
+    font-weight: 600;
+    color: $neutral-text-label;
+
+    .actions{
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    svg{
+      cursor: pointer;
+    }
+  }
+
+  &.collapsed {
+    bottom: 10px;
+    left: 10px;
+  }
+
+  .progress-bar {
+    display: flex;
+    gap: 16px;
+    background-color: $background-default;
+    border: 1px solid $border-default;
+    color: $neutral-text-title-heading;
+    font-size: 16px;
+    padding: 8px;
+    border-radius: 8px;
+    font-weight: 600;
+    align-items: center;
+    transition: all 1s ease-in-out;
+    white-space: nowrap;
+    overflow: hidden;
+    box-sizing: border-box;
+    // justify-content: space-between;
+    width: 100%;
+  }
+
+  &.collapsed .progress-bar {
+    display: none;
+  }
+}
+
+.cancel-button {
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity 1s ease-in-out;
+
+  .collapsed & {
+    opacity: 0;
+  }
+}
+
+.progress-content {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 16px;
+  opacity: 1;
+  transition: opacity 1s ease-in-out;
+  justify-content: space-between;
+
+  .collapsed & {
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+  }
+}

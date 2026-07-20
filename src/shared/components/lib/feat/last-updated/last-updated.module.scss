@@ -1,0 +1,20 @@
+@import '../../util-class.module';
+@import '../../size';
+@import '../../color';
+
+.last-updated {
+  display: flex;
+  flex-direction: column;
+  gap: $spacingXS;
+  min-width: 150px;
+
+  .label {
+    @include flex-row-gap($spacingXS);
+    color: $brand-surface-default-primary;
+  }
+
+  .value {
+    color: $neutral-text-title-heading;
+    white-space: nowrap;
+  }
+}
