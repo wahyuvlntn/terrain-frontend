@@ -1,0 +1,58 @@
+@import '../color';
+
+.title {
+  white-space: nowrap;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+// .header {
+//   [aria-haspopup='dialog'] {
+//     div {
+//       background-color: $condition-critical-primary !important;
+//     }
+//   }
+// }
+
+.notification-bell {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+
+  svg {
+    width: 24px;
+    height: 24px;
+    fill: $neutral-text-title-heading;
+  }
+
+  .notification-count {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: -6px;
+    right: -6px;
+    background-color: $condition-critical-primary;
+    color: $neutral-text-title-heading;
+    border-radius: 50%;
+    height: 18px;
+    width: 18px;
+    font-weight: bold;
+    font-size: 8.9px;
+  }
+}
+
+.header > div > div:nth-child(2) {
+  background-color: $neutral-text-title-heading !important;
+}
+
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+.sidebar-wrapper {
+  flex: 1 0 0;
+}

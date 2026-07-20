@@ -1,0 +1,17 @@
+.container {
+  &-header {
+    height: 33px;
+    min-height: 33px !important;
+  }
+}
+
+.container-title {
+  font-size: 22px;
+  font-weight: 600;
+
+  span {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+}
