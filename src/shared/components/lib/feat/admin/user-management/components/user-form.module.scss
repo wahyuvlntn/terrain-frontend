@@ -1,0 +1,94 @@
+.title-container {
+  display: flex;
+  padding: 8px 0;
+  align-items: center;
+  gap: 10px;
+  align-self: stretch;
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 22px;
+  }
+}
+
+.user-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  //TODO: remove overwritten space-between
+  //justify-content: space-between;
+  justify-content: space-between;
+  flex: 1 0 0;
+  align-self: stretch;
+
+  .forms {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-self: stretch;
+    flex: 1 0 0;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    align-self: stretch;
+  }
+
+  .field-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    align-self: stretch;
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      align-self: stretch;
+      flex: 1 0 0;
+    }
+  }
+
+  .input {
+    display: flex;
+    flex: 1 0 0;
+    align-self: stretch;
+  }
+
+  .buttons {
+    display: flex;
+    align-self: stretch;
+    justify-content: space-between;
+
+    .right-side {
+      display: flex;
+      gap: 10px;
+    }
+  }
+
+  .image-and-forms {
+    display: flex;
+    gap: 10px;
+    align-items: start;
+    justify-content: center;
+    align-self: stretch;
+
+    .image {
+      display: flex;
+      justify-content: center;
+      width: 193px;
+    }
+  }
+
+  .checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
