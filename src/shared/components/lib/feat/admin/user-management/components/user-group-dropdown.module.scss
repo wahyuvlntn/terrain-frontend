@@ -1,0 +1,125 @@
+@import '../../../../size';
+@import '../../../../color';
+@import '../../../../util-class.module';
+
+.user-group-dropdown {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  height: 100%;
+  flex: 1 0 0;
+  width: 0;
+  padding-right: 5px;
+  box-sizing: border-box;
+  color: $neutral-text-title-heading;
+  transition: background 0.2s ease-in-out;
+  border-radius: 4px 0 0 4px;
+  border: 2px solid transparent;
+  border-right: none;
+
+  &--active {
+    background: $background-default;
+    border: 2px solid $brand-surface-default-primary;
+    border-right: none;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.location {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  height: 100%;
+  flex: 1 0 0;
+  width: 0;
+  border: 2px solid transparent;
+  border-left: none;
+
+  box-sizing: border-box;
+  color: $neutral-text-title-heading;
+  transition: background 0.2s ease-in-out;
+  border-radius: 0 4px 4px 0;
+
+  &--active {
+    background: $background-default;
+    border: 2px solid $brand-surface-default-primary;
+    border-left: none;
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.location:hover {
+  cursor: pointer;
+}
+
+.user-group-row,
+.user-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  font-size: 16px;
+  height: 32px;
+  transition: background 0.2s ease-in-out;
+  border-radius: 4px;
+}
+
+.user-group-dropdown:hover {
+  cursor: pointer;
+}
+
+.user-dropdown {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  height: 100%;
+  padding-left: 58px;
+  flex: 1 0 0;
+  width: 0;
+  border: 2px solid transparent;
+
+  box-sizing: border-box;
+  color: $neutral-text-title-heading;
+  transition: background 0.2s ease-in-out;
+  border-radius: 4px;
+
+  &--active {
+    background: $background-default;
+    border: 2px solid $brand-surface-default-primary;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.user-dropdown:hover {
+  cursor: pointer;
+}
+
+.user-row:hover {
+  background-color: $background-low;
+}
+
+.user-group-row:hover {
+  background-color: $background-low;
+}

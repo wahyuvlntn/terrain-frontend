@@ -1,0 +1,35 @@
+@import '../../../../color';
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1 0 0;
+  align-self: stretch;
+
+  [aria-selected='true'][aria-details='quaternary'] {
+    background-color: $background-default;
+  }
+}
+
+.inner-content {
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  flex: 1 0 0;
+  align-self: stretch;
+  background-color: $background-default;
+}
+
+.tab {
+  flex: 1;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.tablist > div {
+  border-bottom: 1px solid $background-default !important;
+}
