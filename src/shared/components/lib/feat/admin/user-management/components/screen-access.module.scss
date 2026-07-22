@@ -1,0 +1,73 @@
+@import '../../../../color';
+
+.title-container {
+  display: flex;
+  padding: 8px 0;
+  align-items: center;
+  gap: 10px;
+  align-self: stretch;
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 22px;
+  }
+}
+
+.screen-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1 0 0;
+  align-self: stretch;
+  justify-content: space-between;
+  overflow: auto;
+}
+
+.screens {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1 0 0;
+  align-self: stretch;
+}
+
+.buttons {
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.screen {
+  border-radius: 8px;
+  display: flex;
+  padding: 8px 16px;
+  justify-content: space-between;
+  align-items: center;
+  align-self: stretch;
+  background-color: $background-low;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.authorization-list {
+  display: flex;
+  // height: 24px;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 330px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
