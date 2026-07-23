@@ -1,0 +1,9 @@
+@import '../../../../size';
+@import '../../../../color';
+@import '../../../../util-class.module';
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

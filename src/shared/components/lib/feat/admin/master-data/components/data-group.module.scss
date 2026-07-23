@@ -1,0 +1,111 @@
+@import '../../../../size';
+@import '../../../../color';
+@import '../../../../util-class.module';
+
+// Mixins for common styles
+@mixin item-grid {
+  display: grid;
+  width: 100%;
+  justify-content: center;
+  grid-template-columns: 10% 40% 50%;
+  align-items: center;
+  height: 48px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+@mixin item-icon {
+  display: flex;
+  justify-content: center;
+  svg {
+    min-height: 32px;
+    min-width: 32px;
+  }
+}
+
+@mixin item-label {
+  max-width: 300px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+@mixin item-value {
+  margin-right: 12px;
+  text-align: center;
+  display: flex;
+  justify-self: flex-end;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.data-group-container {
+  flex: 1;
+  min-width: 300px;
+
+  .item-container {
+    display: block;
+    width: 100%;
+    max-height: calc(100vh - 100px);
+    overflow: auto;
+
+    .item {
+      @include item-grid;
+      cursor: pointer;
+      background-color: transparent;
+
+      &:hover {
+        background-color: $background-default !important;
+        transition: background 0.2s ease-in-out;
+      }
+
+      .item-icon {
+        @include item-icon;
+      }
+
+      .item-label {
+        @include item-label;
+        color: $neutral-text-title-heading;
+      }
+
+      .item-value {
+        @include item-value;
+        color: $neutral-text-title-heading;
+      }
+    }
+
+    .item-selected {
+      @include item-grid;
+      cursor: pointer;
+      background-color: $background-default;
+      border: 2px solid $brand-surface-default-primary;
+      box-sizing: border-box;
+      transition: background 0.2s ease-in-out;
+
+      .item-icon {
+        @include item-icon;
+        svg {
+          color: $neutral-text-title-heading;
+        }
+      }
+
+      .item-label {
+        @include item-label;
+        color: $neutral-text-title-heading;
+      }
+
+      .item-value {
+        @include item-value;
+        color: $neutral-text-title-heading;
+      }
+    }
+  }
+}
+
+.right-top-component {
+  display: flex;
+  gap: 6px;
+}
