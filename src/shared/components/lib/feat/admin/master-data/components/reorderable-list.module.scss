@@ -1,0 +1,47 @@
+@import '../../../../size';
+@import '../../../../color';
+@import '../../../../util-class.module';
+
+.data-list-container {
+  flex: 1;
+  min-width: 300px;
+
+  .data-list-action {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+
+    .add-button {
+      font-size: 16px;
+      height: 34px;
+      font-weight: 600;
+    }
+  }
+
+  .list {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    box-sizing: border-box;
+    padding-right: 6px;
+  }
+}
+
+.custom-list {
+  background-color: $background-default;
+  border-radius: 10px;
+  border-style: dashed;
+  border-width: 1px;
+  border-color: #ffffff;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  height: 48px;
+  opacity: 1;
+}
+
+.search > div > div {
+  background: $background-lowest;
+}

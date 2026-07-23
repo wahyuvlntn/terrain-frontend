@@ -1,0 +1,107 @@
+@import '../../../../size';
+@import '../../../../color';
+@import '../../../../util-class.module';
+
+%reorder-item-base {
+  display: grid;
+  width: 100%;
+  justify-content: center;
+  grid-template-columns: 10% 70% 20%;
+  align-items: center;
+  height: 48px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+
+  .reorder-icon {
+    display: flex;
+    justify-content: center;
+    svg {
+      min-height: 16px;
+      min-width: 16px;
+    }
+  }
+
+  .label {
+    font-size: 18px;
+    font-weight: 600;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .actions {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    cursor: pointer;
+    margin-right: 6px;
+    svg {
+      min-height: 24px;
+      min-width: 24px;
+    }
+  }
+}
+
+.reorder-item {
+  @extend %reorder-item-base;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+  background-color: $background-low;
+
+  &:hover {
+    background-color: $background-default;
+  }
+
+  .reorder-icon {
+    color: $neutral-text-title-heading;
+    cursor: grab;
+  }
+
+  .label,
+  .actions {
+    color: $neutral-text-title-heading;
+  }
+
+  &-selected {
+    @extend %reorder-item-base;
+    cursor: pointer;
+    background-color: $background-default;
+    border: 2px solid $brand-surface-default-primary;
+    box-sizing: border-box;
+    transition: background 0.2s ease-in-out;
+
+    .reorder-icon,
+    .label,
+    .actions {
+      color: $neutral-text-title-heading;
+    }
+  }
+
+  &-selected-disabled {
+    @extend %reorder-item-base;
+    background-color: $background-default;
+    border: 2px solid $brand-surface-default-primary;
+    box-sizing: border-box;
+
+    .reorder-icon,
+    .label,
+    .actions {
+      color: $neutral-text-title-heading;
+    }
+  }
+
+  &-disabled {
+    @extend %reorder-item-base;
+    background-color: transparent;
+
+    &:hover {
+      background-color: $background-default;
+    }
+
+    .reorder-icon,
+    .label,
+    .actions {
+      color: $neutral-text-title-heading;
+    }
+  }
+}
