@@ -1,0 +1,33 @@
+@import '../../../../../size';
+@import '../../../../../color';
+@import '../../../../../util-class.module';
+@import '../alarm-mapping.module.scss';
+
+.parameter {
+    flex: 1;
+    background: $background-default;
+    position: relative;
+}
+
+.rightTop {
+    border: solid 1px;
+    border-radius: 8px;
+    padding: 4px 8px;
+}
+
+.list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .item {
+        background-color: $background-high;
+        border-radius: 8px;
+        height: 36px;
+        box-sizing: border-box;
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+    }
+}
