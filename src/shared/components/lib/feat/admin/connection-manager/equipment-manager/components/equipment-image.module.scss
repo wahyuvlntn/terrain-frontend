@@ -1,0 +1,63 @@
+@import '../../../../../color';
+@import '../../../../../size';
+
+.equipment-image {
+  flex-basis: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  position: relative;
+  min-width: 200px;
+  width: 40%;
+  height: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+
+  &--no-data {
+    pointer-events: none;
+  }
+
+  &:hover &__actions {
+    display: flex;
+  }
+
+  &__actions {
+    display: none;
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 100%;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: $borderRadiusMedium;
+    color: #fbfdfe;
+
+    &__upload {
+      height: 50px;
+      cursor: pointer;
+      color: $brand-surface-default-primary;
+    }
+
+    &__delete {
+      height: 50px;
+      cursor: pointer;
+      color: $status-unplanned_down-primary;
+    }
+
+    &__input-file {
+      display: none;
+    }
+  }
+
+  img {
+    flex-grow: 1;
+    flex-basis: 0;
+    height: 0;
+    width: 100%;
+    border-radius: $borderRadiusMedium;
+    object-fit: contain;
+  }
+}

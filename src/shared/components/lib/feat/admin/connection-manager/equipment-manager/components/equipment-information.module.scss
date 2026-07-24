@@ -1,0 +1,131 @@
+@import '../../../../../color';
+@import '../../../../../size';
+
+.equipment-information {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 453;
+  flex-basis: 0;
+  overflow: auto;
+  background-color: $background-default;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 0 0;
+  height: 0;
+  width: 100%;
+  overflow: auto;
+  // background: $background-lowest;
+  // border-radius: 8px;
+  // padding: 8px;
+  box-sizing: border-box;
+
+  &__inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    flex: 1 0 0;
+    height: 0;
+    overflow: auto;
+  }
+
+  &__column {
+    flex: 1 0 0;
+    width: 0;
+  }
+
+  &__multi-columns {
+    flex-basis: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  &__metadata {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1 0 0;
+    width: 0;
+  }
+
+  &__save {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__image {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 6px;
+
+    &__label {
+      font-weight: 500;
+      color: $neutral-text-title-heading;
+    }
+
+    &__input {
+      flex: 1 0 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: $background-low;
+      border-radius: 8px;
+      border: 1px solid $border-default;
+      box-sizing: border-box;
+
+      &--readonly {
+        border-style: dashed;
+      }
+    }
+  }
+
+  &__utility {
+    padding: 8px 14px;
+    border-radius: $borderRadiusMedium;
+    letter-spacing: 0.05em;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: normal;
+    align-items: center;
+    display: flex;
+    gap: 6px;
+    height: 36px;
+    box-sizing: border-box;
+    background: $brand-surface-default-primary;
+    border: none;
+
+    &__icon {
+      width: 20px;
+      height: 20px;
+      color: $neutral-text-title-heading;
+    }
+
+    &__label {
+      margin-top: 1px;
+      color: $neutral-text-title-heading;
+    }
+  }
+}
+
+.confirm {
+  //TODO: remove overwritten display;
+  //display: flex;
+  flex-direction: column;
+  width: 500px;
+  text-align: center;
+  font-size: 18px;
+  display: block;
+
+  &__info {
+    line-height: 22.5px;
+  }
+}
