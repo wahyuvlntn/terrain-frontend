@@ -1,0 +1,94 @@
+@import '../../../../../color';
+@import '../../../../../size';
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: auto;
+
+  &__column {
+    flex-grow: 1;
+    flex-basis: 0;
+    flex-shrink: 0;
+  }
+
+  &__multi-columns {
+    display: flex;
+    gap: 10px;
+  }
+
+  &__metadata {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-grow: 1;
+  }
+
+  &__image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &__image {
+      border: 1px solid $border-default;
+      background-color: $background-low;
+    }
+  }
+
+  &__source-id {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    width: 100%;
+    justify-content: space-between;
+
+    &__input {
+      width: 100%;
+    }
+  }
+
+  &__button {
+    width: 36px;
+    height: 36px;
+    color: $neutral-text-title-heading;
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    background: $background-high;
+    cursor: pointer;
+
+    &:hover {
+      filter: brightness(105%);
+    }
+  }
+}
+
+.name-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+
+  &__button {
+    display: flex;
+    align-items: center;
+    height: 36px;
+  }
+}
+
+.utility-toggle {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+
+  &__label {
+    color: $neutral-text-title-heading;
+    font-weight: 500;
+    font-size: 1rem;
+  }
+}
