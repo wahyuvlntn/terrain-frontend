@@ -1,0 +1,174 @@
+@import '../../../../../color';
+@import '../../../../../size';
+
+.container {
+  width: 1500px;
+  height: 640px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: auto;
+
+  &--singular {
+    width: 900px;
+    flex-direction: column;
+    gap: 10px;
+
+    &__tag-selector {
+      width: 100%;
+      flex: 1 0 0;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+  }
+
+  &--em {
+    width: 1700px;
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 10px;
+  border-radius: 8px;
+  padding: 16px;
+  box-sizing: border-box;
+  background-color: $background-low;
+
+  &__title {
+    color: $neutral-text-title-heading;
+    font-size: 22px;
+    font-weight: 400;
+  }
+
+  &__body {
+    flex: 1 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &--parameters {
+    flex: 500 0 0;
+    padding-top: 12px;
+  }
+
+  &--data-sources {
+    flex: 400 0 0;
+  }
+
+  &--tags {
+    flex: 430 0 0;
+  }
+
+  &--tag-selector {
+    flex: 800 0 0;
+  }
+}
+
+.outer-container {
+  height: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  background-color: $background-lowest;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &--parameters {
+    background-color: inherit;
+    padding-top: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  &__title {
+    padding-left: 8px;
+    color: $neutral-text-title-heading;
+    font-size: 22px;
+    font-weight: 400;
+  }
+}
+
+.tag-selector {
+  flex: 1 0 0;
+  display: flex;
+  gap: 12px;
+}
+
+.separator {
+  box-sizing: border-box;
+  border: 0;
+  border-left: 1px solid $neutral-text-title-heading;
+  height: 95%;
+  opacity: 0.2;
+}
+
+.table {
+  position: relative;
+  border-radius: 8px;
+  flex-grow: 1;
+  width: 100%;
+  height: 0;
+  overflow: auto;
+  box-sizing: border-box;
+  // background: $background-default;
+
+  // & > table,
+  // tr,
+  // td {
+  //   border: none;
+  //   border-radius: 0 !important;
+  // }
+
+  // & > tr {
+  //   height: 40px;
+  // }
+}
+
+.checkbox {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+
+  &--left {
+    left: 7px;
+    bottom: 7px;
+    position: absolute;
+    justify-content: flex-start;
+  }
+}
+
+.span {
+  display: flex;
+  align-items: center;
+  height: 24px;
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.list {
+  width: 100%;
+  flex: 1 0 0;
+  height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}

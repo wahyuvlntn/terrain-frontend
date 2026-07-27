@@ -1,0 +1,264 @@
+@import '../../../../../color';
+@import '../../../../../size';
+
+.container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 582.5;
+  flex-basis: 0;
+  min-width: 400px;
+  width: inherit;
+  overflow: auto;
+  background-color: $background-default;
+}
+
+.parameter-mapping {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-grow: 1;
+  flex-basis: 0;
+  height: 0;
+  width: inherit;
+  overflow: auto;
+  background: inherit;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+
+    &__title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 500;
+    }
+
+    &__used-parameters {
+      display: flex;
+      align-items: center;
+      border-radius: 8px;
+      gap: 10px;
+      border: 1px solid $status-offline-secondary;
+      color: $neutral-text-title-heading;
+      font-weight: 500;
+      height: 26px;
+      box-sizing: border-box;
+      padding: 6px 8px 4px 8px;
+
+      span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  }
+
+  &__body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    flex-basis: 0;
+    flex-shrink: 0;
+    height: 0;
+    width: inherit;
+    background: inherit;
+    overflow: auto;
+    z-index: 0;
+
+    &__header {
+      font-size: $fontSizeLarge;
+      font-weight: 500;
+      display: flex;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      box-sizing: border-box;
+      padding-bottom: 10px;
+      height: 30px;
+      flex-shrink: 0;
+      width: inherit;
+      background: inherit;
+      z-index: 1;
+      background-color: $background-default;
+
+      span {
+        width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      &__parameter {
+        padding-left: 8px;
+        padding-right: 8px;
+        flex-grow: 170;
+        flex-basis: 0;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        span {
+          width: auto;
+        }
+
+        &__sort {
+          cursor: pointer;
+          height: 20px;
+          width: 20px;
+          flex-shrink: 0;
+        }
+      }
+
+      &__vtq {
+        padding-right: 16px;
+        flex-grow: 280;
+        flex-basis: 0;
+        flex-shrink: 0;
+        width: 100%;
+        display: flex;
+        gap: 10px;
+
+        &__v {
+          flex: 90 0 0;
+        }
+
+        &__t {
+          flex: 130 0 0;
+        }
+
+        &__q {
+          flex: 60 0 0;
+          text-align: center;
+        }
+      }
+    }
+
+    &__list {
+      flex: 1 0 0;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+}
+
+.parameter-card {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  background: $background-high;
+  height: 60px;
+  border-radius: 8px;
+  padding: 8px 0 8px 0;
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__left {
+    padding-left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-grow: 170;
+    flex-basis: 0;
+    width: 0;
+    overflow: auto;
+  }
+
+  &__right {
+    padding-right: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    flex-grow: 280;
+    flex-basis: 0;
+    width: 0;
+    height: 100%;
+    overflow: auto;
+  }
+
+  &__top {
+    display: flex;
+    align-items: center;
+    flex-grow: 36;
+    flex-basis: 0;
+  }
+
+  &__bottom {
+    display: flex;
+    align-items: center;
+    flex-grow: 21;
+    flex-basis: 0;
+  }
+
+  &__name {
+    font-size: 20px;
+  }
+
+  &__unit-and-mapping {
+    font-weight: 500;
+    font-size: 14px;
+    color: $status-offline-secondary;
+  }
+
+  &__vtq {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    &__v {
+      font-size: 14px;
+      font-weight: 500;
+      flex: 90 0 0;
+
+      &--null {
+        font-size: 14px;
+      }
+    }
+
+    &__t {
+      font-size: 14px;
+      font-weight: 500;
+      width: 0;
+      flex: 130 0 0;
+    }
+
+    &__q {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 0;
+      flex: 60 0 0;
+    }
+  }
+
+  &__actions {
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+}
+
+.pagination-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
