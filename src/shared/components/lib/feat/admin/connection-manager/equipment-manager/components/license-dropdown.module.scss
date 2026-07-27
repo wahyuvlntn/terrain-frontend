@@ -1,0 +1,21 @@
+@import '../../../../../color';
+@import '../../../../../size';
+
+.license-dropdown {
+  display: flex;
+  gap: 10px;
+  // align-items: flex-end;
+
+  &__dropdown {
+    flex-grow: 1;
+    flex-basis: 0;
+    width: 0;
+  }
+
+  &__status {
+    margin-top: 24.5px;
+    box-sizing: border-box;
+    padding: 1px 0;
+    height: 36px;
+  }
+}
