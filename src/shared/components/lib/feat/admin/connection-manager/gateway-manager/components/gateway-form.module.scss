@@ -1,0 +1,264 @@
+@import '../../../../../color';
+@import '../../../../../size';
+
+.gateway-form {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-grow: 1;
+  height: 0;
+  padding-right: 8px;
+  overflow: auto;
+
+  &__source-id {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    width: 100%;
+    justify-content: space-between;
+
+    &__input {
+      width: 100%;
+    }
+  }
+
+  &__button {
+    width: 36px;
+    height: 36px;
+    color: $neutral-text-title-heading;
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    background: $background-high;
+    cursor: pointer;
+
+    &:hover {
+      filter: brightness(105%);
+    }
+  }
+}
+
+.split-horizontal {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+
+  &__item {
+    flex-grow: 1;
+    flex-basis: 0;
+  }
+}
+
+.key-values {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: $neutral-text-title-heading;
+
+  &__header {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+
+    &__label {
+      color: $neutral-text-title-heading;
+    }
+
+    &__add {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      //TODO: fix typo '25x'
+      height: 25px;
+      width: 25px;
+      color: $neutral-text-title-heading;
+
+      &:hover {
+        filter: brightness(105%);
+      }
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+  }
+}
+
+.key-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+
+  &__input {
+    flex-grow: 1;
+    flex-basis: 0;
+  }
+
+  &__delete {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border-radius: $borderRadiusMedium;
+    height: 17px;
+    width: 17px;
+    color: $neutral-text-title-heading;
+
+    &:hover {
+      filter: brightness(105%);
+    }
+  }
+}
+
+.expression {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: $neutral-text-title-heading;
+
+  &__label {
+    color: $neutral-text-title-heading;
+  }
+
+  &__content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+
+    &__preview {
+      flex-grow: 1;
+      flex-basis: 0;
+      width: 0;
+      margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &__expand {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      border-radius: $borderRadiusMedium;
+      height: 20px;
+      width: 20px;
+      background: $brand-surface-default-primary;
+      color: $neutral-text-title-heading;
+
+      &:hover {
+        filter: brightness(105%);
+      }
+    }
+  }
+}
+
+.expanded-expression {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  width: 800px;
+
+  &__code-editor {
+    flex-grow: 1000;
+    flex-basis: 0;
+    border-radius: 8px;
+    border: 2px solid $brand-border-default-primary;
+
+    & div[role='code'] {
+      border-radius: 8px;
+    }
+
+    & div[data-mprt='3'] {
+      border-radius: 8px;
+    }
+
+    &__code {
+      * {
+        font-family: Consolas, 'Courier New', monospace;
+      }
+    }
+  }
+
+  &__execute {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-grow: 500;
+    flex-basis: 0;
+  }
+}
+
+.additional-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: $neutral-text-title-heading;
+
+  &__label {
+    color: $neutral-text-title-heading;
+  }
+
+  &__content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+
+    &__preview {
+      flex-grow: 1;
+      flex-basis: 0;
+      width: 0;
+      margin: 0;
+      font-size: $fontSizeNormal;
+      color: $neutral-text-title-heading;
+      background-color: transparent;
+      border: none;
+      outline: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      font-weight: 500;
+      // height: 24px;
+      padding: 0;
+
+      &--monospace {
+        font-family: monospace;
+      }
+    }
+  }
+
+  &__icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border-radius: $borderRadiusMedium;
+    height: 20px;
+    width: 20px;
+    background: $brand-surface-default-primary;
+
+    &:hover {
+      filter: brightness(105%);
+    }
+  }
+}
+
+.textbox-code {
+  textarea {
+    font-family: 'Courier New', Courier, monospace !important;
+  }
+}
