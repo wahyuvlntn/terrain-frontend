@@ -1,0 +1,33 @@
+@import '../../../../../color';
+@import '../../../../../size';
+
+.gateway-status {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__status {
+    border-radius: 8px;
+    padding: 4px 8px;
+    color: $neutral-text-body-light;
+
+    &--connected {
+      background-color: $status-running-primary;
+    }
+
+    &--disconnected {
+      background-color: $status-offline-secondary;
+    }
+
+    &--error {
+      background-color: $status-unplanned_down-primary;
+    }
+  }
+}
