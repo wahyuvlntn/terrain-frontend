@@ -1,0 +1,183 @@
+@import '../../../../../color';
+@import '../../../../../size';
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: $neutral-text-title-heading;
+}
+
+.label {
+  color: $neutral-text-title-heading;
+}
+
+.input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: $background-highest;
+  max-width: 468px;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  span {
+    font-family: monospace;
+  }
+
+  &__message {
+    text-align: justify;
+  }
+
+  &__title {
+    font-weight: 600;
+  }
+
+  &__schema {
+    white-space: pre;
+  }
+
+  &--s7 {
+    max-width: 570px;
+  }
+}
+
+.plc-address-dropdown {
+  display: flex;
+  flex: 1 0 0;
+  width: 0;
+}
+
+.browse-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+}
+
+.tag-tree-container {
+  position: relative;
+  flex: 1 0 0;
+  height: 0;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+.tag-node {
+  .Mui-selected {
+    background: $background-low !important;
+  }
+}
+
+.tag-node-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  &:hover &__refresh__icon {
+    display: block;
+  }
+
+  &__refresh {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    &__icon {
+      display: none;
+      height: 18px;
+      width: 18px;
+      flex-shrink: 0;
+
+      &--loading {
+        display: block;
+        animation-name: ckw;
+        animation-duration: 1.2s;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+        transform-origin: 50% 50%;
+      }
+    }
+  }
+}
+
+.browse-all {
+  z-index: 1;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  right: 2px;
+  height: 30px;
+  width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $background-high;
+  border-radius: $borderRadiusMedium;
+  color: $neutral-text-title-heading;
+
+  &:hover {
+    filter: brightness(105%);
+  }
+
+  &__icon {
+    flex-shrink: 0;
+
+    &--loading {
+      animation-name: ckw;
+      animation-duration: 1.2s;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+      transform-origin: 50% 50%;
+    }
+  }
+
+  &__tooltip {
+    width: auto;
+    background: $background-highest;
+    padding: 10px;
+
+    &:focus {
+      outline: $border-default;
+    }
+  }
+}
+
+@keyframes ckw {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.info-icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.row {
+  display: flex;
+  gap: 6px;
+}
+
+.column {
+  flex: 1 0 0;
+  width: 0;
+}
