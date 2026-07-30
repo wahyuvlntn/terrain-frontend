@@ -1,0 +1,148 @@
+@import '../../../../../color';
+@import '../../../../../size';
+
+.container {
+  display: flex;
+  gap: 20px;
+  height: 682px;
+  width: 600px;
+  padding: 12px;
+  box-sizing: border-box;
+
+  &--browsable {
+    width: 1241px;
+  }
+}
+
+.browse {
+  flex: 1 0 0;
+  height: 100%;
+}
+
+.form {
+  flex: 1 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.separator {
+  box-sizing: border-box;
+  border: 0;
+  border-left: 1px solid $neutral-text-title-heading;
+  height: 95%;
+  opacity: 0.2;
+}
+
+.header {
+  display: flex;
+  gap: 10px;
+}
+
+.list {
+  flex: 1 0 0;
+  height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.entry {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: $borderRadiusMedium;
+  border-width: 1px;
+  border-style: solid;
+  color: $neutral-text-title-heading;
+  //TODO: remove overwritten border-color;
+  //border-color: $neutral-text-title-heading;
+  // border-color: color-mix(in srgb, currentColor 60%, transparent);
+  border-color: $border-default;
+  padding: 10px;
+
+  &__columns {
+    display: flex;
+    gap: 10px;
+  }
+
+  &__column {
+    flex: 1 0 0;
+  }
+
+  &__delete {
+    display: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    // color: $persimmon-500;
+    color: $neutral-text-title-heading;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 1;
+  }
+
+  &:hover &__delete {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.button {
+  cursor: pointer;
+  height: 36px;
+  width: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $borderRadiusMedium;
+
+  &--add {
+    background: $brand-surface-default-primary;
+    color: $neutral-text-body-light;
+  }
+
+  &--sort {
+    background: $background-high;
+    color: $neutral-text-title-heading;
+  }
+
+  &:hover {
+    filter: brightness(105%);
+  }
+
+  &__icon {
+    flex-shrink: 0;
+
+    &--add {
+      height: 32px;
+      width: 32px;
+    }
+
+    &--sort {
+      height: 28px;
+      width: 28px;
+    }
+  }
+
+  &__tooltip {
+    width: auto;
+    background: $background-highest;
+    padding: 10px;
+
+    &:focus {
+      outline: $border-default;
+    }
+  }
+}
