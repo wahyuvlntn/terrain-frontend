@@ -1,0 +1,39 @@
+@import '../../../../../size';
+@import '../../../../../color';
+@import '../../../../../util-class.module';
+@import '../issue-mapping.module.scss';
+
+.source-list {
+  display: flex;
+  flex: 1;
+  background-color: $background-default;
+
+  .container {
+    background-color: $background-high;
+    flex: 1;
+    position: relative;
+
+    .source {
+      flex: 1;
+      flex-direction: column;
+      display: flex;
+      gap: 16px;
+
+      .header {
+        width: 100%;
+        display: flex;
+        gap: 10px;
+      }
+
+      .list {
+        flex-grow: 1;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        background-color: $background-high;
+        height: 0;
+        gap: 4px;
+      }
+    }
+  }
+}
