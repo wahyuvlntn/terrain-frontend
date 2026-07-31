@@ -1,0 +1,12 @@
+@import '../../../../size';
+@import '../../../../color';
+@import '../../../../util-class.module';
+
+.location-manager-container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  position: relative;
+  overflow: auto;
+}
