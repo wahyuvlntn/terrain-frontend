@@ -1,0 +1,46 @@
+@import '../../../../../color';
+@import '../../../../../size';
+
+.model-list {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 420;
+  flex-basis: 0;
+  min-width: 285px;
+  overflow: auto;
+  background-color: $background-default;
+}
+
+.model-list-header {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100%;
+}
+
+.model-list-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-grow: 1;
+  height: 0;
+  width: 100%;
+  overflow: auto;
+}
+
+.loading-data {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.pagination-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

@@ -1,0 +1,15 @@
+.add-model-drawer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.add-model-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-grow: 1;
+  height: 0;
+  overflow: auto;
+}
