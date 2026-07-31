@@ -1,0 +1,30 @@
+@import '../../../../../color';
+@import '../../../../../size';
+
+.license-status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  height: 29px;
+  min-width: 80%;
+  border-radius: 8px;
+  box-sizing: border-box;
+  padding: 4px 8px 4px 4px;
+  color: $neutral-text-body-light;
+
+  &--active {
+    background: $status-running-primary;
+  }
+
+  &--inactive {
+    background: $status-unplanned_down-primary;
+  }
+
+  &__status {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+}
