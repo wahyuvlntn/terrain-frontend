@@ -1,0 +1,46 @@
+@import '../../../../../color';
+
+.header-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+}
+
+.info-icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: $background-highest;
+  max-width: 468px;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  span {
+    font-family: monospace;
+  }
+
+  &__message {
+    text-align: justify;
+  }
+
+  &__title {
+    font-weight: 600;
+  }
+
+  &__schema {
+    white-space: pre;
+  }
+}
