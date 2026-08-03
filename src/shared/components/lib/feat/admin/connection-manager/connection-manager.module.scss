@@ -1,0 +1,32 @@
+@import '../../../color';
+@import '../../../size';
+@import '../../../util-class.module';
+
+.connection-manager {
+  width: 100%;
+  height: 100%;
+
+  @include flex-col-gap(0);
+  align-items: flex-start;
+
+  & div[aria-details='list-secondary'] {
+    border-bottom: none;
+  }
+
+  .content {
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    box-sizing: border-box;
+    background-color: $background-low;
+
+    display: flex;
+    // justify-content: center;
+    // align-items: center;
+  }
+
+  .content--first-tab-selected {
+    border-top-left-radius: 0;
+  }
+}
