@@ -1,23 +1,10 @@
-/* eslint-disable @nx/enforce-module-boundaries */
 
-import {
-  COLOR,
-  Container,
-  Dropdown,
-  Loading,
-  Pagination,
-  Search,
-} from '@digital-twin/components';
+import { COLOR, Container, Dropdown, Loading, Pagination, Search } from '@digital-twin/components';
 import { AlertAlarmFill } from '@digital-twin/icons';
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import {
-  useGetAlarmCodesMapping,
-  useGetModel,
-  useParams,
-  useResizeObserver,
-} from '../hooks';
+import { useGetAlarmCodesMapping, useGetModel, useParams, useResizeObserver } from '../hooks';
 import { alarmType } from '../schemas';
 import styles from './alarm.module.scss';
 
@@ -48,10 +35,7 @@ export const Alarm = ({ onAlarmChange, onModelChange }: AlarmProps) => {
     if (size && ref && ref.current) {
       const divisor = ITEM_HEIGHT + GAP;
       setLimit(
-        Math.max(
-          Math.floor((ref.current.clientHeight - OFFSET + GAP) / divisor),
-          DEFAULT_LIMIT
-        )
+        Math.max(Math.floor((ref.current.clientHeight - OFFSET + GAP) / divisor), DEFAULT_LIMIT)
       );
     }
   }, [size, ref]);
@@ -103,9 +87,7 @@ export const Alarm = ({ onAlarmChange, onModelChange }: AlarmProps) => {
   }, [JSON.stringify(alarms)]);
 
   useEffect(() => {
-    const selected = alarms?.find(
-      (alarm) => alarm.alarm_id.toString() === selectedAlarm
-    );
+    const selected = alarms?.find((alarm) => alarm.alarm_id.toString() === selectedAlarm);
     if (selected) {
       onAlarmChange({
         id: selected.alarm_id,
@@ -139,6 +121,7 @@ export const Alarm = ({ onAlarmChange, onModelChange }: AlarmProps) => {
           }))}
           value={selectedModel}
           onChange={(v) => setSelectedModel(v)}
+          searchable
         />
         <div className={styles['filter']}>
           <Search
@@ -149,9 +132,7 @@ export const Alarm = ({ onAlarmChange, onModelChange }: AlarmProps) => {
             placeholder="Search..."
           />
           <div className={styles['mapped']}>{`Mapped: ${mappedCount}`}</div>
-          <div
-            className={styles['unmapped']}
-          >{`Unmapped: ${unmappedCount}`}</div>
+          <div className={styles['unmapped']}>{`Unmapped: ${unmappedCount}`}</div>
         </div>
       </div>
       <div className={styles['list']} ref={ref}>
