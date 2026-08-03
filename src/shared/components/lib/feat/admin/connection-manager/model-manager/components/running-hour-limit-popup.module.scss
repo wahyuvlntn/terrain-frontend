@@ -1,0 +1,71 @@
+@import '../../../../../color';
+
+.RunningHourLimitPopup {
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+    width: 706px;
+
+    &__Section {
+        display: flex;
+        flex-direction: column;
+        row-gap: 16px;
+        padding: 16px;
+        border-radius: 8px;
+        background: $background-lowest;
+        border: 1px solid $border-default;
+
+        &__Title {
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        &__DataContainer {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        &__InputContainer {
+            display: flex;
+            flex-direction: row;
+            align-items: end;
+            column-gap: 16px;
+        }
+
+        &__Label {
+            font-weight: 500;
+            font-size: 16px;
+            line-height: 24px;
+            height: 34px;
+        }
+
+        &__Input {
+            width: 340px;
+        }
+
+        &__AutoCreateMaintenance {
+            align-self: flex-end;
+        }
+    }
+}
+
+.ToggleBtnContainer {
+    display: flex;
+    flex-direction: column;
+    row-gap: 6px;
+    width: 238px;
+
+    &__Label {
+        font-weight: 500;
+        font-size: 16px;
+    }
+
+    &__ToggleBtn {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        height: 36px;
+    }
+}
