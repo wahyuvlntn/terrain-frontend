@@ -1,0 +1,145 @@
+@import '../../../../color';
+@import '../../../../size';
+
+.license-file {
+  flex: 1 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: $neutral-text-title-heading;
+
+  &__label {
+    font-weight: 500;
+  }
+
+  &__input {
+    flex: 1 0 0;
+    height: 0;
+    overflow: auto;
+    display: flex;
+    background-color: $background-low;
+    border-radius: 8px;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid $border-default;
+  }
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: center;
+
+  .input__label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: $neutral-text-body-light;
+    opacity: 0.4;
+
+    &__filled {
+      opacity: 1;
+    }
+
+    svg {
+      width: 120px;
+      height: 120px;
+    }
+  }
+
+  .upload__text {
+    color: $neutral-text-title-heading;
+    font-size: 14px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .filetype__text {
+    display: flex;
+    justify-content: center;
+    color: $neutral-text-title-heading;
+    font-size: 12px;
+  }
+
+  .description__text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: $neutral-text-title-heading;
+    font-size: 14px;
+  }
+
+  .action__button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: $background-high;
+    color: $neutral-text-title-heading;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+
+    svg {
+      min-height: 24px;
+      min-width: 24px;
+      max-height: 24px;
+      max-width: 24px;
+    }
+
+    &:hover {
+      background-color: $background-highest;
+    }
+  }
+}
+
+.fileInput {
+  display: none;
+}
+
+.license-information {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: $neutral-text-title-heading;
+  // margin-bottom: 10px;
+
+  &__label {
+    color: $neutral-text-title-heading;
+    width: fit-content;
+    position: relative;
+  }
+
+  &__result {
+    // padding: 10px;
+    position: relative;
+    height: 160px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    // background: $background-lowest;
+    // border: 1px solid $border-default;
+    // border-radius: $borderRadiusMedium;
+    border-radius: 8px;
+    overflow: auto;
+
+    &__kv {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+  }
+}
