@@ -1,0 +1,10 @@
+@import '../../../../color';
+@import '../../../../size';
+
+.upload-license-form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 10px;
+  box-sizing: border-box;
+}

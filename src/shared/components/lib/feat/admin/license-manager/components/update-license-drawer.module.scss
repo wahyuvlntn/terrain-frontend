@@ -1,0 +1,48 @@
+@import '../../../../color';
+@import '../../../../size';
+
+.update-license-form {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.columns {
+  display: flex;
+  gap: 10px;
+}
+
+.column-item {
+  flex: 1 0 0;
+  width: 0;
+}
+
+.separator {
+  box-sizing: border-box;
+  border: 0;
+  border-top: 1px solid $neutral-text-title-heading;
+  width: 100%;
+  opacity: 0.2;
+}
+
+.input-lookalike {
+  flex: 1 0 0;
+  width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: $neutral-text-title-heading;
+
+  span {
+    font-weight: 500;
+  }
+
+  &__label {
+    color: $neutral-text-title-heading;
+    width: fit-content;
+    position: relative;
+  }
+}
