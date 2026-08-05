@@ -1,0 +1,187 @@
+@import '../../../color';
+@import "../../../util-class.module";
+
+.graph-color {
+  @include flex-col-gap(6px);
+  align-items: flex-start;
+  width: 128px;
+  height: 68px;
+  padding: 8px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  background: $background-default;
+  cursor: pointer;
+
+  &.selected {
+    cursor: default;
+    border: 1px solid $brand-border-default-primary;
+  }
+
+  .title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    svg {
+      cursor: pointer;
+    }
+  }
+
+  .graph-color-list {
+    @include flex-row-gap(6px);
+    width: 100%;
+
+    .color {
+      width: 20px;
+      height: 20px;
+      min-width: 20px;
+      min-height: 20px;
+      border-radius: 2px;
+    }
+
+    .sub-color-list {
+      @include flex-row-gap(2px);
+      width: 100%;
+    }
+  }
+}
+
+.color-picker {
+  @include flex-row-gap(8px);
+  border-radius: 8px;
+  padding: 8px;
+  background: $background-default;
+}
+
+.color-picker-container {
+  width: 58.95px;
+  height: 58.95px;
+  min-width: 58.95px;
+  min-height: 58.95px;
+  position: relative;
+  border-radius: 8px;
+
+  &.small {
+    width: 32.04px;
+    height: 32.04px;
+    min-width: 32.04px;
+    min-height: 32.04px;
+  }
+
+  input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+}
+
+.color-palette-group {
+  @include flex-col-gap(10px);
+  width: 100%;
+  align-items: flex-start;
+
+  .color-picker-list {
+    @include flex-row-gap(8px);
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
+
+.theme-details {
+  border-radius: 8px;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  @include flex-col-gap(16px);
+  color: $neutral-text-title-heading;
+  overflow: hidden;
+
+  .header {
+    width: 100%;
+    @include flex-col-gap(16px);
+
+    .navigation {
+      @include flex-row-gap(4px);
+      align-self: flex-start;
+
+      svg {
+        cursor: pointer;
+      }
+    }
+
+    .main-color-container {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-end;
+      gap: 16px;
+      width: 100%;
+
+      .color-picker-code {
+        @include flex-row-gap(16px);
+
+        .code-container {
+          @include flex-col-gap(6px);
+          align-items: flex-start;
+        }
+      }
+    }
+  }
+
+  .hr {
+    height: 1px;
+    min-height: 1px;
+    width: 100%;
+    background:$border-default;
+  }
+
+  .result-title-container {
+    align-self: flex-start;
+  }
+
+  .color-palette-list-container {
+    @include flex-col-gap(16px);
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    align-items: flex-start;
+    position: relative;
+
+    .graph-colors {
+      @include flex-col-gap(8px);
+      align-items: flex-start;
+      width: 100%;
+
+      .graph-colors-list {
+        width: 100%;
+        @include flex-row-gap(8px);
+        flex-wrap: wrap;
+      }
+    }
+  }
+
+  .buttons {
+    @include flex-row-gap(12px);
+    align-self: flex-end;
+  }
+}
+
+.input {
+  width: 233px;
+}
+
+.input > div > div {
+  background: $background-lowest !important;
+  border-radius: 8px;
+}

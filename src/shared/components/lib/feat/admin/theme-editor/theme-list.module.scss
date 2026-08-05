@@ -1,0 +1,58 @@
+@import '../../../color';
+@import "../../../util-class.module";
+
+.theme-list {
+  border-radius: 4px;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  @include flex-col-gap(16px);
+  color: $neutral-text-title-heading;
+  overflow: hidden;
+
+  .title {
+    align-self: flex-start;
+    font-weight: 600;
+  }
+
+  .search {
+    @include flex-row-gap(16px);
+    width: 100%;
+  }
+
+  .list {
+    width: 100%;
+    height: 100%;
+
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 226.5px);
+    justify-content: space-between;
+    grid-auto-rows: minmax(min-content, max-content);
+
+    overflow: auto;
+
+    row-gap: 16px;
+    padding: 5px 0;
+    position: relative;
+  }
+
+  .buttons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+
+    .edit-apply-buttons {
+      @include flex-row-gap(12px);
+    }
+  }
+}
+
+.button-new {
+  white-space: nowrap;
+}
+
+.bg-dark >div > div {
+  background: $background-lowest !important;
+}

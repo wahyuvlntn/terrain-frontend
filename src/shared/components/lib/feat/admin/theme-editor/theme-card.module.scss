@@ -1,0 +1,58 @@
+@import '../../../color';
+@import '../../../util-class.module';
+
+.theme-card {
+  border-radius: 11.81px;
+  padding: 11.81px;
+  background: $background-default;
+  color: $neutral-text-title-heading;
+  @include flex-col-gap(8.86px);
+  width: 226.5px;
+  height: 84.53px;
+  min-height: 85.43px;
+  box-sizing: border-box;
+  cursor: pointer;
+
+  &.selected {
+    cursor: default;
+    border: 2px solid $brand-border-default-primary;
+  }
+
+  .title-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 20px;
+
+    position: relative;
+
+    .title {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    svg {
+      cursor: pointer;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .colors {
+    @include flex-row-gap(8px);
+    width: 100%;
+
+    .color {
+      width: 32.04px;
+      min-width: 32.04px;
+      height: 32.04px;
+      min-height: 32.04px;
+      border-radius: 3.2px;
+      border: 0.8px solid rgba(255, 255, 255, 0.3);
+      box-sizing: border-box;
+    }
+  }
+}
