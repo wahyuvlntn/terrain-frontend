@@ -1,0 +1,94 @@
+@import '../../../color';
+@import '../../../size';
+@import '../../../util-class.module';
+
+.upload-logo {
+  width: 100%;
+  height: 128px;
+  min-height: 128px;
+  border: 1px dashed rgba(255, 255, 255, 0.5);
+  box-sizing: border-box;
+  background: $background-lowest;
+  border-radius: 8px;
+  color: $neutral-text-body-light;
+  @include flex-col-gap(8px);
+  justify-content: center;
+  position: relative;
+
+  &:hover {
+    .update-container {
+      display: flex;
+    }
+
+    .error-message {
+      display: none;
+    }
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: scale-down;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .update-container {
+    @include flex-col-gap(6px);
+    justify-content: center;
+    z-index: 2;
+    background: rgba(0, 0, 0, 0.4);
+    width: 100%;
+    height: 100%;
+    display: none;
+
+    .update-buttons {
+      @include flex-row-gap(23px);
+
+      span {
+        cursor: pointer;
+      }
+    }
+  }
+
+  .error-message {
+    z-index: 2;
+    background: rgba(0, 0, 0, 0.4);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: $condition-critical-primary;
+  }
+
+  input {
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  label.upload-button {
+    @include flex-row-gap(5.59px);
+    color: $neutral-text-title-heading;
+    border-radius: $borderRadiusMedium;
+    padding: 8px 14px;
+    background: $brand-surface-default-primary;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .text-title {
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .text-desc {
+    font-size: 14px;
+    font-weight: 400;
+  }
+}
