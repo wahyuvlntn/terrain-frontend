@@ -1,0 +1,46 @@
+@import '../../../color';
+@import '../../../util-class.module';
+
+.theme-editor {
+  @include flex-row-gap(16px);
+  height: 100%;
+  color: $neutral-text-title-heading;
+  overflow: auto;
+
+  .setup {
+    width: 501px;
+    min-width: 501px;
+    height: 100%;
+    box-sizing: border-box;
+
+    > div {
+      height: 100%;
+    }
+
+    .field-container {
+      @include flex-col-gap(16px);
+      width: 100%;
+
+      .field-header {
+        @include flex-row-gap(4px);
+        width: 100%;
+
+        span {
+          font-size: 18px;
+        }
+      }
+    }
+
+    .theme-list {
+      height: 100%;
+      overflow: hidden;
+    }
+  }
+
+  .preview {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    min-width: 500px;
+  }
+}
