@@ -62,8 +62,7 @@ export const LicenseFileStandardized = ({
       const remainingMs = result.expired_at - Date.now();
 
       if (remainingMs > 0) {
-        remainingDays =
-          Math.round((remainingMs / (24 * 3600 * 1000)) * 100) / 100;
+        remainingDays = Math.round((remainingMs / (24 * 3600 * 1000)) * 100) / 100;
       }
     }
 
@@ -101,9 +100,7 @@ export const LicenseFileStandardized = ({
 
   return (
     <div className={styles['license-file']}>
-      {label ? (
-        <span className={styles['license-file__label']}>{label}</span>
-      ) : null}
+      {label ? <span className={styles['license-file__label']}>{label}</span> : null}
       <div className={styles['license-file__input']}>
         <div className={styles.wrapper}>
           <input
@@ -118,22 +115,16 @@ export const LicenseFileStandardized = ({
               }
             }}
             className={styles.fileInput}
-            required={required}
+            // required={required}
           />
           <div className={clsx(styles.icon, value ? styles.icon__filled : '')}>
-            {!value ? (
-              <CloudUploadFill color={COLOR.neutralTextTitleHeading} />
-            ) : (
-              <FileFillIcon />
-            )}
+            {!value ? <CloudUploadFill color={COLOR.neutralTextTitleHeading} /> : <FileFillIcon />}
           </div>
           <div className={styles.upload__text}>
             <span>{t('common.upload_license_text')}</span>
           </div>
           {!value ? (
-            <span className={styles.filetype__text}>
-              {t('common.file_type')} (.bin)
-            </span>
+            <span className={styles.filetype__text}>{t('common.file_type')} (.bin)</span>
           ) : (
             <div className={styles.description__text}>
               <span>{value.name}</span>
