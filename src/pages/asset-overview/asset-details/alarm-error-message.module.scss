@@ -1,0 +1,33 @@
+@import '../../../shared/components/lib/color';
+
+.alarm-item {
+  &__error-code {
+    display: flex;
+    align-items: center;
+    gap: 7.24px;
+    width: 100%;
+
+    span {
+      text-overflow: ellipsis;
+      overflow-x: hidden;
+      white-space: nowrap;
+    }
+
+    &.WARNING,
+    &.CRITICAL {
+      svg {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+      }
+    }
+
+    &.WARNING svg {
+      color: $condition-warning-primary;
+    }
+
+    &.CRITICAL svg {
+      color: $condition-critical-primary;
+    }
+  }
+}

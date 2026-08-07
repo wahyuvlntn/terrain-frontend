@@ -1,0 +1,34 @@
+@import '../../../shared/components/lib/size';
+@import '../../../shared/components/lib/color';
+@import '../../../shared/components/lib/util-class.module';
+
+.asset-card {
+  &-header {
+    height: 49px;
+    min-height: 49px !important;
+  }
+
+  &-right-container {
+    padding: 3px 12px;
+    width: 357.5px;
+    max-width: 357.5px;
+    row-gap: 0;
+  }
+
+  &-condition-alarm-container {
+    // width: 109px;
+    // max-width: 109px;
+    flex: 1;
+    padding: 10px 0;
+    box-sizing: border-box;
+  }
+
+  &-condition-badge {
+    height: 45px;
+  }
+
+  &-uptime-container {
+    width: 116px;
+    row-gap: 4px !important;
+  }
+}

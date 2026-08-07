@@ -1,0 +1,175 @@
+.legend {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  &.asset-card {
+    width: fit-content;
+    height: fit-content;
+
+    .tooltip {
+
+      &__eq-photo {
+        top: 50%;
+        transform: translate(-100%, -50%);
+        left: 0;
+      }
+
+      &__eq-name {
+        transform: translate(-50%, -100%);
+        left: 70px;
+        top: -5px;
+      }
+
+      &__eq-information {
+        transform: translate(-50%, 50%);
+        bottom: -30px;
+        left: 150px;
+      }
+
+      &__eq-alarm-info {
+        transform: translate(50%, 50%);
+        bottom: -45px;
+        right: 195px;
+      }
+
+      &__eq-condition {
+        transform: translate(130px, -50px);
+      }
+
+      &__eq-status {
+        transform: translate(50%, -100%);
+        right: 75px;
+        top: 0;
+
+        .description {
+          display: flex;
+          flex-direction: column;
+        }
+      }
+
+      &__eq-oee {
+        top: calc(50% + 25px);
+        transform: translate(100%, -50%);
+        right: 0;
+
+        .description {
+          display: flex;
+          flex-direction: column;
+          white-space: break-spaces;
+          max-width: 219px;
+        }
+      }
+    }
+  }
+
+  &.kpis {
+    flex-direction: row;
+    gap: 16px;
+    height: 60px;
+    width: fit-content;
+
+    .kpi {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      height: 100%;
+      box-sizing: border-box;
+      width: 227.67px;
+    }
+
+    .tooltip {
+      transform: translate(-50px, -100%);
+
+      &--good {
+        transform: translate(-50%, 100%);
+        left: 120px;
+        bottom: -10px;
+      }
+
+      &--bad {
+        transform: translate(50%, 100%);
+        right: 120px;
+        bottom: -10px;
+      }
+    }
+  }
+
+  &.recent-list {
+    .tooltip {
+      &__tab-selector {
+        right: 0;
+        top: 10px;
+        transform: translate(100%, 0);
+      }
+
+      &__warning {
+        left: 0;
+        transform: translate(-100%, 0);
+        top: 95px;
+      }
+
+      &__critical {
+        left: 0;
+        transform: translate(-100%, 0);
+        bottom: 55px;
+      }
+    }
+  }
+
+  &.recent-list-tab {
+    .tooltip {
+      &__alarm {
+        left: -10px;
+        transform: translate(-100%, 0);
+      }
+
+      &__maintenance {
+        right: -10px;
+        transform: translate(100%, 0);
+      }
+    }
+  }
+}
+
+.container-2 {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  scale: 0.9;
+}
+
+.legend-chart {
+  > div {
+    height: auto;
+  }
+}
+
+.asset-card {
+  &-header {
+    height: 49px;
+    min-height: 49px !important;
+  }
+
+  &-condition-alarm-container {
+    width: 109px;
+    max-width: 109px;
+  }
+
+  &-condition-badge {
+    height: 67px !important;
+  }
+
+  &-uptime-container {
+    width: 116px;
+  }
+}
