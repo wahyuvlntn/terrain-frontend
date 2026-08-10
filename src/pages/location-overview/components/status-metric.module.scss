@@ -1,0 +1,73 @@
+@import '../../../shared/components/lib/size';
+@import '../../../shared/components/lib/color';
+@import '../../../shared/components/lib/util-class.module';
+
+.status-metric-container {
+  // transition: flex 0.5s cubic-bezier(0, 0, 0.1, 1);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  align-items: flex-start;
+  flex: 1;
+  min-height: 67px;
+  color: $foundation-neutral-white;
+  background-color: $background-default;
+  border-radius: 4px;
+
+  padding: 9px 12px;
+  .metric-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+
+    & > div {
+      display: flex;
+      align-items: flex-start;
+      overflow: hidden;
+      flex-direction: column;
+      width: 100%;
+
+      span {
+        text-align: left;
+        font-size: 12px;
+        color: $foundation-neutral-white;
+        // align-self: center;
+      }
+      svg {
+        height: 20px;
+        width: 20px;
+      }
+    }
+  }
+
+  .metric-value-container{
+    display: flex;
+    max-width: 100px;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+
+    .metric-value {
+      font-size: 16px;
+      text-align: center;
+      margin-bottom: 2px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      max-width: 100px;
+      overflow: hidden;
+      white-space: nowrap;
+      color: $foundation-neutral-white;
+    }
+  
+    .metric-value-percent {
+      font-size: 12px;
+      text-align: center;
+      margin-bottom: 2px;
+      color: $foundation-neutral-white;
+    }
+  }
+
+}

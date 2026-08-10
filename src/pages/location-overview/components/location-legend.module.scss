@@ -1,0 +1,22 @@
+.container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+
+  .tooltip {
+    &__right {
+      transform: translate(-100%, -50%);
+    }
+
+    &__bottom {
+      transform: translate(-50%, -100%);
+    }
+
+    &__top {
+      transform: translate(-50%, 0);
+    }
+  }
+}

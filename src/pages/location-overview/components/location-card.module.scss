@@ -1,0 +1,256 @@
+@import '../../../shared/components/lib/size';
+@import '../../../shared/components/lib/color';
+@import '../../../shared/components/lib/util-class.module';
+
+.location-card {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  color: $neutral-text-title-heading;
+  flex: 1;
+  justify-content: space-between;
+
+  .card-header {
+    display: flex;
+    cursor: pointer;
+    height: 42px;
+    min-height: 42px;
+    align-items: center;
+    justify-content: space-between;
+
+    .card-title {
+      margin-left: 16px;
+      font-weight: 600;
+      font-size: 22px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+  }
+
+  .card-top-section {
+    display: flex;
+    // flex: 2;
+    // max-height: 169px;
+    height: 0;
+    flex-grow: 1;
+    gap: 16px;
+    padding: 8px 16px;
+    box-sizing: border-box;
+    background-color: $background-default;
+
+    .location-image {
+      display: flex;
+      flex: 2;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .location-image > img {
+      // max-width: 424px;
+      // max-height: 169px;
+      overflow: hidden;
+      border-radius: 6px;
+    }
+
+    .oee-chart-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-direction: column;
+      // flex: 1;
+      width: 0;
+      flex-grow: 1;
+      // max-width: 116px;
+
+      .oee-chart-header {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        svg {
+          height: 20px;
+          width: 20px;
+        }
+      }
+
+      span {
+        font-weight: 700;
+        font-size: 19px;
+        color: $neutral-text-title-heading;
+      }
+    }
+
+    .apq-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: auto;
+      gap: 6px;
+
+      .apq-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .uptime-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .apq-header {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+
+        svg {
+          height: 20px;
+          width: 20px;
+        }
+        span {
+          font-weight: 700;
+          font-size: 16px;
+          color: $neutral-text-title-heading;
+        }
+      }
+
+      .apq-value-container {
+        display: flex;
+        gap: 4px;
+        flex-direction: column;
+
+        .apq-title {
+          color: $neutral-text-body-light;
+        }
+
+        .apq-value {
+          width: 45px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-align: right;
+          text-overflow: ellipsis;
+          color: $neutral-text-body-light;
+        }
+      }
+
+      .uptime-value-container {
+        display: flex;
+        gap: 4px;
+        flex-direction: column;
+        width: 100%;
+
+        .uptime-value {
+          width: 45px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-align: center;
+          text-overflow: ellipsis;
+          color: $neutral-text-body-light;
+        }
+      }
+    }
+  }
+
+  .card-bottom-section {
+    display: flex;
+    flex: 1;
+    width: 100%;
+    height: 0;
+    gap: 8px;
+    overflow: hidden;
+    box-sizing: border-box;
+    padding: 8px;
+    align-self: center;
+    max-height: 135px;
+    background-color: $background-low;
+
+    .current-status {
+      display: flex;
+      justify-content: space-between;
+      gap: 4px;
+      height: 100%;
+      flex: 2;
+      flex-direction: column;
+
+      .current-status-header {
+        align-items: center;
+        display: flex;
+        svg {
+          height: 20px;
+          width: 20px;
+        }
+      }
+      .status-metrics {
+        display: flex;
+        gap: 4px;
+        height: 100%;
+        width: 100%;
+      }
+    }
+
+    .current-condition {
+      display: flex;
+      height: 100%;
+      flex-wrap: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      gap: 4px;
+      width: 150px;
+      flex-direction: column;
+
+      .current-condition-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        svg {
+          height: 20px;
+          width: 20px;
+        }
+      }
+    }
+
+    .condition-status {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      gap: 2px;
+
+      span {
+        font-size: 14px;
+        color: $neutral-text-title-heading;
+      }
+    }
+  }
+}
+
+.tooltip-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .tooltip {
+    display: flex;
+    gap: 6px;
+  }
+}
+
+.equipment-count-badge {
+  background: $background-default;
+  padding: 0 12px;
+  height: 36px;
+  border-radius: 4px;
+}
+
+@media (min-height: 1000px) {
+  .location-image > img {
+    // max-width: 310px;
+    // max-height: 220px !important;
+    border-radius: 6px;
+  }
+}
