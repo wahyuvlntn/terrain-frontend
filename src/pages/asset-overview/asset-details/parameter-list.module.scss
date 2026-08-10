@@ -1,0 +1,75 @@
+@import '../../../shared/components/lib/util-class.module';
+@import '../../../shared/components/lib/size';
+@import '../../../shared/components/lib/color';
+
+.parameter-list {
+  height: 100%;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 8px;
+
+  .header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1 0 0;
+    align-self: stretch;
+    position: relative;
+    height: 100%;
+    width: 100%;
+
+    .search {
+      @include flex-row-gap(13.88px);
+      position: absolute;
+      top: 0;
+      right: 0;
+    }
+  }
+
+  .panel {
+    @include flex-col-gap(10px);
+    overflow: hidden;
+    background: $background-low;
+
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 16px;
+    border-radius: 8px;
+
+    &.no-top-left-border {
+      border-top-left-radius: 0;
+    }
+
+    .list {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: repeat(2, 1fr);
+      grid-row-gap: 10px;
+      height: 100%;
+      width: 100%;
+      position: relative;
+      overflow: auto;
+    }
+  }
+}
+
+.tab-list {
+  > div {
+    border: none !important;
+  }
+
+  .tab {
+    background: $background-lowest;
+    border-radius: 8px 8px 0 0;
+
+    &.active {
+      background: $background-low;
+    }
+  }
+}
+
