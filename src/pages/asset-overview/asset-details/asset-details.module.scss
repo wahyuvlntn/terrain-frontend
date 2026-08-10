@@ -1,0 +1,99 @@
+@import '../../../shared/components/lib/util-class.module';
+@import '../../../shared/components/lib/color';
+
+.kpis {
+  @include flex-row-gap(16px);
+  width: 100%;
+
+  .kpi {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 55px;
+    box-sizing: border-box;
+
+    span {
+      font-size: 16px;
+      font-weight: 600;
+    }
+  }
+
+  .vr {
+    height: 100%;
+    width: 2px;
+    background: $border-default;
+  }
+}
+
+.status-feedback {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+}
+
+.parameter-display {
+  display: flex;
+  justify-content: space-around;
+  padding: 0px;
+  flex: 1 0 0;
+  height: 50px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.asset-card {
+  &-header {
+    height: 49px;
+    min-height: 49px !important;
+  }
+
+  &-right-container {
+    padding: 16px;
+  }
+
+  &-condition-alarm-container {
+    width: 109px;
+    max-width: 109px;
+  }
+
+  &-condition-badge {
+    height: 67px !important;
+  }
+
+  &-uptime-container {
+    width: 116px;
+  }
+}
+
+.status-chart {
+  &__chart-container {
+    max-height: 127px;
+
+    &__yaxis-label-container {
+      padding-top: unset !important;
+      gap: 14px !important;
+    }
+  }
+}
+
+.maintenance-status-badge {
+  width: 79px;
+  height: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.maintenance-id {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  column-gap: 8px;
+}

@@ -1,0 +1,74 @@
+@import '../../shared/components/lib/size';
+@import '../../shared/components/lib/color';
+
+section.card-left {
+  .label {
+    color: $neutral-text-title-heading;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 160%; /* 25.6px */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .value {
+    color: $neutral-text-title-heading;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 160%; /* 25.6px */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.mode {
+  display: flex;
+  flex-direction: row;
+  color: $neutral-text-title-heading;
+
+  .item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &:first-child .icon-container {
+      border-radius: 4px 0 0 4px;
+    }
+
+    &:last-child .icon-container {
+      border-radius: 0 4px 4px 0;
+    }
+
+    .icon-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: $background-default;
+      cursor: pointer;
+      padding: 8.8px;
+      min-width: 39.6px;
+      height: 100%;
+      box-sizing: border-box;
+
+      &.active {
+        cursor: default;
+        background: $background-highest;
+      }
+    }
+
+    .tooltip {
+      visibility: hidden;
+      position: absolute;
+      z-index: 1;
+      transform: translate(calc(-50% + 18px), 50px);
+    }
+
+    &:hover .tooltip {
+      visibility: visible;
+    }
+  }
+}
