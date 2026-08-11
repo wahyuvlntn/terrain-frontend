@@ -1,0 +1,35 @@
+@import '../../../color';
+@import '../../../size';
+@import '../../../util-class.module';
+
+.alarm-item {
+  width: 100%;
+  padding: 8px $spacingXL;
+  height: 38.8px;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  border-radius: 8px;
+
+  color: $neutral-text-title-heading;
+
+  .content {
+    @include flex-row-gap(8px);
+    flex-grow: 1;
+    width: 0;
+
+    > h4 {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  > h4 {
+    font-weight: 400;
+  }
+}
