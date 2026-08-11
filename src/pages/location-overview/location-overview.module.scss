@@ -1,0 +1,131 @@
+@import '../../shared/components/lib/size';
+@import '../../shared/components/lib/color';
+@import '../../shared/components/lib/util-class.module';
+
+.location-overview {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  gap: 16px;
+
+  .location-filters {
+    width: 100%;
+    overflow: auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    height: 52px;
+    min-height: 52px;
+    color: white;
+
+    .location-breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: $neutral-text-title-heading;
+      overflow: auto;
+      max-width: 800px;
+      min-width: 400px;
+
+      .breadcrumb-hidden {
+        position: relative;
+        display: flex;
+        align-items: center;
+        z-index: 100;
+
+        &__icon {
+          min-width: 50px;
+          transform: rotate(90deg);
+          position: relative;
+          svg {
+            cursor: pointer;
+          }
+
+          svg:hover {
+            opacity: 0.6;
+          }
+        }
+
+        &__data {
+          position: fixed;
+          padding: 16px;
+          box-sizing: border-box;
+          border-radius: 8px;
+          background-color: $background-low;
+          outline: 2px solid $border-default;
+
+          &__content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            &__arrow {
+              display: flex;
+              gap: 8px;
+              align-items: center;
+            }
+
+            &__list {
+              white-space: nowrap;
+              cursor: pointer;
+              font-size: 16px;
+            }
+
+            &__list:hover {
+              opacity: 0.6;
+            }
+          }
+        }
+      }
+
+      .breadcrumb-data {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 43px;
+      }
+
+      .breadcrumb-icon {
+        height: 30px;
+        width: 30px;
+      }
+
+      .location-crumb {
+        cursor: pointer;
+      }
+
+      .location-crumb:hover {
+        opacity: 0.6;
+      }
+
+      span {
+        font-weight: 500;
+        font-size: 22px;
+        color: $neutral-text-title-heading;
+      }
+    }
+  }
+
+  .location-overview-grid {
+    height: 100%;
+    width: 100%;
+    display: grid;
+    overflow: auto;
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+    position: relative;
+    gap: 16px;
+  }
+
+  .location-overview-pagination {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 32.3px;
+    width: 100%;
+    border-radius: 4px;
+  }
+}
