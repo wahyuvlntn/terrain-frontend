@@ -1,0 +1,75 @@
+@import '../../util-class.module';
+@import '../../size';
+@import '../../color';
+
+.asset-energy-overview {
+  @include flex-col-gap($spacingXL);
+  overflow: hidden;
+  height: 100%;
+
+  .ribbon {
+    width: 100%;
+    overflow: auto;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+
+    height: 52px;
+    min-height: 52px;
+
+    .back {
+      color: $neutral-text-title-heading;
+      cursor: pointer;
+    }
+  }
+
+  .grid_container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: auto;
+
+    .grid {
+      width: 100%;
+
+      row-gap: 16px;
+
+      position: relative;
+
+      gap: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+
+      @media only screen and (max-width: 1594px) {
+        grid-template-columns: repeat(auto-fit, minmax(480px, 586px));
+      }
+
+      &.left-aligned {
+        grid-template-columns: repeat(auto-fit, minmax(480px, 586px));
+      }
+    }
+  }
+}
+
+.asset-card {
+  min-width: 480px !important;
+  max-width: 100% !important;
+  min-height: 230px !important;
+  max-height: 245.67px !important;
+
+  &-right-container {
+    padding: 0 12px;
+    row-gap: 16px;
+    width: 294px;
+    max-width: 294px;
+    justify-content: center;
+  }
+
+  &-condition-alarm-container {
+    flex: 1;
+    row-gap: 4px !important;
+  }
+}

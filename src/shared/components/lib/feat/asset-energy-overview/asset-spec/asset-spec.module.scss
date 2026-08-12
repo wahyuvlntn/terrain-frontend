@@ -1,0 +1,71 @@
+@import '../../../size';
+@import '../../../color';
+@import '../../../util-class.module';
+
+.asset-spec {
+  @include flex-row-gap(16px);
+  width: 100%;
+
+  position: relative;
+
+  .left-container {
+    @include flex-col-gap(11px);
+    height: 100%;
+
+    img {
+      min-width: 589px;
+      width: 589px;
+      height: 390px;
+      min-height: 390px;
+      object-fit: scale-down;
+    }
+  }
+
+  .right-container {
+    height: 100%;
+    width: 100%;
+  }
+
+  .description {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+
+    h3 {
+      padding: 10px;
+    }
+  }
+}
+
+.input-wrapper {
+  margin: -8px;
+  width: 100%;
+}
+
+span.editable-span {
+  width: 100%;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: start;
+
+  &:empty:before {
+    content: '\200b'; // unicode zero width space character
+  }
+
+  &.block {
+    display: block;
+  }
+
+  .tooltip {
+    visibility: hidden;
+    position: absolute;
+    z-index: 1;
+  }
+
+  &:hover .tooltip {
+    visibility: visible;
+  }
+}
