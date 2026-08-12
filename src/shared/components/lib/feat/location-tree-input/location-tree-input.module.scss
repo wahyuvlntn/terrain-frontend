@@ -1,0 +1,30 @@
+@import '../../color';
+
+.location-tree-input {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 10px;
+  color: $neutral-text-title-heading;
+  max-width: 800px;
+
+  .tree-view {
+    padding: 16px 8px;
+    background-color: $background-lowest;
+    border-radius: 8px;
+    max-height: 500px;
+    overflow: auto;
+  }
+
+  .save-location-input {
+    height: 36px;
+    width: 100px;
+    align-self: flex-end;
+  }
+
+  .tree-item-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
