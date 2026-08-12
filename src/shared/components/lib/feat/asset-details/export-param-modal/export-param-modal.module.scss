@@ -1,0 +1,40 @@
+@import '../../../size';
+@import '../../../color';
+@import '../../../util-class.module';
+
+.export-param {
+  @include flex-col-gap(17px);
+
+  .inputs {
+    @include flex-row-gap(10px);
+    width: 100%;
+  }
+
+  .tree {
+    height: 304.8px;
+    width: 100%;
+    overflow: auto;
+    background: $background-lowest;
+    padding: 16px 8px;
+    box-sizing: border-box;
+  }
+}
+
+.buttons {
+  @include flex-row-gap(12px);
+  align-self: flex-end;
+}
+
+.custom-content-root {
+  cursor: pointer !important;
+
+  .custom-content {
+    @include flex-row-gap(4px);
+
+    .label {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+  }
+}

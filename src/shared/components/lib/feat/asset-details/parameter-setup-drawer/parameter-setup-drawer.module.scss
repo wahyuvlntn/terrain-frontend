@@ -1,0 +1,54 @@
+@import '../../../size';
+@import '../../../color';
+@import '../../../util-class.module';
+
+.parameter-setup-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+
+  color: $neutral-text-title-heading;
+
+  h3 {
+    margin: 8px 0 8px $spacingXL;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    gap: $spacingXL;
+
+    padding: $spacingXL;
+    width: 100%;
+    box-sizing: border-box;
+
+    border-radius: 8px;
+
+    .container-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+
+      .title {
+        @include flex-row-gap($spacingSmall);
+      }
+    }
+
+    .input-container {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: flex-start;
+
+      .input {
+        width: 100%;
+      }
+    }
+  }
+}
