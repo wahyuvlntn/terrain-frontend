@@ -1,0 +1,59 @@
+@import '../../util-class.module';
+@import '../../size';
+@import '../../color';
+
+.asset-details {
+  @include flex-col-gap($spacingXL);
+  overflow: hidden;
+  height: 100%;
+
+  .ribbon {
+    width: 100%;
+    overflow: auto;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    height: 52px;
+    min-height: 52px;
+
+    .container {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 16px;
+
+      .back {
+        color: $neutral-text-title-heading;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .body {
+    @include flex-row-gap($spacingXL);
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+
+    .content-container {
+      @include flex-col-gap($spacingXL);
+      position: relative;
+
+      &:first-child {
+        width: 715px;
+        min-width: 715px;
+        height: 100%;
+      }
+
+      &:last-child {
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+      }
+    }
+  }
+}

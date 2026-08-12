@@ -1,0 +1,97 @@
+@import '../../../util-class.module';
+@import '../../../size';
+@import '../../../color';
+
+.selector {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  &__buttons {
+    .tooltip {
+      visibility: hidden;
+      position: absolute;
+      z-index: 1;
+      // TODO: Fix the tooltip position
+      transform: translate(calc(-100% + 43px), 10px);
+    }
+
+    &:hover .tooltip {
+      visibility: visible;
+    }
+
+    &:first-child button {
+      border-radius: 4px 0 0 4px;
+    }
+
+    &:last-child button {
+      border-radius: 0 4px 4px 0;
+    }
+  }
+
+  button {
+    background: $background-default;
+    color: $neutral-text-title-heading;
+
+    border-radius: 0;
+    cursor: pointer;
+
+    &:hover,
+    &.selected {
+      background: $background-highest;
+    }
+  }
+}
+
+.recent-list {
+  @include flex-col-gap($spacingXL);
+
+  height: 100%;
+  width: 100%;
+  padding: $spacingXL;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  border-radius: 8px;
+  background: $background-low;
+
+  color: $neutral-text-title-heading;
+
+  > div {
+    background-color: unset !important;
+  }
+
+  &__header {
+    width: 100%;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+
+    &__title {
+      @include flex-row-gap($spacingSmall);
+
+      > svg {
+        width: 24px;
+        height: 24px;
+      }
+    }
+  }
+
+  &__content {
+    @include flex-col-gap(8px);
+
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+
+    &__data {
+      @include flex-col-gap(8px);
+
+      height: 100%;
+      width: 100%;
+      overflow: auto;
+    }
+  }
+}
