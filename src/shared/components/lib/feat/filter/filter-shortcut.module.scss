@@ -1,0 +1,50 @@
+@import '../../size';
+@import '../../color';
+@import '../../util-class.module';
+
+.filter-item{
+  @include flex-row-gap(4px);
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid $border-default;
+  background: $background-low;
+  max-width: 204px;
+  box-sizing: border-box;
+  height: 36px;
+
+  color: $neutral-text-title-heading;
+
+  span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    width: 100%;
+  }
+
+  svg {
+    cursor: pointer;
+  }
+}
+
+.filter-shortcut {
+  @include flex-row-gap(8px);
+  color: $neutral-text-title-heading;
+
+  svg {
+    cursor: pointer;
+
+    &.disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+  }
+
+  .list {
+    @include flex-row-gap(8px);
+    width: 522px;
+    min-width: 522px;
+    max-width: 522px;
+    overflow: hidden;
+  }
+}

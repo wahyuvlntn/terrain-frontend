@@ -1,0 +1,56 @@
+@import '../../size';
+@import '../../color';
+@import '../../util-class.module';
+
+.filter-drawer {
+  @include flex-col-gap(8px);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: auto;
+  height: 100%;
+  background: $background-lowest;
+  border-radius: 8px;
+  padding: 16px 0;
+
+  color: $neutral-text-title-heading;
+}
+
+.shortcut {
+  @include flex-col-gap(8px);
+  width: 100%;
+
+  .title {
+    width: 100%;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+
+    .clear {
+      cursor: pointer;
+      color: $condition-critical-primary;
+    }
+  }
+
+  .list {
+    @include flex-row-gap(8px);
+    width: 100%;
+    flex-wrap: wrap;
+    max-height: 115px;
+    overflow: auto;
+  }
+}
+
+.hr {
+  margin: 10px 0;
+  height: 1px;
+  width: 100%;
+  background: $neutral-text-title-heading;
+}
+
+.tree {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}

@@ -1,0 +1,14 @@
+@import '../../util-class.module';
+
+.custom-content-root {
+  .custom-content {
+    @include flex-row-gap(4px);
+    cursor: default !important;
+
+    .label {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+  }
+}

@@ -1,0 +1,26 @@
+@import '../../size';
+@import '../../color';
+@import '../../util-class.module';
+
+.filter-shortcut {
+  @include flex-row-gap(8px);
+}
+
+.filter-simple {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 36px;
+  width: 36px;
+  border: solid 1px $accent-info-primary;
+  flex-shrink: 0;
+  border-radius: $borderRadiusMedium;
+
+  &__icon {
+    height: 24px;
+    width: 24px;
+    color: $accent-info-primary;
+  }
+}
