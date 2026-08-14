@@ -162,8 +162,10 @@ const getPlaceholderData = (
 };
 
 const generateEquipmentDetailsSheet = (assetDetails: AssetDetails) => {
-  const status = assetDetails.status === StatusEnum.enum.OFFLINE ? 'OFF_OFFLINE' : assetDetails.status;
-  const condition = assetDetails.condition === ConditionEnum.enum.OFFLINE ? 'OFF_OFFLINE' : assetDetails.condition;
+  const status =
+    assetDetails.status === StatusEnum.enum.OFFLINE ? 'OFF_OFFLINE' : assetDetails.status;
+  const condition =
+    assetDetails.condition === ConditionEnum.enum.OFFLINE ? 'OFF_OFFLINE' : assetDetails.condition;
 
   return {
     columns: [{ key: 'key' }, { key: 'value' }],
@@ -173,19 +175,19 @@ const generateEquipmentDetailsSheet = (assetDetails: AssetDetails) => {
       { key: t('common.model'), value: assetDetails.modelName },
       {
         key: t('common.current_status'),
-        value: `${getMessageTranslation(status?.toLowerCase() ?? '').toUpperCase()} ${assetDetails.statusStartTime
-          ? formatDurationToMinutesFromDate(new Date(assetDetails.statusStartTime))
-          : '-'
-          }`,
+        value: `${getMessageTranslation(status?.toLowerCase() ?? '').toUpperCase()} ${
+          assetDetails.statusStartTime
+            ? formatDurationToMinutesFromDate(new Date(assetDetails.statusStartTime))
+            : '-'
+        }`,
       },
       {
         key: t('common.current_condition'),
-        value: `${getMessageTranslation(
-          condition?.toLowerCase() ?? ''
-        ).toUpperCase()} ${assetDetails.conditionStartTime
-          ? formatDurationFromDate(new Date(assetDetails.conditionStartTime))
-          : '-'
-          }`,
+        value: `${getMessageTranslation(condition?.toLowerCase() ?? '').toUpperCase()} ${
+          assetDetails.conditionStartTime
+            ? formatDurationFromDate(new Date(assetDetails.conditionStartTime))
+            : '-'
+        }`,
       },
       { key: t('common.warning_alarm'), value: assetDetails.warningCount },
       { key: t('common.critical_alarm'), value: assetDetails.criticalCount },
@@ -226,16 +228,13 @@ const generateTimelineSheet = (assetDetails: AssetDetails) => {
         const statusLabel = assetDetails.statuses.find((item) => item.start === start)?.value;
         const conditionLabel = assetDetails.conditions.find((item) => item.start === start)?.value;
         const status = statusLabel === StatusEnum.enum.OFFLINE ? 'OFF_OFFLINE' : statusLabel;
-        const condition = conditionLabel === ConditionEnum.enum.OFFLINE ? 'OFF_OFFLINE' : conditionLabel;
+        const condition =
+          conditionLabel === ConditionEnum.enum.OFFLINE ? 'OFF_OFFLINE' : conditionLabel;
         return {
           timestamp: formatDateTimeFull(new Date(start)),
-          status: getMessageTranslation(
-            status?.toLowerCase() ?? ''
-          ).toUpperCase(),
-          condition: getMessageTranslation(
-            condition?.toLowerCase() ?? ''
-          ).toUpperCase(),
-        }
+          status: getMessageTranslation(status?.toLowerCase() ?? '').toUpperCase(),
+          condition: getMessageTranslation(condition?.toLowerCase() ?? '').toUpperCase(),
+        };
       })
       .sort((a, b) => a.timestamp.localeCompare(b.timestamp)),
   };
@@ -249,7 +248,6 @@ const generateAlarmSheet = (assetDetails: AssetDetails) => {
       { key: 'typeId', header: t('common.type') },
       { key: 'statusId', header: t('common.criticality') },
       { key: 'message', header: t('common.message') },
-      { key: 'alarmId', header: t('common.alarm_id') },
       { key: 'alarmName', header: t('common.alarm_name') },
     ],
     rows: assetDetails.alarms.map(({ timestamp, ...item }) => ({
