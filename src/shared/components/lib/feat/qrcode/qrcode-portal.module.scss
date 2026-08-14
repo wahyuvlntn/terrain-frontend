@@ -1,0 +1,78 @@
+@import '../../util-class.module';
+@import '../../color';
+
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  background-color: $background-low;
+  padding: 24px;
+  gap: 16px;
+  border-radius: 4px;
+  color: $neutral-text-title-heading;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+
+    .header-label {
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .options {
+      display: flex;
+      gap: 16px;
+    }
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+  }
+}
+
+.main-layout {
+  display: flex;
+  gap: 16px;
+  position: relative;
+  border-radius: 4px;
+  flex-direction: column;
+  background-color: $background-lowest;
+  max-height: 600px;
+  max-width: 1000px;
+  // padding: 16px 16px 24px 16px;
+  font-size: 32px;
+  overflow: auto;
+
+  .zoom-wrapper {
+    border-radius: 4px;
+    height: 100%;
+    width: 100%;
+  }
+}
+
+.export-modal {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .progress-bar {
+    display: flex;
+    gap: 16px;
+    background-color: $background-low;
+    color: $neutral-text-title-heading;
+    font-size: 24px;
+    padding: 32px;
+    border-radius: 8px;
+    cursor: progress;
+  }
+}

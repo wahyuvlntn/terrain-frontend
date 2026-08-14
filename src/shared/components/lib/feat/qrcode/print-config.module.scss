@@ -1,0 +1,58 @@
+@import '../../util-class.module';
+@import '../../color';
+
+.print-config-container {
+  display: flex;
+  flex-direction: column;
+
+  .print-type-selector {
+    display: flex;
+
+    .chosen {
+      z-index: 10;
+      background: $background-highest;
+    }
+
+    .not-chosen {
+      background-color: $background-default;
+      opacity: 0.4;
+      z-index: 1;
+    }
+  }
+
+  .print-config {
+    display: flex;
+    flex-direction: column;
+    padding-top: 16px;
+    // padding: 16px;
+    gap: 16px;
+    span {
+      color: $neutral-text-title-heading;
+    }
+  }
+}
+
+.view-options {
+  display: flex;
+  align-items: center;
+  width: 100%;
+
+  .option {
+    display: flex;
+    flex: 1;
+    color: $neutral-text-title-heading;
+    height: 36px;
+    align-items: center;
+    gap: 4px;
+    justify-content: center;
+    font-weight: 500;
+
+    span {
+      margin-top: 4px;
+    }
+  }
+
+  .option:hover {
+    cursor: pointer;
+  }
+}
