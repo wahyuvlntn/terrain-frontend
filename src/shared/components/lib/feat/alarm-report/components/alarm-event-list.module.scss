@@ -1,0 +1,43 @@
+@import '../../../size';
+@import '../../../color';
+@import '../../../util-class.module';
+
+.alarm-event-panel {
+  flex: 1;
+  -webkit-font-smoothing: subpixel-antialiased;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  .alarm-logs-action {
+    display: flex;
+    gap: 16px;
+
+    input {
+      width: 340px;
+      height: 28px;
+    }
+  }
+
+  .asset-main-container {
+    width: 100%;
+    flex-grow: 1;
+    height: 0;
+    border-radius: $borderRadiusMedium;
+    background: $background-lowest;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+
+    .asset-container {
+      display: flex;
+      flex: 1;
+      background-color: inherit;
+      flex-direction: column;
+      margin: 12px;
+      gap: 16px;
+    }
+  }
+
+  .alarm-event-pagination{
+    align-self: center;
+  }
+}

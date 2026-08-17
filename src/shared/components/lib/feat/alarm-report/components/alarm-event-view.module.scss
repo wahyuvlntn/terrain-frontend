@@ -1,0 +1,45 @@
+@import '../../../size';
+@import '../../../color';
+@import '../../../util-class.module';
+
+.alarm-event-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  width: 100%;
+
+  .content {
+    display: flex;
+    flex: 1;
+    gap: 16px;
+    background-color: inherit;
+    overflow: hidden;
+
+    .content-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      position: relative;
+
+      // .alarm-event-pagination {
+      //   display: flex;
+      //   flex: 0.01;
+      //   justify-content: center;
+      //   align-items: center;
+      // }
+    }
+  }
+
+  .metrics {
+    display: flex;
+    min-height: 104.58px;
+    width: 100%;
+    gap: 16px;
+  }
+
+  .metrics > div {
+    width: 100%;
+  }
+}
