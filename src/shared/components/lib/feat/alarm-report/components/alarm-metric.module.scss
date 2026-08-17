@@ -1,0 +1,33 @@
+.alarm-metric-container {
+  display: flex;
+  gap: 16px;
+  position: relative;
+
+  .metric__item {
+    & > div {
+      span {
+        font-size: 22px;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .parameter-display {
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .title-container {
+    font-size: 20px;
+    font-weight: 400;
+  }
+
+  .value-container {
+    font-size: 32px;
+    font-weight: 500;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+}
