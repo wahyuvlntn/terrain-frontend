@@ -1,0 +1,29 @@
+@import '../../../size';
+@import '../../../color';
+@import '../../../util-class.module';
+
+.status-indicator{
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    gap: 10px;
+  }
+
+.indicator-shape{
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+
+}
+
+.critical{
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+}
+
+.warning{
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+}

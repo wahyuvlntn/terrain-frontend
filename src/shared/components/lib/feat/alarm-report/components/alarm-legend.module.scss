@@ -1,0 +1,37 @@
+.container1 {
+  display: flex;
+  margin-top: 80px;
+  margin-bottom: 40px;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.container2 {
+  display: flex;
+  margin: 40px;
+  position: relative;
+}
+
+.container3 {
+  display: flex;
+  margin: 40px 80px 80px 80px;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+
+.tooltip {
+  &__right {
+    transform: translate(-100%, -50%);
+  }
+
+  &__bottom {
+    transform: translate(-50%, -100%);
+  }
+
+  &__top {
+    transform: translate(-50%, 0);
+  }
+}
