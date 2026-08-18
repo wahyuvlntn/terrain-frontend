@@ -1,0 +1,42 @@
+.alarm-report-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  width: 100%;
+  overflow: auto;
+
+  .alarm-chart-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 16px;
+    overflow: auto;
+    min-width: 700px;
+
+    .alarm-chart-heatmap {
+      display: flex;
+      flex: 1;
+    }
+  }
+
+  .content {
+    display: flex;
+    flex: 1;
+    gap: 16px;
+    background-color: inherit;
+    overflow: auto;
+  }
+
+  .metrics {
+    display: flex;
+    min-height: 104.58px;
+    width: 100%;
+    gap: 16px;
+    overflow: auto;
+  }
+
+  .metrics > div {
+    width: 100%;
+  }
+}

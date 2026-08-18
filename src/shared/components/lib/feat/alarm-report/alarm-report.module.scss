@@ -1,0 +1,29 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: inherit;
+  gap: 16px;
+  overflow: auto;
+
+  .filters {
+    display: flex;
+    justify-content: space-between;
+    height: 52px;
+    gap: 16px;
+    overflow: auto;
+
+    .right-filters {
+      & > span {
+        height: 40px;
+      }
+    }
+  }
+}
+
+:global {
+  .custom-alarm-metric > div > div > h1 {
+    font-weight: 500;
+  }
+}
