@@ -1,0 +1,258 @@
+@import '../../../shared/components/lib/color';
+
+.asset-card {
+  display: flex;
+  flex: 1 0 0;
+  width: 0px !important;
+  min-width: 0px !important;
+  max-width: unset !important;
+}
+
+.contentWrapper {
+  gap: 16px !important;
+  padding: 16px !important;
+  flex: 1 0 0 !important;
+  align-self: stretch !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background-color: $background-lowest;
+  border-radius: 8px;
+}
+
+.topRow {
+  display: flex;
+  align-self: stretch;
+  gap: 16px;
+}
+
+.cardWrapper {
+  display: flex !important;
+  flex: 1 0 0 !important;
+}
+
+.maintenanceContainer {
+  flex: 1 0 0;
+  background: $background-default;
+}
+
+.maintenanceContainerContent {
+  flex-direction: column !important;
+  gap: 16px !important;
+  overflow: unset !important;
+  display: flex !important;
+  align-self: stretch !important;
+}
+
+.maintenanceHeader {
+  display: flex;
+  flex: 1 0 0;
+  padding-left: 8px;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.viewOrderLink {
+  display: flex;
+  color: $brand-surface-default-primary;
+  cursor: pointer;
+  flex: 1 0 0;
+  justify-content: flex-end;
+  height: 30px;
+}
+
+.viewOrderLinkText {
+  flex: 1 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: end;
+  width: 0;
+  padding-top: 2px;
+
+  span {
+    border-bottom: 1px solid $brand-surface-default-primary;
+  }
+}
+
+.fieldRow {
+  display: flex;
+  gap: 16px;
+  align-self: stretch;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 0 0;
+}
+
+.fieldValue {
+  display: flex;
+  gap: 10px;
+  height: 36px;
+  background: $background-low;
+  padding-left: 12px;
+  padding-right: 12px;
+  border-radius: 8px;
+  align-items: center;
+
+  span {
+    flex: 1 0 0;
+    width: 0;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+}
+
+.issuesContainer {
+  flex: 1 0 0;
+  background: $background-default;
+  align-self: stretch;
+}
+
+.issuesContainerContent {
+  flex-direction: column;
+  gap: 16px;
+  height: fit-content;
+  overflow: unset !important;
+  display: flex;
+  flex: 1 0 0;
+  align-self: stretch;
+}
+
+.otherIssuesContainerContent {
+  flex-direction: column;
+  gap: 16px;
+  overflow: unset !important;
+  display: flex;
+  flex: 1 0 0;
+  align-self: stretch;
+}
+
+.issueRow {
+  display: flex;
+  justify-content: space-between;
+  align-self: stretch;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.issueContent {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex: 1 0 0;
+}
+
+.issueBadge {
+  width: 81px;
+  height: 28px;
+  display: flex;
+  gap: 4px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+
+  &--critical {
+    background: $condition-critical-primary;
+  }
+
+  &--warning {
+    background: $condition-warning-primary;
+  }
+
+  &--normal {
+    background: $condition-normal-primary;
+  }
+
+  &--offline {
+    background: $status-offline-primary;
+  }
+
+  &--default {
+    background: $background-high;
+  }
+}
+
+.issueLabel {
+  flex: 1 0 0;
+  width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.issueTimestamp {
+  display: flex;
+  gap: 8px;
+  color: $neutral-text-caption;
+}
+
+.issueTimestampLabel {
+  font-weight: 400;
+}
+
+.container {
+  display: flex;
+  align-self: stretch;
+  flex: 1 0 0;
+}
+
+.arrowIcon {
+  transform: rotate(-90deg);
+}
+
+.diagnosticHeaderRight {
+  display: flex;
+  align-items: center;
+  flex: 1 0 0;
+  justify-content: space-between;
+}
+
+.chevronWrapper {
+  display: flex;
+  flex: 1 0 0;
+  align-items: center;
+  gap: 20px;
+  justify-content: flex-end;
+}
+
+.chevronButton {
+  display: flex;
+  background: $brand-surface-default-primary;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &--disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+}
+
+.instructionSectionWrapper {
+  display: flex;
+  align-self: stretch;
+  padding: 16px;
+  background: $background-default;
+  border-radius: 8px;
+  padding-top: 0;
+}
+
+.degradationContainer {
+  align-self: stretch;
+  background: $background-default;
+}
+
+.degradationContainerContent {
+  display: flex;
+  flex: 1 0 0;
+  align-self: stretch;
+  overflow: unset !important;
+}

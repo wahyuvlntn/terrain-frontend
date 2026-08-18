@@ -1,0 +1,179 @@
+.container {
+  display: flex;
+  align-self: stretch;
+  width: 480px;
+}
+
+.contentWrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  flex: 1 0 0;
+  align-self: stretch;
+  position: relative;
+}
+
+.search {
+  flex: 1 1 0;
+}
+
+.searchRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.filterButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  position: relative;
+  width: 120px;
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: solid;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  &--inactive {
+    opacity: 0.5;
+  }
+}
+
+.filterButtonBackground {
+  display: flex;
+  border-radius: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  opacity: 0.2;
+}
+
+.filterButtonContent {
+  display: flex;
+  border-radius: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  gap: 2px;
+}
+
+.listContent {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 0;
+  align-self: stretch;
+  gap: 12px;
+  overflow: auto;
+}
+
+.pagination {
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+}
+
+.card {
+  display: flex;
+  padding: 8px 16px;
+  flex-direction: column;
+  gap: 8px;
+  align-self: stretch;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &--selected {
+    border-width: 1px;
+    border-style: solid;
+  }
+}
+
+.cardHeader {
+  display: flex;
+  align-self: stretch;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.assetName {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.badgeContainer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cardRow {
+  display: flex;
+  align-self: stretch;
+  gap: 8px;
+  align-items: center;
+}
+
+.issueContent {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 250px;
+}
+
+.separator {
+  width: 8px;
+  height: 2px;
+}
+
+.issueName {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.additionalIssuesBadge {
+  padding-right: 8px;
+  padding-left: 8px;
+  border-radius: 100px;
+  height: 21px;
+  display: flex;
+  align-items: center;
+}
+
+.fieldValue {
+  font-weight: 500;
+}
+
+.additionalIssuesPopover {
+  position: fixed;
+  padding: 8px;
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: solid;
+  z-index: 1000;
+}
+
+.additionalIssueRow {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+}

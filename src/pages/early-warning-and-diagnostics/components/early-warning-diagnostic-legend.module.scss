@@ -1,0 +1,225 @@
+@import '../../../shared/components/lib/color';
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0px;
+  gap: 16px;
+  width: 100%;
+}
+
+.section {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  padding: 0px;
+  gap: 10px;
+  isolation: isolate;
+  width: 100%;
+  background: $background-lowest;
+  position: relative;
+  height: 649px;
+}
+
+.cardContainer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 0;
+}
+
+.earlyWarningCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 9.6px 19.2px;
+  gap: 12px;
+  width: 513.6px;
+  border-radius: 9.6px;
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0px;
+  gap: 4.8px;
+  width: 100%;
+}
+
+.cardHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px;
+  gap: 7.2px;
+  width: 100%;
+}
+
+.assetName {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 29px;
+  color: $neutral-text-title-heading;
+}
+
+.badgeContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0px;
+  gap: 9.6px;
+}
+
+.warningBadge {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 4.8px 9.6px;
+  gap: 4.8px;
+  border-radius: 9.6px;
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 500;
+  font-size: 19.2px;
+  line-height: 20px;
+  color: $neutral-text-title-heading;
+}
+
+.severityBadge {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 6.96px 13.92px;
+  gap: 6.96px;
+  width: 30.6px;
+  height: 30.6px;
+  border-radius: 174px;
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 21.6px;
+  line-height: 32px;
+  color: $neutral-text-title-heading;
+}
+
+.cardRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0px;
+  gap: 9.6px;
+  width: 100%;
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 19.2px;
+  line-height: 29px;
+  color: $neutral-text-title-heading;
+}
+
+.fieldValue {
+  font-weight: 500;
+  flex: 1 0 0;
+}
+
+.issueContent {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0px;
+  gap: 4.8px;
+  flex: 1 0 0;
+  font-weight: 500;
+}
+
+.separator {
+  width: 1px;
+  height: 20px;
+  opacity: 0.6;
+}
+
+.issueName {
+  flex: 1 0 0;
+  width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.assetCardContainer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 0;
+}
+
+.assetCard {
+  width: 598.5px !important;
+  max-width: 598.5px !important;
+  min-width: 598.5px !important;
+}
+
+.instructionContainer {
+  position: absolute;
+  width: 850px;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: $background-default;
+  padding: 16px;
+  padding-top: 0px;
+  border-radius: 8px;
+  z-index: 0;
+}
+
+.severityTooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  p {
+    margin: 0;
+    font-weight: 600;
+    font-size: 26px;
+    line-height: 39px;
+  }
+
+  span {
+    font-size: 16px;
+    line-height: 17px;
+  }
+}
+
+.maintenanceSeverity {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 100px;
+  padding: 3.2px 6.4px;
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 18px;
+  color: $neutral-text-title-heading;
+}
