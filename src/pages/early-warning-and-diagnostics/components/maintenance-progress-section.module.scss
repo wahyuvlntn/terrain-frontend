@@ -1,0 +1,55 @@
+@import '../../../shared/components/lib/color';
+
+.work-progress-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 0;
+  align-self: stretch;
+  gap: 8px;
+}
+
+.MaintenanceMetadata {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  &__Label,
+  &__Value {
+    font-size: 16px;
+    color: $neutral-text-caption-placeholder;
+  }
+
+  &__Label {
+    font-weight: 400;
+  }
+
+  &__Value {
+    font-weight: 500;
+
+    &.good {
+      color: $condition-normal-secondary;
+    }
+
+    &.bad {
+      color: $condition-critical-secondary;
+    }
+  }
+
+  &__LeftContainer {
+    display: flex;
+    flex-direction: column;
+    row-gap: 4px;
+  }
+
+  &__RightContainer {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    grid-template-rows: repeat(2, 1fr);
+    grid-column-gap: 4px;
+    grid-row-gap: 4px;
+
+    span:nth-child(2n + 1) {
+      text-align: right; /* Ensures text inside is also left-aligned */
+    }
+  }
+}
