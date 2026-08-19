@@ -1,0 +1,20 @@
+@import '../../../shared/components/lib/color';
+
+.SeriesTogglerContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 8px;
+
+    &__Degradation {
+        &:checked {
+            background: $persimmon-500;
+        }
+    }
+
+    &__CompoundDegradation {
+        &:checked {
+            background: #2CB5FF;
+        }
+    }
+}
