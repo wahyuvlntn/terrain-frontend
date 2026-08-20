@@ -1,0 +1,38 @@
+.EarlyWarningDashboard {
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+    height: 100%;
+
+    &__Header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    &__Body {
+        display: flex;
+        flex-direction: column;
+        row-gap: 16px;
+        flex: 1;
+    }
+    
+    &__ChartRow {
+        display: flex;
+        flex-direction: row;
+        column-gap: 16px;
+        flex: 1;
+    }
+}
+
+.CommonChart {
+    width: calc(480px - 32px);
+    position: relative;
+}
+
+.CenterChart {
+    flex: 1;
+    width: 0;
+    position: relative;
+}
