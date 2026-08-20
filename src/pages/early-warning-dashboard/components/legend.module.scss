@@ -1,0 +1,14 @@
+.EarlyWarningAndDiagnosticTrend {
+    &__Container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        flex: 1;
+    }
+
+    &__Chart {
+        width: 808px;
+        height: 310px;
+    }
+}
