@@ -1,0 +1,109 @@
+@import '../../../shared/components/lib/color';
+
+.IssuePatternList {
+    display: flex;
+    width: 100%;
+    height: 0;
+    flex-grow: 1;
+    overflow: hidden !important;
+
+    &__Grid {
+        display: flex;
+        gap: 16px;
+        // width: 100%;
+        height: 100%;
+    }
+
+    &__ChartItem {
+        width: 100%;
+        // height: 100%;
+        box-sizing: border-box;
+    }
+
+    &__Navigation {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        column-gap: 20px;
+    }
+}
+
+.IssuePatternChart {
+    background: $background-default;
+    border-radius: 8px;
+    padding: 8px 16px;
+    box-sizing: border-box;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 0;
+    flex-grow: 1;
+    max-width: 248px;
+
+    &__Title {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        column-gap: 4px;
+
+        &__Label {
+            font-weight: 600;
+            font-size: 14px;
+            color: $neutral-text-title-heading;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    &__ChartContainer {
+        width: 100%;
+        // height: 100%;
+        cursor: pointer;
+    }
+}
+
+.IssuePatternDetail__Container {
+    background: $background-default;
+    position: relative;
+}
+
+.IssuePatternDetail {
+    display: flex;
+    flex-direction: column;
+    row-gap: 24px;
+    padding: 41.5px 16px;
+    width: 1128px;
+    height: 409px;
+    background: $background-lowest;
+
+    &__Stats {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        column-gap: 16px;
+        padding: 0 24px;
+    }
+
+    &__LabelContainer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+        border: 1px solid white;
+        background: $background-highest;
+        height: 32px;
+        font-weight: 500;
+        font-size: 16px;
+        border-radius: 8px;
+    }
+}
+
+.NavBtn {
+    background: $brand-surface-default-primary;
+
+    &.Disabled {
+        opacity: 0.4;
+    }
+}
