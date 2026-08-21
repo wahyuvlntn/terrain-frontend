@@ -1,0 +1,85 @@
+@import '../../shared/components/lib/color';
+
+
+.mdxeditor-root-contenteditable {
+  flex: 1;
+  display: flex;
+  overflow: auto;
+}
+
+.mdxeditor-root-contenteditable > div {
+  flex: 1;
+  display: flex;
+}
+
+._toolbarRoot_1e2ox_162 svg {
+  color: $neutral-text-title-heading;
+}
+
+._toolbarRoot_1e2ox_162 {
+  z-index: unset;
+}
+
+._contentEditable_1e2ox_380 {
+  padding: unset;
+}
+
+._toolbarButton_1e2ox_239:hover {
+  cursor: pointer;
+}
+
+.rich-text-video {
+  width: 100%;
+}
+
+._editImageToolbar_1e2ox_933 {
+  z-index: unset;
+}
+
+._tooltipTrigger_1e2ox_677:hover {
+  cursor: pointer;
+}
+
+._codeMirrorToolbar_1e2ox_409 {
+  background: $background-low;
+}
+
+._selectTrigger_1e2ox_308 {
+  background: $background-high;
+}
+
+._linkDialogPopoverContent_1e2ox_601 {
+  background: $background-lowest;
+}
+
+form._multiFieldForm_1e2ox_1214 ._formField_1e2ox_1220 label {
+  color: $neutral-text-title-heading;
+}
+
+._secondaryButton_1e2ox_508 {
+  background: $background-low;
+  border: none;
+}
+
+._primaryButton_1e2ox_507 {
+  background: $brand-surface-default-primary;
+  border: none;
+}
+
+._linkDialogPreviewAnchor_1e2ox_654 {
+  color: $neutral-text-title-heading;
+}
+
+._actionButton_1e2ox_695 {
+  color: $neutral-text-title-heading;
+}
+
+._textInput_1e2ox_1206 {
+  background: $background-low;
+  color: $neutral-text-title-heading;
+  border-color: $border-default;
+}
+
+._placeholder_1e2ox_1106 {  
+  opacity: 0.6;
+}
