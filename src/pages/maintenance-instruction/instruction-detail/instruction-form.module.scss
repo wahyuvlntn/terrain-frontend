@@ -1,0 +1,117 @@
+@import '../../../shared/components/lib/color';
+
+.InstructionForm {
+  display: flex;
+  flex-direction: column;
+  row-gap: 16px;
+  height: 100%;
+
+  &__Header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__PrevNavigationLegendContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 8px;
+  }
+
+  &__PrevNavigation {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 4px;
+  }
+
+  &__PrevBtn {
+    color: $neutral-text-title-heading;
+    cursor: pointer;
+  }
+
+  &__PageLabel {
+    font-weight: 600;
+    font-size: 22px;
+    color: $neutral-text-title-heading;
+  }
+
+  &__ImportBtnIcon {
+    width: 20px;
+  }
+
+  &__Body {
+    display: flex;
+    flex-direction: row;
+    column-gap: 16px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  &__MainContent {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  &__PdfViewerContainer {
+    flex: 1;
+    display: flex;
+    padding: 16px;
+    border-radius: 8px;
+    background: $background-low;
+    flex-direction: column;
+    row-gap: 16px;
+    overflow: hidden;
+  }
+
+  &__ContainerHeader {
+    font-size: 22px;
+    font-weight: 600;
+    min-height: 57px;
+    max-height: 57px;
+    display: flex;
+    align-items: center;
+    color: $neutral-text-title-heading;
+  }
+
+  &__RichTextEditorOuterContainer {
+    flex: 1;
+    display: flex;
+    padding: 16px;
+    border-radius: 8px;
+    background: $background-low;
+  }
+
+  &__RichTextEditorInnerContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    row-gap: 10px;
+  }
+
+  &__RichTextEditorToolbar {
+    position: absolute;
+    right: 0;
+  }
+
+  &__Metadata {
+    min-width: 519px;
+    max-width: 519px;
+  }
+}
+
+
+.ConfirmDialog {
+  &__Label {
+    width: 487px;
+    display: inline-block;
+  }
+}
+
+.Popup {
+  z-index: 2;
+}

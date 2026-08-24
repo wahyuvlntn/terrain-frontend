@@ -1,0 +1,86 @@
+@import '../../../shared/components/lib/color';
+
+.DetailForm {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  height: 100%;
+  box-sizing: border-box;
+
+  &__Body {
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+    padding: 16px;
+    background: $background-lowest;
+  }
+
+  &__Footer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__RowContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 16px;
+  }
+
+  &__EquipmentID {
+    display: flex;
+    flex-direction: column;
+    row-gap: 8px;
+  }
+
+  &__AlarmCode {
+    flex: 1;
+  }
+
+  &__Title {
+    flex: 1;
+  }
+
+  &__InstructionType {
+    flex: 1;
+  }
+
+  
+
+  &__Description {
+    height: 124px;
+  }
+
+  &__SubmitBtn {
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+.DurationField {
+  width: 166px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.375em;
+
+  &__Label {
+    font-size: 1rem;
+    font-weight: 500;
+    color: $neutral-text-title-heading;
+  }
+
+  &__InputContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 10px;
+  }
+
+  &__Dropdown {
+    width: 90px;
+  }
+}
