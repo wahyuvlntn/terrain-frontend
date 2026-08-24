@@ -1,0 +1,69 @@
+.InstructionList {
+  display: flex;
+  flex-direction: column;
+  row-gap: 16px;
+  height: 100%;
+
+  &__Header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__Body {
+    display: flex;
+    flex-direction: row;
+    column-gap: 16px;
+    flex: 1;
+  }
+
+  &__ListOuterContainer {
+    min-width: 563px;
+    box-sizing: border-box;
+
+    .AddBtnLong {
+      display: none;
+    }
+
+    .AddBtnShort {
+      display: unset;
+    }
+
+    &:only-child {
+      flex: 0 0 100%;
+
+      .AddBtnLong {
+        display: unset;
+      }
+
+      .AddBtnShort {
+        display: none;
+      }
+    }
+  }
+
+  &__ListInnerContainer {
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+    width: 100%;
+    overflow: auto;
+    flex: 1;
+  }
+}
+
+.InstructionListTooltip {
+  max-width: 805px;
+
+  &__Content {
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+  }
+
+  &__InnerContent {
+    display: flex;
+    flex-direction: column;
+  }
+}
