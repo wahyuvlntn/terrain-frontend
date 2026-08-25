@@ -1,0 +1,470 @@
+@import '../../../shared/components/lib/color';
+
+.maintenance-calendar-container {
+    overflow: auto;
+    width: 100%;
+
+    .right-top-component {
+        display: flex;
+        justify-content: space-between;
+        flex: 1 0 0;
+        align-items: center;
+
+        .action {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 16px;
+
+            .view-options {
+                display: flex;
+                align-items: center;
+
+                .option {
+                    display: flex;
+                    width: 112px;
+                    height: 36px;
+                    align-items: center;
+                    gap: 4px;
+                    justify-content: center;
+                }
+
+                .option:hover {
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+
+
+    .calendar-content {
+        width: 100%;
+        height: 100%;
+        background-color: $background-low;
+        display: flex;
+        flex-direction: column;
+        overflow: auto;
+
+        .time {
+            height: 110px;
+            border-right: 1px solid $border-default;
+            background-color: $background-low;
+        }
+
+        .calendar-header {
+            display: flex;
+
+            .time-zone {
+                width: 83px;
+                border-right: none;
+                height: 77px;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .cell-header-container {
+                height: 77px;
+                border-bottom: 1px solid $border-default;
+                width: 100%;
+                overflow: hidden;
+                border: 1px solid $border-default;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
+
+                .cell-header-list {
+                    display: flex;
+                    height: 100%;
+                    width: max-content;
+
+                    .cell-header {
+                        width: 20vw;
+                        border-right: 1px solid $border-default;
+                        background-color: $background-low;
+                        position: relative;
+
+                        display: flex;
+                        align-items: center;
+                        flex-direction: column;
+                        align-items: flex-start;
+                        justify-content: space-evenly;
+                        height: 100%;
+
+                        div {
+                            // tyle={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}
+                            display: flex;
+                            flex-direction: row;
+                            justify-content: space-between;
+                            width: 100%;
+                            align-items: flex-end;
+                        }
+                    }
+
+                    .cell-header:nth-child(odd) {
+                        background-color: $background-lowest;
+                    }
+
+
+                    .cell-top-right {
+                        padding-right: 12px;
+                        border-right: none;
+                    }
+                }
+
+            }
+
+        }
+
+        .calendar-grid {
+            display: flex;
+            width: 100%;
+            overflow: auto;
+
+            .calendar-grid-time {
+                overflow: hidden;
+                width: 84px;
+                height: 100%;
+
+                .time-last {
+                    padding-bottom: 20px;
+                }
+            }
+
+            .calendar-grid-content {
+                overflow: auto;
+                width: 100%;
+                background-color: $background-low;
+
+                .grid-col-container {
+                    min-width: max-content;
+                    min-height: max-content;
+                    position: relative;
+                    display: flex;
+
+                    .time-line-horizontal {
+                        position: absolute;
+                        width: 100%;
+                        height: 0px;
+                        z-index: 2;
+                    }
+                }
+
+                .grid-col-wrapper {
+                    height: 100%;
+                    position: relative;
+
+                    .grid-col {
+                        display: flex;
+                        flex-direction: column;
+
+                        .cell {
+                            width: 20vw;
+                            height: 110px;
+                            border-right: 1px solid $border-default;
+                            border-bottom: 1px solid $border-default;
+                        }
+                    }
+                }
+
+                .grid-col-wrapper:nth-child(odd) .cell {
+                    background-color: $background-lowest;
+                }
+
+            }
+        }
+    }
+
+    .calendar-content-month {
+        width: 100%;
+        height: 100%;
+        background-color: $background-low;
+        border: 1px solid $border-default;
+        border-radius: 4px;
+        overflow: auto;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        min-width: max-content;
+
+        .calendar-header-month {
+            background-color: $background-low;
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+            min-height: 42px;
+
+            .header-item {
+                background-color: $background-lowest;
+                width: 100%;
+                height: 42px;
+                font-size: 16px;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                padding-left: 8px;
+                font-weight: 500;
+                border-right: 1px solid $border-default;
+            }
+        }
+
+        .calendar-body-month {
+            overflow: auto;
+
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-auto-rows: 193px;
+            gap: 1px;
+            background-color: $border-default;
+
+            .grid-month,
+            .grid-month-empty {
+                background-color: $background-low;
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                box-sizing: border-box;
+                overflow: auto;
+                min-width: 257px;
+
+                .grid-month-header {
+                    padding: 8px;
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    height: 32px;
+
+                    span {
+                        font-weight: 500;
+                        font-size: 20px;
+                        border-radius: 50%;
+                        padding: 8px;
+                    }
+
+                    .is-today {
+                        background-color: $background-high;
+                    }
+                }
+
+                .grid-month-content {
+                    overflow: auto;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 4px;
+                    width: 100%;
+
+                    .more-button {
+                        border-radius: 8px;
+                        background-color: $background-high;
+                        height: 30px;
+                        margin: 0 8px;
+                        cursor: pointer;
+                        display: flex;
+                        flex-direction: row;
+                        align-items: center;
+                        justify-content: center;
+                        min-width: 231px;
+                    }
+                }
+            }
+
+            .grid-month-selected {
+                border: 2px solid $brand-surface-default-primary;
+            }
+
+            .grid-month-empty>* {
+                opacity: 0.5;
+            }
+        }
+    }
+
+    .event-card-week {
+        background-color: $background-high;
+        position: absolute;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: row;
+
+        div>div[role="status"] {
+            min-width: 12px !important;
+            max-width: 12px !important;
+            width: 12px !important;
+        }
+
+        .event-card-week-content {
+            justify-content: start;
+            white-space: nowrap !important;
+            padding-left: 6px !important;
+            overflow: hidden;
+
+            .right-side {
+                .maintenance-severity {
+                    width: 24px !important;
+                    height: 24px !important;
+                }
+            }
+
+            >.maintenance-severity {
+                width: 24px !important;
+                height: 24px !important;
+            }
+        }
+
+        div>* {
+            font-size: 14px;
+        }
+
+        .other-card {
+            font-size: 16px !important;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+    }
+
+    .overlay-past {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.3);
+    }
+
+}
+
+.card-monthly {
+    height: 32px !important;
+    display: flex;
+    border-radius: 4px;
+    align-self: stretch;
+    background-color: $background-high;
+    flex-shrink: 0;
+    margin: 0 10px;
+    min-width: 220px;
+
+    div>* {
+        font-size: 14px;
+    }
+
+    >div[role="status"] {
+        min-width: 12px !important;
+        max-width: 12px !important;
+        width: 12px !important;
+    }
+
+    .card-monthly-content {
+        white-space: nowrap !important;
+        padding-left: 6px !important;
+
+        .right-side {
+            .maintenance-severity {
+                width: 24px !important;
+                height: 24px !important;
+            }
+        }
+
+        >.maintenance-severity {
+            width: 24px !important;
+            height: 24px !important;
+        }
+    }
+}
+
+.card-weekly {
+    height: auto !important;
+    min-width: 220px;
+    div>* {
+        font-size: 14px;
+    }
+
+    >div[role="status"] {
+        min-width: 12px !important;
+        max-width: 12px !important;
+        width: 12px !important;
+    }
+
+    .card-weekly-content {
+        white-space: nowrap !important;
+        padding-left: 6px !important;
+
+        div>* {
+            font-size: 14px;
+        }
+
+        .right-side {
+            .maintenance-severity {
+                width: 24px !important;
+                height: 24px !important;
+            }
+
+        }
+
+        >.maintenance-severity {
+            width: 24px !important;
+            height: 24px !important;
+        }
+    }
+}
+
+.popover-content-month {
+
+    background-color: $background-default;
+    padding: 16px 8px;
+    overflow: auto;
+    max-height: 80vh;
+
+    span {
+        font-size: 18px;
+        margin: 0px 8px;
+    }
+
+    .grid-month-content {
+        overflow: auto;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        width: 100%;
+    }
+}
+
+.popover-content-week {
+
+    background-color: $background-default;
+    padding: 16px 8px;
+        overflow: auto;
+    max-height: 80vh;
+
+    span {
+        font-size: 18px;
+    }
+
+    .grid-week-content {
+        overflow: auto;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        width: 100%;
+    }
+}
+
+.week-popover-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 20px;
+    background-color: $background-default;
+}
