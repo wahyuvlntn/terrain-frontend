@@ -1,0 +1,37 @@
+@import '../../shared/components/lib/color';
+
+.SetIssueValidityDialog {
+  display: flex;
+  flex-direction: column;
+  row-gap: 16px;
+  width: 487px;
+
+  &__Detail {
+    background: $background-lowest;
+    padding: 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 16px;
+    display: flex;
+    flex-direction: column;
+    row-gap: 4px;
+  }
+
+  &__Message {
+    display: flex;
+    flex-direction: column;
+    row-gap: 8px;
+
+    &__Title {
+      font-weight: 500;
+      font-size: 16px;
+    }
+  }
+
+  &__IssueName {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 8px;
+  }
+}
