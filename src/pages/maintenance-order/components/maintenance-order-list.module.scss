@@ -1,0 +1,180 @@
+@import '../../../shared/components/lib/color';
+
+.maintenance-order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1 0 0;
+  align-self: stretch;
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .search {
+      flex: 1 0 0;
+    }
+  }
+
+  .content {
+    display: flex;
+    gap: 12px;
+    flex-direction: column;
+    flex: 1 0 0;
+    align-self: stretch;
+    justify-content: space-between;
+
+    .maintenance-order-card-list {
+      display: flex;
+      gap: 12px;
+      flex-direction: column;
+      flex: 1 0 0;
+      align-self: stretch;
+      overflow: auto;
+    }
+
+    .pagination {
+      display: flex;
+      align-self: stretch;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+}
+
+.maintenance-order-card {
+  height: 114px;
+  display: flex;
+  border-radius: 8px;
+  align-self: stretch;
+  background-color: $background-high;
+  flex-shrink: 0;
+
+  .priority {
+    width: 20px;
+    align-self: stretch;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+  }
+
+  .detail {
+    display: flex;
+    flex: 1 0 0;
+    align-self: stretch;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    padding: 8px 12px 8px 12px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-direction: column;
+
+    .header {
+      display: flex;
+      gap: 4px;
+      align-self: stretch;
+      align-items: center;
+      font-size: 22px;
+      font-weight: 600;
+
+      .left-side {
+        display: flex;
+        align-items: center;
+        flex: 1 0 0;
+        gap: 4px;
+        color: $neutral-text-title-heading;
+
+        .detail-row {
+          display: flex;
+          flex-direction: row;
+
+          span {
+            display: block;
+            flex: 1 0 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+      }
+      .right-side {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .time {
+          color: $neutral-text-caption;
+        }
+      }
+
+      .icon {
+        display: flex;
+        width: 33px;
+        height: 33px;
+        border-radius: 50%;
+        background-color: $brand-surface-default-primary;
+        align-items: center;
+        justify-content: center;
+        margin-left: 4px;
+      }
+    }
+
+    .detail-content {
+      display: flex;
+      justify-content: space-between;
+      align-self: stretch;
+      gap: 16px;
+
+      .left-side {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        .assignee {
+          max-width: 140px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+
+      .right-side {
+        display: flex;
+        align-items: flex-end;
+
+        div {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+  }
+}
+
+.maintenance-order-card:hover {
+  cursor: pointer;
+}
+
+.maintenance-status {
+  display: flex;
+  width: 108px;
+  height: 25px;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.maintenance-severity {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 29px;
+  height: 29px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 18px;
+}
