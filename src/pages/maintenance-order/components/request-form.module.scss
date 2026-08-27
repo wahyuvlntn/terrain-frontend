@@ -1,0 +1,91 @@
+@import '../../../shared/components/lib/color';
+.request-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1 0 0;
+  align-self: stretch;
+  overflow: auto;
+  .form {
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    gap: 16px;
+    padding: 16px;
+    background-color: $background-lowest;
+    flex: 1 0 0;
+    align-self: stretch;
+    overflow: auto;
+    .form-group {
+      display: flex;
+      gap: 20px;
+      align-self: stretch;
+
+      .schedule-field {
+        display: flex;
+        gap: 4px;
+        flex: 1 0 0;
+      }
+    }
+  }
+  .buttons {
+    display: flex;
+    justify-content: space-between;
+  }
+  .buttons-right {
+    display: flex;
+    gap: 16px;
+  }
+}
+
+.popup-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  .inner-content {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    gap: 8px;
+  }
+  .notes {
+    font-size: 14px;
+    color: $neutral-text-caption;
+  }
+  .maintenance-name-and-type {
+    display: flex;
+    padding: 16px;
+    align-self: stretch;
+    background-color: $background-lowest;
+    border-radius: 8px;
+    font-weight: 500;
+  }
+  .radio-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+.form-field {
+  display: flex;
+  gap: 8px;
+  flex: 1 0 0;
+  flex-direction: column;
+  .required {
+    color: $condition-critical-primary;
+  }
+  .datetime-picker {
+    display: flex;
+    gap: 4px;
+    align-self: stretch;
+    .date {
+      flex: 1 0 0;
+      height: fit-content;
+    }
+    .time {
+      width: 120px;
+      height: fit-content;
+    }
+  }
+}
