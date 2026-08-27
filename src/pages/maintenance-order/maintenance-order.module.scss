@@ -1,0 +1,51 @@
+.maintenance-order {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  gap: 16px;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 52px;
+
+    .left-side {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .right-side {
+      display: flex;
+      gap: 16px;
+      padding-left: 16px;
+      align-items: center;
+    }
+  }
+
+  .content {
+    display: flex;
+    flex: 1 0 0;
+    align-self: stretch;
+  }
+}
+
+.view-options {
+  display: flex;
+  align-items: center;
+
+  .option {
+    display: flex;
+    width: 112px;
+    height: 36px;
+    align-items: center;
+    gap: 4px;
+    justify-content: center;
+  }
+
+  .option:hover {
+    cursor: pointer;
+  }
+}
