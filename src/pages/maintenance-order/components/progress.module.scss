@@ -1,0 +1,292 @@
+@import '../../../shared/components/lib/color';
+
+.progress {
+  display: flex;
+  flex: 1 0 0;
+  // align-self: stretch;
+  padding: 16px;
+  gap: 16px;
+  flex-direction: column;
+
+  .spv-header {
+    display: flex;
+    justify-content: space-between;
+    color: $neutral-text-caption;
+
+    .spv-header-left {
+      display: flex;
+      gap: 4px;
+      flex-direction: column;
+    }
+
+    .spv-header-right {
+      display: flex;
+      gap: 4px;
+      flex-direction: column;
+    }
+  }
+
+  .main {
+    display: flex;
+    align-self: stretch;
+    flex: 1 0 0;
+    background-color: $background-lowest;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 8px;
+
+    .work-history-container {
+      display: flex;
+      flex: 1 0 0;
+      align-self: stretch;
+    }
+
+    .progress-title {
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .progress-content {
+      display: flex;
+      align-self: stretch;
+      gap: 16px;
+      height: 100%;
+
+      .inner-progress-content {
+        display: flex;
+        align-self: stretch;
+        flex: 1 0 0;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .personnel-container {
+        min-height: 100px;
+        height: fit-content;
+      }
+
+      .personnel-name {
+        display: flex;
+        height: 40px;
+        gap: 8px;
+        align-items: center;
+        color: $neutral-text-title-heading;
+      }
+    }
+  }
+}
+
+.work-progress-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 0;
+  align-self: stretch;
+}
+
+.work-progress {
+  display: flex;
+  gap: 20px;
+  align-self: stretch;
+
+  .datetime {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 82px;
+    font-size: 14px;
+    align-items: flex-end;
+    color: $neutral-text-caption;
+  }
+
+  .icon-container {
+    display: flex;
+    width: 40px;
+    align-items: center;
+    flex-direction: column;
+
+    .icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+
+      &.icon-started {
+        background-color: $brand-surface-default-primary;
+      }
+
+      &.icon-rejected {
+        background-color: $condition-critical-primary;
+      }
+
+      &.icon-completed {
+        background-color: $severity-tags-status-done;
+      }
+
+      &.icon-default {
+        background-color: $background-default;
+      }
+    }
+
+    .line {
+      flex: 1 0 0;
+      width: 3px;
+      background-color: $neutral-text-title-heading;
+    }
+  }
+
+  .progress-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px !important;
+    align-self: stretch;
+    flex: 1 0 0;
+
+    .status {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .key-value {
+      display: flex;
+      gap: 8px;
+      font-size: 14px;
+
+      .key {
+        font-weight: 400;
+      }
+
+      .value {
+        font-weight: 500;
+      }
+    }
+
+    .image-attachment {
+      display: flex;
+      justify-content: space-between;
+      align-self: stretch;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 500;
+
+      .overview {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+      }
+
+      .view-button {
+        padding-right: 16px;
+
+        .view {
+          border-bottom: 1px solid $neutral-text-title-heading;
+        }
+
+        .view:hover {
+          cursor: pointer;
+        }
+      }
+    }
+  }
+}
+
+.container-title-props {
+  font-size: 16px;
+}
+
+.container-header-props {
+  border-bottom: 1px solid $neutral-text-caption;
+  padding-bottom: 16px;
+}
+
+.container-content-wrapper-props {
+  overflow: unset;
+  gap: 0;
+  align-self: stretch;
+}
+
+.icon-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: $neutral-text-title-heading;
+}
+
+.icon-play {
+  color: $neutral-text-title-heading;
+}
+
+.icon-play-primary {
+  color: $brand-surface-default-primary;
+}
+
+.icon-pause-critical {
+  color: $condition-critical-secondary;
+}
+
+.issue-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: stretch;
+  font-size: 14px;
+}
+
+.issue-item {
+  display: flex;
+  gap: 2px;
+  align-self: stretch;
+  padding-left: 12px;
+  font-weight: 500;
+}
+
+.issue-number {
+  width: 20px;
+}
+
+.issue-label {
+  display: flex;
+  flex: 1 0 0;
+}
+
+.boolean-value-container {
+  display: flex;
+  gap: 8px;
+  align-self: stretch;
+  font-size: 14px;
+  align-items: center;
+}
+
+.alarm-status-badge {
+  padding: 4px 8px 4px 8px;
+  border-radius: 8px;
+  border: 1px solid $neutral-text-title-heading;
+
+  &.null {
+    background: $accent-info-primary;
+  }
+
+  &.resolved {
+    background: $severity-low;
+  }
+
+  &.valid {
+    background: $status-running-primary;
+  }
+
+  &.unresolved {
+    background: $severity-critical;
+  }
+
+  &.invalid {
+    background: $status-unplanned-down-primary;
+  }
+}
+
+.progress-separator-line {
+  height: 16px;
+  width: 3px;
+  background-color: $neutral-text-title-heading;
+}

@@ -1,0 +1,142 @@
+@import '../../../shared/components/lib/color';
+
+.PopupActionDialog {
+  z-index: 10;
+  .ActionDialog {
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+    width: 487px;
+
+    &__Detail {
+      background: $background-lowest;
+      padding: 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 16px;
+      display: flex;
+      flex-direction: column;
+      row-gap: 4px;
+    }
+
+    &__Message {
+      display: flex;
+      flex-direction: column;
+      row-gap: 8px;
+
+      &__Title {
+        font-weight: 500;
+        font-size: 16px;
+      }
+
+      &__Description {
+        font-size: 14px;
+        color: $neutral-text-caption-placeholder;
+      }
+    }
+
+    &__ChangeStatus {
+      display: flex;
+      flex-direction: column;
+      row-gap: 8px;
+
+      &__Description {
+        font-size: 14px;
+        color: $neutral-text-caption-placeholder;
+      }
+    }
+  }
+}
+
+// .SetIssueValidityDialog {
+//   &__IssueName {
+//     display: flex;
+//     flex-direction: row;
+//     align-items: center;
+//     column-gap: 8px;
+//   }
+// }
+
+.IssueValidityDialog {
+  width: 968px !important;
+}
+
+.MaintenanceDegradationContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  column-gap: 16px;
+}
+
+.DegradationBadge {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  padding: 4px 8px;
+  border: 1px solid $condition-warning-primary;
+  background-color: #FF6F0033;
+}
+
+.Issue {
+  display: flex;
+  flex-direction: column;
+  row-gap: 8px;
+
+  &__Title {
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  &__List {
+    display: flex;
+    flex-direction: column;
+    row-gap: 8px;
+    padding: 8px;
+    background: $background-lowest;
+    height: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    overflow: auto;
+  }
+}
+
+.IssueValidity {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+
+  &__LabelContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 8px;
+  }
+}
+
+.TopBtnContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  column-gap: 16px;
+
+  &__DiscardSave {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 8px;
+  }
+
+  &__EditingLabel {
+    background: transparent;
+    cursor: default;
+    outline: 1px solid $background-high;
+    font-style: italic;
+
+    &:hover {
+      background: transparent;
+    }
+  }
+}

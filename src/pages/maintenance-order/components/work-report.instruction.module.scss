@@ -1,0 +1,281 @@
+// @import '../../../shared/components/lib/color';
+
+// .MaintenanceInstructionList {
+//   display: flex;
+//   flex-direction: column;
+//   row-gap: 16px;
+//   padding-top: 16px;
+//   flex: 1;
+
+//   &__Header {
+//     display: flex;
+//     flex-direction: row;
+//     align-items: center;
+//     justify-content: space-between;
+//   }
+
+//   &__EstimatedTimeIssueSelectorContainer {
+//     display: flex;
+//     flex-direction: row;
+//     align-items: center;
+//     column-gap: 8px;
+//   }
+
+//   &__EstimatedTimeLabel {
+//     font-weight: 500;
+//     font-size: 16px;
+//     color: $neutral-text-caption-placeholder;
+//   }
+
+//   &__IssueSelector {
+//     display: flex;
+//     flex-direction: row;
+//     align-items: center;
+//   }
+
+//   &__IssueSelectorItem {
+//     display: flex;
+//     flex-direction: row;
+//     align-items: center;
+//     column-gap: 4px;
+//     background: $background-low;
+//     padding: 8px 12px;
+//     cursor: pointer;
+
+//     &.active {
+//       background: $background-highest;
+//       cursor: default;
+//     }
+
+//     &:first-child {
+//       border-radius: 8px 0 0 8px;
+//     }
+
+//     &:last-child {
+//       border-radius: 0 8px 8px 0;
+//     }
+//   }
+
+//   &__Title {
+//     font-size: 18px;
+//     font-weight: 500;
+//   }
+
+//   &__InstructionList {
+//     display: flex;
+//     flex-direction: column;
+//     row-gap: 16px;
+//   }
+// }
+
+// .MaintenanceInstructionItem {
+//   padding: 16px;
+//   background: $background-low;
+//   row-gap: 16px;
+//   display: flex;
+//   flex-direction: column;
+//   max-height: 1000px;
+//   border-radius: 8px;
+
+//   &__Header {
+//     display: flex;
+//     flex-direction: row;
+//     align-items: center;
+//     justify-content: space-between;
+
+//     &__Label {
+//       display: flex;
+//       flex-direction: row;
+//       align-items: center;
+//       column-gap: 24px;
+//     }
+
+//     &__TitleIconContainer {
+//       display: flex;
+//       flex-direction: row;
+//       align-items: center;
+//       column-gap: 4px;
+//     }
+
+//     &__TitleBadgeContainer {
+//       display: flex;
+//       flex-direction: row;
+//       align-items: center;
+//       column-gap: 24px;
+//     }
+
+//     &__TitleLabel {
+//       font-size: 22px;
+//       font-weight: 600;
+//     }
+
+//     &__TypeBadge {
+//       font-weight: 500;
+//       cursor: default;
+//     }
+//   }
+
+//   &__Body {
+//     display: flex;
+//     flex-direction: row;
+//     column-gap: 16px;
+//     overflow: hidden;
+//   }
+
+//   &__MainContent {
+//     flex: 1;
+//     overflow: auto;
+//   }
+
+//   &__InstructionDetailMetadata {
+//     width: 404px;
+//   }
+// }
+
+// .MaintenanceInstructionType {
+//   display: flex;
+//   flex-direction: column;
+//   padding: 16px 0;
+//   row-gap: 16px;
+//   border-radius: 8px;
+//   background: $background-default;
+
+//   &__Header {
+//     display: flex;
+//     flex-direction: row;
+//     align-items: center;
+//     justify-content: space-between;
+//     padding: 0 16px;
+//   }
+
+//   &__Title {
+//     font-weight: 600;
+//     font-size: 22px;
+//   }
+
+//   &__Content {
+//     padding: 0 16px;
+//     display: flex;
+//     flex-direction: column;
+//     row-gap: 8px;
+//   }
+
+//   &__Footer {
+//     display: flex;
+//     flex-direction: column;
+//     row-gap: 16px;
+//   }
+
+//   &__ConfirmMsgContainer {
+//     display: flex;
+//     flex-direction: column;
+//     row-gap: 8px;
+
+//     &__Title {
+//       font-size: 16px;
+//       font-weight: 500;
+//     }
+
+//     &__Description {
+//       color: $neutral-text-caption-placeholder;
+//       font-size: 14px;
+//     }
+//   }
+
+//   &__BtnContainer {
+//     display: flex;
+//     flex-direction: row;
+//     justify-content: space-between;
+//     align-items: center;
+//     flex-direction: row-reverse;
+//   }
+
+//   &__PrimaryBtnContainer {
+//     display: flex;
+//     flex-direction: row;
+//     align-items: center;
+//     column-gap: 8px;
+//   }
+
+//   &__ActionMsgContainer {
+//     display: flex;
+//     flex-direction: column;
+//     align-items: flex-end;
+
+//     &__Title {
+//       font-size: 16px;
+//       font-weight: 500;
+//     }
+
+//     &__Description {
+//       color: $neutral-text-caption-placeholder;
+//       font-size: 14px;
+//     }
+//   }
+// }
+
+// .BtnIcon {
+//   cursor: pointer;
+// }
+
+// .ValidityChevron {
+//   display: flex;
+//   flex-direction: row;
+//   align-items: center;
+//   column-gap: 8px;
+
+//   &__ValidityBadge {
+//     border: 1px solid white;
+//   }
+// }
+
+// .MaintenanceInstructionAlarm {
+//   display: flex;
+//   flex-direction: column;
+//   padding: 16px 0;
+//   border-radius: 8px;
+//   row-gap: 16px;
+//   background: $background-high;
+
+//   &__Header {
+//     display: flex;
+//     flex-direction: row;
+//     align-items: center;
+//     padding: 0 16px;
+//     justify-content: space-between;
+//   }
+
+//   &__Title {
+//     display: flex;
+//     flex-direction: row;
+//     align-items: center;
+//     column-gap: 4px;
+//     font-size: 22px;
+//     font-weight: 600;
+//   }
+
+//   &__Content {
+//     display: flex;
+//     flex-direction: column;
+//     row-gap: 16px;
+//     padding: 8px 16px;
+//   }
+// }
+
+// .BtnCritical {
+//   background: $condition-critical-primary !important;
+//   color: $neutral-text-body-light;
+
+//   &:hover {
+//     filter: brightness(105%);
+//   }
+// }
+
+// .BtnNormal {
+//   background: $condition-normal-primary !important;
+//   color: $neutral-text-body-light;
+
+//   &:hover {
+//     filter: brightness(105%);
+//   }
+// }
