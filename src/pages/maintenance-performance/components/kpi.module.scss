@@ -1,0 +1,120 @@
+@import '../../../shared/components/lib/color';
+@import '../../../shared/components/lib/size';
+
+:global {
+  .katex-html {
+    display: none;
+  }
+  .katex-mathml {
+    font-size: 20px !important;
+  }
+}
+
+.content-kpi {
+  min-width: 834.67px;
+  max-width: 834.67px;
+  box-sizing: border-box;
+}
+
+.metric-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.card-row {
+  display: flex;
+  position: relative;
+  gap: $spacingXL;
+  align-self: stretch;
+  > * {
+    flex: 1 1 0;
+  }
+}
+
+.status-ellipsis {
+  width: 12px;
+  height: 12px;
+  background: currentColor;
+  border-radius: 50%;
+}
+
+.divider {
+  position: relative;
+  min-width: 2px;
+  background-color: $border-default;
+}
+
+.divider-handle {
+  display: flex;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  background-color: $background-highest;
+  height: 80%;
+  max-height: 80px;
+  cursor: col-resize;
+  border-radius: $borderRadiusMedium;
+
+  &::before {
+    content: '';
+    margin: auto;
+    width: 2px;
+    height: 100%;
+    max-height: 6px;
+    background-color: $border-default;
+  }
+}
+
+.chart-container {
+  padding: 20px 16px;
+  background: $background-lowest;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.chart-panel {
+  position: relative;
+  display: flex;
+  > * {
+    flex: 1 1 0;
+  }
+}
+
+.metric-container {
+  transition: background 0.2s ease-in-out;
+  background: $background-lowest;
+  cursor: pointer;
+  &:hover {
+    background: $background-default;
+  }
+  &.--active {
+    filter: brightness(105%);
+  }
+}
+
+.right-top-component {
+  display: flex;
+  justify-content: space-between;
+  flex: 1 0 0;
+  align-items: center;
+
+  .details{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .last-updated-title{
+      font-size: 16px;
+      color : $neutral-text-caption;
+    }
+
+    .last-updated-value{
+      color : $neutral-text-title-heading;
+      font-size: 16px;
+    }
+  }
+}
