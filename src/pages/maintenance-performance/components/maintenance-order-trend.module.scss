@@ -1,0 +1,32 @@
+@import '../../../shared/components/lib/size';
+@import '../../../shared/components/lib/color';
+@import '../../../shared/components/lib/util-class.module';
+
+.maintenance-order-trend {
+  display: flex;
+  flex: 1;
+  // min-width: 882px;
+  box-sizing: border-box;
+
+  .chart-container {
+    display: flex;
+    height: 100%;
+    flex: 1;
+    flex-grow: 1;
+    overflow: auto;
+    position: relative;
+
+    .chart {
+      overflow: hidden;
+      border-radius: $borderRadiusMedium;
+    }
+  }
+}
+
+
+.right-top-component {
+  display: flex;
+  justify-content: space-between;
+  flex: 1 0 0;
+  align-items: center;
+}
