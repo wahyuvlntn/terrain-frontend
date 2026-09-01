@@ -1,0 +1,37 @@
+@import '../../shared/components/lib/size';
+@import '../../shared/components/lib/color';
+@import '../../shared/components/lib/util-class.module';
+
+.maintenance-performance {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  gap: 16px;
+  overflow: auto;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 52px;
+  }
+
+  .top-section {
+    display: flex;
+    flex: 1;
+    width: 100%;
+    gap: 16px;
+    height: 100%;
+    // max-height: 395.5px;
+  }
+
+  .bottom-section {
+    display: flex;
+    flex: 1;
+    width: 100%;
+    gap: 16px;
+    height: 100%;
+    // max-height: 395.5px;
+  }
+}
