@@ -1,0 +1,36 @@
+@import '../../../shared/components/lib/size';
+@import '../../../shared/components/lib/color';
+@import '../../../shared/components/lib/util-class.module';
+
+.right-top-component-padding {
+  flex: 1 0 0;
+}
+
+.search {
+  flex: 2 0 0;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px !important;
+  flex: 1 0 0;
+  width: 100%;
+}
+
+.list-container {
+  flex: 1 0 0;
+  height: 0;
+  overflow: auto;
+  position: relative;
+  display: grid;
+  grid-auto-rows: minmax(149px, 149px);
+  grid-template-columns: repeat(auto-fill, minmax(408px, 1fr));
+  gap: 12px;
+}
+
+.pagination-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
