@@ -1,0 +1,6 @@
+.filter-tree {
+  // For now, locations tree is hidden using CSS
+  & > li:first-child {
+    display: none;
+  }
+}
