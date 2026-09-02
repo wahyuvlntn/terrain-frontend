@@ -1,0 +1,59 @@
+@import '../../../shared/components/lib/size';
+@import '../../../shared/components/lib/color';
+@import '../../../shared/components/lib/util-class.module';
+
+.container {
+  &__right-top-component {
+    width: 100%;
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  height: 100%;
+
+  &__top {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__form {
+    flex: 1 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    &__inputs {
+      flex: 1 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 16px;
+      border-radius: 8px;
+      background-color: $background-lowest;
+      position: relative;
+      overflow: auto;
+    }
+
+    &__buttons {
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+}
+
+.kv-text {
+  font-size: 16px !important;
+  line-height: 24px !important;
+  color: $neutral-text-caption;
+}
+
+.dropdown-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
