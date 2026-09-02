@@ -1,0 +1,33 @@
+@import '../../../shared/components/lib/size';
+@import '../../../shared/components/lib/color';
+@import '../../../shared/components/lib/util-class.module';
+
+// .trigger {
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+// }
+
+.info {
+  // display: flex;
+  // flex-direction: column;
+  // gap: 12px;
+  // background-color: $background-highest;
+  // border: 1px solid $brand-border-light-primary;
+  // border-radius: 8px;
+  // padding: 12px 16px;
+  // color: $neutral-text-title-heading;
+  max-width: 733px;
+}
+
+// .title {
+//   font-size: 18px;
+//   font-weight: 600;
+//   line-height: 27px;
+// }
+
+// .content {
+//   font-size: 16px;
+//   font-weight: 500;
+//   line-height: 24px;
+// }
