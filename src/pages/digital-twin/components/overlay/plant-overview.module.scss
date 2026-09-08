@@ -1,0 +1,532 @@
+@import '../../../../shared/components/lib/size';
+@import '../../../../shared/components/lib/color';
+
+// BMS pipe colour code: chilled water blue, condenser water teal; the cold (supply) side is the
+// saturated tone, the warm (return) side the light one
+$chws: var(--afdd-lochmara-500);
+$chwr: var(--afdd-lochmara-300);
+$cws: var(--afdd-pelorous-500);
+$cwr: var(--afdd-pelorous-300);
+// solid schematic background: crossing gaps and flow dashes are painted in it
+$canvas: $background-lowest;
+
+// ------------------------------------------------------------------ frame
+// positioning context: the twin workspace (tree, 3D view, details) the overview floats over
+.plant-overview-host {
+  position: relative;
+}
+
+.plant-overview {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+
+  &__panel {
+    container-type: inline-size;
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 32px);
+    max-width: 1440px;
+    height: calc(100% - 32px);
+    max-height: 940px;
+    border-radius: 8px;
+    border: 1px solid $border-default;
+    background: $background-low;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    color: $neutral-text-body-neutral;
+    overflow: hidden;
+    outline: none;
+    pointer-events: auto;
+  }
+}
+
+.po-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 16px;
+  border-bottom: 1px solid $border-light;
+  font-size: 14px;
+
+  &__titles {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: $neutral-text-title-heading;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  &__close {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: $neutral-text-label;
+    cursor: pointer;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      background: $background-high;
+      color: $neutral-text-title-heading;
+    }
+  }
+}
+
+.po-badge {
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.po-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: $neutral-text-caption;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+
+  i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: $status-running-primary;
+    animation: po-pulse 2s ease-in-out infinite;
+  }
+
+  &--error i {
+    background: $status-unplanned_down-primary;
+    animation: none;
+  }
+
+  // simulation replay: the replay accent, no "live" pulse
+  &--replay {
+    color: $condition-abnormal-secondary;
+
+    i {
+      background: $condition-abnormal-primary;
+      animation: none;
+    }
+  }
+}
+
+// ------------------------------------------------------------- KPI strip
+.po-kpis {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid $border-light;
+}
+
+@container (max-width: 700px) {
+  .po-kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .po-header__live-text {
+    display: none;
+  }
+}
+
+// --------------------------------------------------------------- schematic
+.po-canvas {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: $canvas;
+
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.po-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 10px 16px;
+  border-top: 1px solid $border-light;
+  font-size: 14px;
+  color: $neutral-text-caption;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+  }
+
+  i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  b {
+    width: 20px;
+    height: 5px;
+    border-radius: 1px;
+  }
+
+  &__sep {
+    width: 1px;
+    height: 12px;
+    background: $border-light;
+  }
+
+  &__override {
+    font-size: 13px;
+    font-style: normal;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--afdd-condition-warning-primary);
+  }
+}
+
+// pipes: headers are heavier than branches; branches without flow are dimmed
+.pipe {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linejoin: miter;
+
+  &--header {
+    stroke-width: 5;
+  }
+
+  &--idle {
+    opacity: 0.4;
+  }
+}
+
+.pipe--chws,
+.swatch--chws {
+  stroke: $chws;
+  background: $chws;
+}
+
+.pipe--chwr,
+.swatch--chwr {
+  stroke: $chwr;
+  background: $chwr;
+}
+
+.pipe--cws,
+.swatch--cws {
+  stroke: $cws;
+  background: $cws;
+}
+
+.pipe--cwr,
+.swatch--cwr {
+  stroke: $cwr;
+  background: $cwr;
+}
+
+// marching dashes along a pipe that carries flow (the path runs in the flow direction)
+.flow {
+  fill: none;
+  stroke: $canvas;
+  stroke-width: 4;
+  stroke-dasharray: 5 9;
+  opacity: 0.6;
+  animation: po-flow 1.1s linear infinite;
+
+  &--header {
+    stroke-width: 5.5;
+  }
+}
+
+// a header broken where a branch crosses it without connecting
+.gap {
+  fill: $canvas;
+}
+
+.arrow {
+  &--chws {
+    fill: $chws;
+  }
+
+  &--chwr {
+    fill: $chwr;
+  }
+
+  &--cws {
+    fill: $cws;
+  }
+
+  &--cwr {
+    fill: $cwr;
+  }
+}
+
+// pipe line markers on the headers
+.marker {
+  &--chws {
+    fill: $chws;
+  }
+
+  &--chwr {
+    fill: $chwr;
+  }
+
+  &--cws {
+    fill: $cws;
+  }
+
+  &--cwr {
+    fill: $cwr;
+  }
+
+  &__text,
+  &__arrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    fill: $canvas;
+  }
+}
+
+// equipment
+.equip {
+  fill: $background-default;
+  stroke: $neutral-text-caption;
+  stroke-width: 1.2;
+}
+
+.louvre {
+  stroke: $neutral-text-caption;
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+.basin {
+  fill: color-mix(in srgb, var(--afdd-pelorous-500) 30%, transparent);
+  stroke: $neutral-text-caption;
+  stroke-width: 1;
+}
+
+.fan {
+  fill: $neutral-text-label;
+  transform-box: fill-box;
+  transform-origin: center;
+
+  &--on {
+    animation: po-spin 1.4s linear infinite;
+  }
+}
+
+.chiller {
+  stroke-width: 1.6;
+}
+
+.shell {
+  fill: $background-default;
+  stroke-width: 1.6;
+
+  &--cw {
+    stroke: $cws;
+  }
+
+  &--chw {
+    stroke: $chws;
+  }
+
+  line {
+    stroke: $neutral-text-caption;
+    stroke-width: 1;
+    opacity: 0.6;
+  }
+}
+
+.pump {
+  stroke-width: 1.6;
+}
+
+.valve {
+  stroke: $neutral-text-label;
+  stroke-width: 1.2;
+}
+
+.instrument {
+  fill: $background-default;
+  stroke: $neutral-text-label;
+  stroke-width: 1.2;
+}
+
+.impulse {
+  stroke: $neutral-text-caption;
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.leader {
+  stroke: $neutral-text-caption;
+  stroke-width: 1;
+}
+
+.tag {
+  fill: $background-default;
+  stroke: $border-light;
+  stroke-width: 1;
+}
+
+.fab {
+  fill: $background-default;
+  stroke: $neutral-text-caption;
+  stroke-width: 1.2;
+  stroke-dasharray: 5 3;
+}
+
+// clickable units: hover / keyboard focus outline on an invisible hit area
+.unit {
+  cursor: pointer;
+  outline: none;
+
+  &__hit {
+    fill: transparent;
+    stroke: transparent;
+    stroke-width: 1.2;
+    stroke-dasharray: 4 3;
+  }
+
+  &:hover &__hit,
+  &:focus-visible &__hit {
+    fill: rgba(255, 255, 255, 0.05);
+    stroke: $brand-border-light-primary;
+  }
+}
+
+// text
+.t-tag {
+  font-size: 13px;
+  font-weight: 700;
+  fill: $neutral-text-title-heading;
+}
+
+.t-status {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+// operator override tag (MAN / HAND / OFF) ahead of a unit's status
+.t-override {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  fill: var(--afdd-condition-warning-primary);
+}
+
+// "!" in the alarm marker on a unit's corner
+.t-alarm {
+  font-size: 12px;
+  font-weight: 800;
+  fill: #fff;
+  pointer-events: none;
+}
+
+.t-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  fill: $neutral-text-caption;
+}
+
+.t-value {
+  font-size: 13.5px;
+  font-weight: 600;
+  fill: $neutral-text-title-heading;
+}
+
+.t-unit {
+  font-size: 12px;
+  font-weight: 500;
+  fill: $neutral-text-caption;
+}
+
+.t-shell {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  fill: $neutral-text-caption;
+  opacity: 0.8;
+}
+
+.t-section {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  fill: $neutral-text-caption;
+}
+
+.t-sub {
+  font-size: 12px;
+  fill: $neutral-text-caption;
+  opacity: 0.85;
+}
+
+.t-isa {
+  font-size: 11px;
+  font-weight: 700;
+  fill: $neutral-text-label;
+}
+
+@keyframes po-flow {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+@keyframes po-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes po-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow,
+  .fan--on,
+  .po-live i {
+    animation: none;
+  }
+}
