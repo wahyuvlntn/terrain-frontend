@@ -1,0 +1,577 @@
+@import '../../../../shared/components/lib/size';
+@import '../../../../shared/components/lib/color';
+
+// Walk mode (first person) heads-up display over the 3D view. It lets clicks through to the view
+// except on its panels. No stacking context of its own: the crosshair, the controls help and the
+// event toasts stay under the dashboard card (z-index 3), the bar with its menus above it, and
+// everything under the BMS plant overview (z-index 5). The card starts below the bar: the HUD
+// publishes the bar's bottom edge as --twin-inset-top on the view.
+
+.walk {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: $neutral-text-body-neutral;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+// the HUD's cards: the twin's floating card style
+.walk-panel {
+  pointer-events: auto;
+  box-sizing: border-box;
+  border-radius: 8px;
+  border: 1px solid $border-default;
+  background: $background-low;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.walk-btn {
+  height: 32px;
+  padding: 0 10px !important;
+  font-size: 14px !important;
+  letter-spacing: normal !important;
+  white-space: nowrap;
+}
+
+.walk-key {
+  display: inline-block;
+  min-width: 18px;
+  margin-left: 6px;
+  padding: 0 4px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  opacity: 0.75;
+}
+
+.walk-count {
+  display: inline-block;
+  min-width: 18px;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: $brand-surface-default-primary;
+  color: $neutral-text-body-light;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+}
+
+// ------------------------------------------------------------------ top: place, actions, menus
+.walk-top {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  // clear of the toolbar on the right
+  max-width: calc(100% - 84px);
+  max-height: calc(100% - 24px - var(--twin-inset-bottom, 12px));
+}
+
+.walk-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  max-width: 100%;
+  padding: 6px 8px 6px 10px;
+
+  &__place {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+
+    svg {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      color: $brand-surface-default-primary;
+    }
+
+    div {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    span {
+      color: $neutral-text-caption;
+      font-size: 14px;
+      line-height: 16px;
+    }
+
+    strong {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: $neutral-text-title-heading;
+      font-size: 14px;
+      font-weight: 600;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+// an icon-only HUD button with the app's tooltip bubble below it (hover / keyboard focus)
+.walk-tip-host {
+  position: relative;
+  display: flex;
+}
+
+.walk-btn--icon {
+  width: 32px;
+  padding: 0 !important;
+  justify-content: center;
+}
+
+.walk-tip {
+  position: absolute !important;
+  top: calc(100% + 10px);
+  right: 0;
+  width: max-content;
+  max-width: 280px;
+  font-size: 14px !important;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+
+  .walk-tip-host:hover &,
+  .walk-tip-host:focus-within & {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
+// teleport menu and the event list drop down under the bar
+.walk-menu,
+.walk-events {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(360px, 100%);
+  min-height: 0;
+  padding: 10px;
+}
+
+.walk-menu {
+  &__filter {
+    width: 100%;
+  }
+
+  &__scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 0;
+    max-height: 360px;
+    overflow-y: auto;
+  }
+
+  &__heading {
+    margin: 6px 0 2px;
+    color: $neutral-text-caption;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 34px;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: $neutral-text-title-heading;
+    font: inherit;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+
+    svg {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      color: $neutral-text-caption;
+    }
+
+    span {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    em {
+      font-style: normal;
+      font-size: 14px;
+      color: $neutral-text-caption;
+      white-space: nowrap;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: $background-high;
+      outline: none;
+    }
+  }
+}
+
+.walk-events {
+  width: min(420px, 100%);
+}
+
+.walk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  max-height: 380px;
+  overflow-y: auto;
+
+  &__empty {
+    padding: 10px;
+    color: $neutral-text-caption;
+  }
+}
+
+// ------------------------------------------------------------------ one event (list and toasts)
+.walk-event {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 8px 8px 10px;
+  border-radius: 6px;
+  border-left: 4px solid var(--event-color);
+  background: $background-default;
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: var(--event-color);
+    background: color-mix(in srgb, var(--event-color) 22%, transparent);
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+
+    strong {
+      color: $neutral-text-title-heading;
+      font-weight: 600;
+    }
+
+    span {
+      color: $neutral-text-caption;
+      font-size: 14px;
+    }
+  }
+
+  &__title {
+    color: $neutral-text-title-heading;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  // the event's message (what a coded alarm such as CHS-002 means)
+  &__detail {
+    color: $neutral-text-body-neutral;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  // repeats coalesced on one toast; a warning that turned critical
+  &__count,
+  &__escalated {
+    padding: 0 6px;
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--event-color) 22%, transparent);
+    color: $neutral-text-title-heading;
+    font-style: normal;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+  }
+
+  &__asset {
+    color: $neutral-text-caption;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  &__dismiss {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: $neutral-text-label;
+    cursor: pointer;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &:hover {
+      background: $background-high;
+    }
+  }
+}
+
+// ------------------------------------------------------------------ toasts (bottom left)
+// under the dashboard card the user opened (the card wins where they meet; the Events list over
+// the card has the same events)
+.walk-toasts {
+  position: absolute;
+  left: 12px;
+  bottom: var(--twin-inset-bottom, 12px);
+  z-index: 2;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  width: min(440px, calc(100% - 24px));
+}
+
+.walk-toast {
+  padding: 4px;
+  // the severity shows on the whole toast, not only its stripe
+  border-color: color-mix(in srgb, var(--event-color) 65%, transparent);
+  animation: walk-toast-in 0.2s ease-out;
+
+  .walk-event {
+    background: transparent;
+  }
+}
+
+@keyframes walk-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .walk-toast {
+    animation: none;
+  }
+}
+
+// ------------------------------------------------------------------ crosshair (view centre)
+.walk-aim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+
+  &__cross {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 22px;
+    height: 22px;
+    transform: translate(-50%, -50%);
+
+    // a plus with a dark outline: legible on bright walls and dark machinery alike
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
+      border-radius: 1px;
+    }
+
+    &::before {
+      left: 10px;
+      top: 0;
+      width: 2px;
+      height: 22px;
+    }
+
+    &::after {
+      left: 0;
+      top: 10px;
+      width: 22px;
+      height: 2px;
+    }
+
+    &--on::before,
+    &--on::after {
+      background: #7fc4ff;
+    }
+  }
+
+  &__target {
+    position: absolute;
+    left: 50%;
+    top: calc(50% + 22px);
+    transform: translateX(-50%);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    max-width: calc(100% - 24px);
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: rgba(7, 26, 48, 0.82);
+    border: 1px solid rgba(127, 196, 255, 0.45);
+    color: #e8f1ff;
+    white-space: nowrap;
+
+    strong {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 600;
+    }
+
+    em {
+      font-style: normal;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    span {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+  }
+
+  &__hint {
+    position: absolute;
+    left: 50%;
+    // top: calc(50% + 62px);
+    bottom: 2%;
+    transform: translateX(-50%);
+    // one line where it fits (a centred box would otherwise wrap at half the view's width)
+    width: max-content;
+    max-width: calc(100% - 24px);
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: rgba(7, 26, 48, 0.7);
+    color: #e8f1ff;
+    font-size: 14px;
+    text-align: center;
+  }
+}
+
+// ------------------------------------------------------------------ controls help (bottom right)
+.walk-help {
+  position: absolute;
+  z-index: 2;
+  // clear of the AI assistant's launcher in full screen (see .digital-twin__body--immersive)
+  right: var(--twin-inset-right, 12px);
+  bottom: var(--twin-inset-bottom, 12px);
+  max-width: min(320px, calc(100% - 24px));
+  padding: 4px;
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 8px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: $neutral-text-title-heading;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+
+    svg {
+      width: 18px;
+      height: 18px;
+      color: $neutral-text-caption;
+    }
+
+    span {
+      flex: 1;
+      text-align: left;
+    }
+
+    &:hover {
+      background: $background-high;
+    }
+  }
+
+  &__keys {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 4px 8px 8px;
+
+    div {
+      display: grid;
+      grid-template-columns: 112px 1fr;
+      gap: 8px;
+    }
+
+    dt {
+      color: $neutral-text-title-heading;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    dd {
+      margin: 0;
+      color: $neutral-text-caption;
+      font-size: 14px;
+    }
+  }
+}
