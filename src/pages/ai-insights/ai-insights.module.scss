@@ -1,0 +1,1214 @@
+@import '../../shared/components/lib/size';
+@import '../../shared/components/lib/color';
+
+// AI Insights. The page never scrolls: every tab fits its panels to the remaining height and
+// each panel has at most one scroll region (a flexible child with `flex: 1 0 0; height: 0`).
+// Type scale: 14px body / labels / cells, 16px section titles, 18px detail titles, 24px KPI
+// values; 12-13px only for chart ticks, legends and badges.
+
+$gap: $spacingXL;
+
+// --------------------------------------------------------------------- page
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $gap;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  color: $neutral-text-body-neutral;
+  font-size: 14px;
+}
+
+.tabs {
+  flex: 1 0 0;
+  min-height: 0;
+
+  &__list {
+    flex: 0 0 auto;
+  }
+
+  &__tab {
+    width: auto !important;
+    padding: 8px 20px !important;
+    font-size: 16px;
+    white-space: nowrap;
+  }
+
+  &__panel {
+    display: flex;
+    flex: 1 0 0;
+    flex-direction: column;
+    min-height: 0;
+    padding: $gap 0 0 !important;
+  }
+}
+
+// a tab's content: filters, then panels filling the rest
+.tab {
+  display: flex;
+  flex: 1 0 0;
+  flex-direction: column;
+  gap: $gap;
+  min-height: 0;
+}
+
+.filters {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px $gap;
+  min-height: $fieldHeight;
+
+  &__end {
+    display: flex;
+    gap: 12px;
+    margin-left: auto;
+  }
+}
+
+.filter {
+  min-width: 200px;
+
+  &--wide {
+    min-width: 320px;
+  }
+}
+
+.search {
+  width: 260px;
+}
+
+.split {
+  display: flex;
+  flex: 1 0 0;
+  gap: $gap;
+  min-height: 0;
+
+  &__main {
+    flex: 1 1 0;
+    align-self: stretch;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  &__side {
+    flex: 0 0 420px;
+    align-self: stretch;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  &__detail {
+    flex: 0 0 clamp(400px, 36%, 540px);
+    align-self: stretch;
+    min-width: 0;
+    overflow: hidden;
+  }
+}
+
+.fill {
+  flex: 1 0 0;
+  align-self: stretch;
+  min-height: 0;
+  overflow: hidden;
+}
+
+// the flexible child of a panel that holds a table sized to fit (paged)
+.tableArea {
+  position: relative;
+  display: flex;
+  flex: 1 0 0;
+  flex-direction: column;
+  height: 0;
+  min-height: 0;
+  overflow: hidden;
+
+  > * {
+    max-height: 100%;
+  }
+}
+
+.chartArea {
+  position: relative;
+  flex: 1 0 0;
+  height: 0;
+  min-height: 160px;
+  overflow: hidden;
+}
+
+.pagination {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+}
+
+.segmented {
+  display: flex;
+  gap: 8px;
+}
+
+// ------------------------------------------------------------ overview KPIs
+.strip {
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: $gap;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+// the shared Metric tile, sized for a row of KPIs (14px title, 24px value)
+.kpi {
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  height: 100%;
+  min-width: 0;
+  padding: 10px 14px !important;
+  border-radius: 8px !important;
+  box-sizing: border-box;
+
+  > div:first-child {
+    gap: 8px;
+    max-width: 100%;
+    min-width: 0;
+
+    > span:first-child {
+      overflow: hidden;
+      color: $neutral-text-caption;
+      font-size: 14px !important;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    > span + span {
+      font-size: 13px !important;
+    }
+  }
+
+  > div:last-child {
+    max-width: 100%;
+    min-width: 0;
+
+    > div {
+      align-items: baseline !important;
+      min-width: 0;
+    }
+
+    > div > span {
+      white-space: nowrap;
+    }
+
+    > div > span:first-child {
+      overflow: hidden;
+      font-size: 24px !important;
+      font-weight: 600;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+    }
+
+    > div > span:nth-child(2) {
+      color: $neutral-text-caption !important;
+      font-size: 14px !important;
+    }
+  }
+
+  &__button {
+    all: unset;
+    position: relative;
+    display: block;
+    min-width: 0;
+    border-radius: 8px;
+  }
+
+  &__budget {
+    position: relative;
+    min-width: 0;
+  }
+
+  &__info {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
+}
+
+button.kpi__button {
+  cursor: pointer;
+
+  &:hover .kpi {
+    filter: brightness(1.2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $brand-border-light-primary;
+    outline-offset: 2px;
+  }
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+
+  @media (max-width: 1280px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+// ------------------------------------------------------------------- shared
+.muted {
+  color: $neutral-text-caption;
+  font-size: 14px;
+}
+
+.text {
+  margin: 0;
+  color: $neutral-text-body-neutral;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.empty {
+  display: flex;
+  flex: 1 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  padding: 16px;
+  color: $neutral-text-caption;
+  font-size: 14px;
+  text-align: center;
+}
+
+.trend__empty {
+  height: 100%;
+}
+
+.pill {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.subhead {
+  margin: 0;
+  color: $neutral-text-title-heading;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.section__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+
+  h4 {
+    margin: 0;
+    color: $neutral-text-title-heading;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+.section__aside {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px $gap;
+  margin: 0;
+
+  div {
+    min-width: 0;
+  }
+
+  dt {
+    color: $neutral-text-caption;
+    font-size: 14px;
+  }
+
+  dd {
+    margin: 2px 0 0;
+    color: $neutral-text-title-heading;
+    font-size: 14px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+}
+
+.dots {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+  font-size: 14px;
+
+  &--critical::marker {
+    color: $condition-critical-secondary;
+  }
+
+  &--warning::marker {
+    color: $condition-warning-secondary;
+  }
+}
+
+.link {
+  all: unset;
+  max-width: 100%;
+  overflow: hidden;
+  color: $accent-info-secondary;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+}
+
+.iconButton {
+  padding: 6px !important;
+}
+
+.rowActions {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.actionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: $neutral-text-body-neutral;
+  font-size: 14px;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid $condition-warning-primary;
+  border-radius: 8px;
+  color: $condition-warning-secondary;
+  font-size: 14px;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+}
+
+.optimizer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.validation {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+// popups: confirmation body, long text, forms
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+  outline: none;
+
+  &__lead {
+    color: $neutral-text-body-neutral;
+  }
+
+  &__items {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding-left: 20px;
+    color: $neutral-text-title-heading;
+  }
+}
+
+.reading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 70vh;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $gap;
+
+  &__row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $gap;
+  }
+}
+
+.editor {
+  max-height: 55vh;
+  overflow: auto;
+}
+
+// tabs inside a popup: one scroll region (the panel)
+.popupTabs {
+  height: min(560px, 70vh);
+
+  &__panel {
+    display: flex;
+    flex: 1 0 0;
+    flex-direction: column;
+    gap: 12px;
+    height: 0;
+    overflow: auto;
+    padding: 16px 4px 0 0 !important;
+  }
+}
+
+// ----------------------------------------------------------- detail panels
+.detail {
+  display: flex;
+  flex: 1 0 0;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-height: 0;
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+
+    h3 {
+      margin: 0;
+      overflow: hidden;
+      color: $neutral-text-title-heading;
+      font-size: 18px;
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  &__message {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    color: $neutral-text-body-neutral;
+    font-size: 14px;
+    line-height: 1.45;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  &__tabs {
+    flex: 1 0 0;
+    min-height: 0;
+  }
+
+  &__panel {
+    display: flex;
+    flex: 1 0 0;
+    flex-direction: column;
+    gap: 12px;
+    height: 0;
+    overflow: auto;
+    padding: 12px 4px 0 0 !important;
+  }
+
+  &__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+
+    > button:last-child {
+      margin-left: auto;
+    }
+  }
+
+  &__scroll {
+    display: flex;
+    flex: 1 0 0;
+    flex-direction: column;
+    gap: $gap;
+    height: 0;
+    overflow: auto;
+    padding-right: 4px;
+  }
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: $neutral-text-caption;
+  font-size: 14px;
+}
+
+// ----------------------------------------------------------- recommendation
+.rec {
+  display: flex;
+  flex: 1 0 0;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-height: 0;
+
+  &__scroll {
+    display: flex;
+    flex: 1 0 0;
+    flex-direction: column;
+    gap: $gap;
+    height: 0;
+    overflow: auto;
+    padding-right: 4px;
+  }
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px $gap;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: $gap;
+
+    // side by side only on wide screens: each chart needs the card's full width below that
+    @media (max-width: 1600px) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  &__block {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+    padding: 12px $gap;
+    border-radius: 8px;
+    background: $background-lowest;
+  }
+
+  &__actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1px solid $border-default;
+  }
+
+  &__outcome {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    min-width: 0;
+  }
+}
+
+// lifecycle stepper
+.stepper {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: $neutral-text-caption;
+  font-size: 14px;
+  white-space: nowrap;
+
+  &:not(:last-child)::after {
+    content: '';
+    width: 28px;
+    height: 2px;
+    margin: 0 8px;
+    background: $border-light;
+  }
+
+  &__dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    box-sizing: border-box;
+    border: 2px solid $border-light;
+    border-radius: 50%;
+    color: $foundation-neutral-white;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  &--done {
+    color: $neutral-text-title-heading;
+
+    .step__dot {
+      border-color: $condition-normal-primary;
+      background: $condition-normal-primary;
+    }
+
+    &::after {
+      background: $condition-normal-primary !important;
+    }
+  }
+
+  &--active {
+    color: $neutral-text-title-heading;
+    font-weight: 600;
+
+    .step__dot {
+      border-color: $brand-surface-default-primary;
+      box-shadow: inset 0 0 0 4px $brand-surface-default-primary;
+    }
+  }
+
+  &--error {
+    color: $condition-critical-secondary;
+    font-weight: 600;
+
+    .step__dot {
+      border-color: $condition-critical-primary;
+      background: $condition-critical-primary;
+    }
+  }
+
+  &--stopped {
+    opacity: 0.6;
+
+    .step__dot {
+      border-style: dashed;
+    }
+  }
+}
+
+// constraint bullets
+.bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__legend {
+    display: flex;
+    gap: $gap;
+    color: $neutral-text-caption;
+    font-size: 12px;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    i {
+      display: inline-block;
+    }
+  }
+}
+
+.legend--now {
+  width: 4px;
+  height: 12px;
+  border-radius: 2px;
+  background: $neutral-text-caption;
+}
+
+.legend--value {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: $condition-normal-primary;
+}
+
+.legend--limit {
+  width: 2px;
+  height: 14px;
+  background: $neutral-text-title-heading;
+}
+
+.bullet {
+  display: grid;
+  grid-template-columns: minmax(110px, 36%) minmax(60px, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+
+  &__label {
+    overflow: hidden;
+    color: $neutral-text-body-neutral;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__track {
+    position: relative;
+    height: 12px;
+    border-radius: 6px;
+    background: $background-high;
+
+    i {
+      position: absolute;
+    }
+  }
+
+  &__zone {
+    top: 0;
+    bottom: 0;
+    border-radius: 6px;
+    background: color-mix(in srgb, #{$condition-critical-primary} 45%, transparent);
+  }
+
+  &__limit {
+    top: -4px;
+    bottom: -4px;
+    width: 2px;
+    margin-left: -1px;
+    background: $neutral-text-title-heading;
+  }
+
+  &__current {
+    top: 1px;
+    bottom: 1px;
+    width: 4px;
+    margin-left: -2px;
+    border-radius: 2px;
+    background: $neutral-text-caption;
+  }
+
+  &__value {
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    box-sizing: border-box;
+    border: 2px solid $background-lowest;
+    border-radius: 50%;
+    background: $brand-surface-default-primary;
+
+    &--normal {
+      background: $condition-normal-primary;
+    }
+
+    &--critical {
+      background: $condition-critical-secondary;
+    }
+  }
+
+  &__text {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+    white-space: nowrap;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.tone--normal {
+  color: $condition-normal-primary;
+}
+
+.tone--critical {
+  color: $condition-critical-secondary;
+}
+
+.tone--neutral {
+  color: $neutral-text-body-neutral;
+}
+
+// plant writes of an apply (detail popup)
+.writes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: write;
+}
+
+.write {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border-left: 4px solid $border-light;
+  border-radius: 8px;
+  background: $background-lowest;
+  color: $neutral-text-title-heading;
+  font-size: 14px;
+  counter-increment: write;
+
+  &::before {
+    content: counter(write);
+    min-width: 16px;
+    color: $neutral-text-caption;
+    font-weight: 600;
+  }
+
+  > span:first-of-type {
+    flex: 1 1 260px;
+    min-width: 0;
+  }
+
+  &__result {
+    display: inline-flex;
+    gap: 8px;
+  }
+
+  &--done {
+    border-left-color: $condition-normal-primary;
+  }
+
+  &--error {
+    border-left-color: $condition-critical-primary;
+  }
+
+  &--stopped {
+    opacity: 0.7;
+  }
+
+  &--restore {
+    margin-left: 24px;
+    border-left-color: $condition-warning-primary;
+
+    &::before {
+      content: '↺';
+    }
+  }
+}
+
+// --------------------------------------------------------- fault sources
+.sources {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: $background-lowest;
+  }
+
+  &__item--uncited {
+    opacity: 0.65;
+  }
+
+  &__n {
+    min-width: 28px;
+    color: $accent-info-secondary;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  &__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  &__title {
+    overflow: hidden;
+    color: $neutral-text-title-heading;
+    font-size: 14px;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__snippet {
+    display: -webkit-box;
+    overflow: hidden;
+    color: $neutral-text-body-neutral;
+    font-size: 14px;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}
+
+// ----------------------------------------------- markdown (LLM instructions)
+.md {
+  color: $neutral-text-body-neutral;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    margin: 16px 0 8px;
+    color: $neutral-text-title-heading;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  p {
+    margin: 0 0 8px;
+  }
+
+  ul,
+  ol {
+    margin: 0 0 8px;
+    padding-left: 22px;
+  }
+
+  li {
+    margin: 2px 0;
+  }
+
+  strong {
+    color: $neutral-text-title-heading;
+  }
+
+  code {
+    padding: 0 4px;
+    border-radius: 4px;
+    background: $background-high;
+    font-size: 13px;
+  }
+
+  pre {
+    overflow-x: auto;
+    padding: 8px;
+    border-radius: 8px;
+    background: $background-high;
+
+    code {
+      padding: 0;
+    }
+  }
+
+  table {
+    margin: 0 0 8px;
+    border-collapse: collapse;
+    font-size: 14px;
+
+    th,
+    td {
+      padding: 6px 8px;
+      border: 1px solid $border-light;
+    }
+
+    th {
+      background: $background-high;
+      color: $neutral-text-title-heading;
+    }
+  }
+
+  blockquote {
+    margin: 0 0 8px;
+    padding-left: 12px;
+    border-left: 3px solid $border-default;
+    color: $neutral-text-caption;
+  }
+
+  a {
+    color: $accent-info-secondary;
+  }
+
+  > :first-child {
+    margin-top: 0;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+
+  &__img {
+    color: $neutral-text-caption;
+    font-style: italic;
+  }
+
+  &__cite {
+    padding: 0 1px;
+    border: none;
+    background: none;
+    color: $accent-info-secondary;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    vertical-align: super;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// ------------------------------------------------------------ JSON values
+.json {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+
+  &--nested {
+    padding-left: 12px;
+    border-left: 2px solid $border-default;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: minmax(120px, 40%) minmax(0, 1fr);
+    gap: 12px;
+
+    dt {
+      overflow: hidden;
+      color: $neutral-text-caption;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    dd {
+      margin: 0;
+      min-width: 0;
+      color: $neutral-text-title-heading;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding-left: 18px;
+  }
+
+  &__series {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+
+    small {
+      color: $neutral-text-caption;
+      font-size: 13px;
+    }
+  }
+}
+
+.spark {
+  width: 100%;
+  max-width: 220px;
+  height: 28px;
+
+  polyline {
+    fill: none;
+    stroke: $brand-surface-default-primary;
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+}
+
+// ------------------------------------------------------------------- PDF
+.pdf {
+  display: flex;
+  flex-direction: column;
+  height: min(78vh, 900px);
+  min-height: 320px;
+
+  &__page {
+    color: $neutral-text-caption;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+}
