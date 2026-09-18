@@ -1,0 +1,305 @@
+@import '../../../shared/components/lib/size';
+@import '../../../shared/components/lib/color';
+
+// a proposed / followed simulation in the assistant's conversation
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid $border-default;
+  background: $background-default;
+  color: $neutral-text-body-neutral;
+  font-size: 14px;
+  line-height: 1.4;
+  min-width: 0;
+
+  &:focus-visible {
+    outline: 2px solid $brand-border-light-primary;
+    outline-offset: 2px;
+  }
+}
+
+.caption {
+  color: $neutral-text-caption;
+  font-size: 14px;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  > svg {
+    flex: none;
+    color: $neutral-text-caption;
+  }
+}
+
+.head__title {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 0;
+  min-width: 0;
+
+  strong {
+    font-size: 16px;
+    font-weight: 600;
+    color: $neutral-text-title-heading;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// at most two lines; the whole text is in the title
+.rationale {
+  margin: 0;
+  color: $neutral-text-caption;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: 2px 8px;
+    border-radius: 8px;
+    border: 1px solid $border-light;
+    background: $background-low;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  > div {
+    flex: 1 0 0;
+    height: 6px;
+    border-radius: 3px;
+    background: $background-lowest;
+    overflow: hidden;
+  }
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: $brand-surface-default-primary;
+    transition: width 0.4s ease;
+
+    &[data-indeterminate] {
+      width: 30% !important;
+      animation: sim-card-indeterminate 1.4s ease-in-out infinite;
+    }
+  }
+
+  small {
+    color: $neutral-text-caption;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+}
+
+@keyframes sim-card-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(340%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress span[data-indeterminate] {
+    animation: none;
+  }
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.verdict {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+
+  > span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// variant, energy (inline bar + value + change against the baseline), kW/RT
+.bars {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+
+  th,
+  td {
+    padding: 4px 6px 4px 0;
+    text-align: left;
+    vertical-align: middle;
+    font-size: 13px;
+  }
+
+  thead th {
+    color: $neutral-text-caption;
+    font-weight: 500;
+  }
+
+  thead th:first-child {
+    width: 32%;
+  }
+
+  thead th:last-child {
+    width: 18%;
+  }
+
+  tbody th {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    .badge {
+      margin-left: 4px;
+    }
+  }
+
+  td {
+    white-space: nowrap;
+  }
+
+  td:nth-child(2) {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.bar {
+  flex: 1 0 0;
+  min-width: 24px;
+  height: 8px;
+  border-radius: 4px;
+  background: $background-lowest;
+  overflow: hidden;
+
+  i {
+    display: block;
+    height: 100%;
+    border-radius: 4px;
+  }
+}
+
+.bar--0 {
+  background: $neutral-text-caption;
+}
+
+.bar--1 {
+  background: $accent-info-secondary;
+}
+
+.bar--2 {
+  background: $condition-warning-secondary;
+}
+
+.value {
+  font-variant-numeric: tabular-nums;
+}
+
+.violations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  a {
+    color: $accent-info-secondary;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: underline;
+    }
+  }
+}
+
+.hint {
+  margin: 0;
+  color: $neutral-text-caption;
+  font-size: 13px;
+}
+
+.error {
+  margin: 0;
+  color: $condition-critical-secondary;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid $brand-border-light-primary;
+  background: $background-low;
+
+  &:focus-visible {
+    outline: 2px solid $brand-border-light-primary;
+    outline-offset: 2px;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
