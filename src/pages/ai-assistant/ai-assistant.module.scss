@@ -1,0 +1,1491 @@
+@import '../../shared/components/lib/size';
+@import '../../shared/components/lib/color';
+
+// The floating AI assistant: launcher, panel, conversation, cards. Sits above page content and the
+// twin overlays (z 3–5), below app dialogs (MUI 1300) and toasts; its PDF viewer sits above it.
+$z-assistant: 1100;
+$z-assistant-dialog: 1200;
+
+@mixin plain-button {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+@mixin focus-ring {
+  &:focus-visible {
+    outline: 2px solid $brand-surface-default-primary;
+    outline-offset: 2px;
+  }
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ------------------------------------------------------------------ launcher
+.launcher {
+  @include plain-button;
+  @include focus-ring;
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: $z-assistant;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: $brand-surface-default-primary;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease;
+
+  svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  &:hover {
+    background: $brand-surface-hover-primary;
+    transform: translateY(-1px);
+  }
+
+  &--busy::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid $brand-surface-default-primary;
+    animation: assistant-pulse 1.4s ease-out infinite;
+  }
+
+  &__dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid $background-highest;
+    background: $condition-warning-primary;
+  }
+}
+
+@keyframes assistant-pulse {
+  from {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+// ------------------------------------------------------------------ panel
+.panel {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: $z-assistant;
+  display: flex;
+  flex-direction: column;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  border-radius: 12px;
+  border: 1px solid $border-light;
+  background: color-mix(in srgb, var(--afdd-background-highest) 97%, transparent);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+  color: $neutral-text-body-neutral;
+  font-size: 14px;
+  overflow: hidden;
+
+  &[hidden] {
+    display: none;
+  }
+
+  // holds the focus while a conversation loads (the question box is disabled then)
+  &:focus {
+    outline: none;
+  }
+
+  &--expanded {
+    width: min(980px, calc(100vw - 32px));
+    height: calc(100vh - 32px);
+  }
+
+  &__resize {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    width: 18px;
+    height: 18px;
+    cursor: nwse-resize;
+    touch-action: none;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      width: 7px;
+      height: 7px;
+      border-top: 2px solid $border-default;
+      border-left: 2px solid $border-default;
+      border-top-left-radius: 3px;
+    }
+
+    &:hover::before,
+    &:focus-visible::before {
+      border-color: $brand-surface-default-primary;
+    }
+
+    &:focus-visible {
+      outline: none;
+    }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 10px 10px 16px;
+    border-bottom: 1px solid $border-light;
+    background: $background-high;
+  }
+
+  &__logo {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    margin-right: 6px;
+    color: $brand-surface-default-primary;
+  }
+
+  &__titles {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+
+    strong {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 16px;
+      color: $neutral-text-title-heading;
+    }
+
+    > span {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-size: 14px;
+      color: $neutral-text-caption;
+    }
+  }
+
+  // "answers can be wrong" note: a tooltip bubble on hover / focus of the info icon
+  &__info {
+    position: relative;
+    display: inline-flex;
+    font-weight: 400;
+
+    svg {
+      width: 18px;
+      height: 18px;
+      color: $neutral-text-caption;
+      cursor: help;
+      outline: none;
+    }
+
+    &:hover .panel__tip,
+    &:focus-within .panel__tip {
+      visibility: visible;
+      opacity: 1;
+    }
+  }
+
+  &__tip {
+    position: absolute !important;
+    top: calc(100% + 8px);
+    left: -12px;
+    width: 280px;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+    pointer-events: none;
+  }
+
+  &__body {
+    position: relative;
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+.icon {
+  @include plain-button;
+  @include focus-ring;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  color: $neutral-text-label;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover:not(:disabled) {
+    background: $background-default;
+    color: $neutral-text-title-heading;
+  }
+
+  &[aria-pressed='true'] {
+    background: $brand-surface-light-primary;
+    color: $brand-surface-default-primary;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.btn {
+  @include plain-button;
+  @include focus-ring;
+  padding: 4px 12px;
+  border: 1px solid $border-light;
+  border-radius: 6px;
+  background: $background-high;
+  color: $neutral-text-label;
+  font-size: 14px;
+
+  &:hover:not(:disabled) {
+    background: $background-default;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  &--primary {
+    @extend .btn;
+    border-color: $brand-surface-default-primary;
+    background: $brand-surface-default-primary;
+    color: #fff;
+    font-weight: 600;
+
+    &:hover:not(:disabled) {
+      background: $brand-surface-hover-primary;
+    }
+  }
+}
+
+// the app's Button at the size of the chat
+.std-btn {
+  height: 32px;
+  padding: 0 12px !important;
+  font-size: 14px !important;
+  letter-spacing: normal !important;
+  white-space: nowrap;
+}
+
+// ------------------------------------------------------------------ conversation list
+.sessions {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(280px, 85%);
+  padding: 10px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-right: 1px solid $border-light;
+  background: $background-highest;
+  box-shadow: 8px 0 24px rgba(0, 0, 0, 0.3);
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__new {
+    justify-content: center;
+    width: 100%;
+    height: 36px;
+    font-size: 14px !important;
+    letter-spacing: normal !important;
+  }
+
+  &__hint,
+  &__error {
+    margin: 4px;
+    font-size: 14px;
+    color: $neutral-text-caption;
+  }
+
+  &__error {
+    color: $condition-critical-primary;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    border-radius: 8px;
+
+    &:hover {
+      background: $background-default;
+    }
+  }
+
+  // dark brand blue + accent bar: white text stays readable (the light brand blue was too pale)
+  &__item--current &__row {
+    background: $brand-surface-dark-primary;
+    box-shadow: inset 3px 0 0 $brand-surface-light-primary;
+
+    &:hover {
+      background: $brand-surface-dark-primary;
+    }
+  }
+
+  &__item--current &__open span {
+    color: $neutral-text-title-heading;
+    font-weight: 600;
+  }
+
+  &__item--current &__open small {
+    color: $brand-surface-hover-secondary;
+  }
+
+  &__open {
+    @include plain-button;
+    @include focus-ring;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    text-align: left;
+
+    span {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      color: $neutral-text-title-heading;
+    }
+
+    small {
+      font-size: 13px;
+      color: $neutral-text-caption;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+  }
+}
+
+// ------------------------------------------------------------------ chat column
+.chat {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.log {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+  padding: 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  &:focus-visible {
+    outline: 2px solid $brand-surface-default-primary;
+    outline-offset: -2px;
+  }
+
+  &__state {
+    margin: auto;
+    color: $neutral-text-caption;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: auto 0;
+
+    strong {
+      font-size: 18px;
+      font-weight: 600;
+      color: $neutral-text-title-heading;
+    }
+
+    ul {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 6px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    button {
+      @include plain-button;
+      @include focus-ring;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid $border-light;
+      border-radius: 8px;
+      background: $background-default;
+      color: $neutral-text-label;
+      text-align: left;
+      line-height: 1.4;
+
+      &:hover:not(:disabled) {
+        border-color: $brand-surface-default-primary;
+        color: $neutral-text-title-heading;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+    }
+  }
+}
+
+// ------------------------------------------------------------------ messages
+.msg {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+
+  &--user {
+    align-items: flex-end;
+  }
+
+  &__bubble {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 12px 12px 4px 12px;
+    background: $brand-surface-default-primary;
+    color: #fff;
+    font-size: 15px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  &__auto {
+    font-size: 13px;
+    color: $neutral-text-caption;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__agent {
+    color: $brand-surface-default-primary;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  &__working {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    color: $neutral-text-caption;
+
+    i {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: $brand-surface-default-primary;
+      animation: assistant-dot 1.2s ease-in-out infinite;
+
+      &:nth-child(2) {
+        animation-delay: 0.15s;
+      }
+
+      &:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+    }
+
+    span {
+      margin-left: 4px;
+    }
+  }
+
+  &__note {
+    margin: 0;
+    font-size: 14px;
+    font-style: italic;
+    color: $neutral-text-caption;
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid $condition-critical-primary;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--afdd-condition-critical-primary) 10%, transparent);
+    color: $neutral-text-title-heading;
+    font-size: 14px;
+  }
+}
+
+@keyframes assistant-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+// ------------------------------------------------------------------ markdown
+.md {
+  font-size: 15px;
+  line-height: 1.55;
+  color: $neutral-text-body-neutral;
+  overflow-wrap: anywhere;
+
+  > :first-child {
+    margin-top: 0;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+
+  p,
+  ul,
+  ol,
+  pre,
+  blockquote {
+    margin: 0 0 8px;
+  }
+
+  ul,
+  ol {
+    padding-left: 20px;
+  }
+
+  li + li {
+    margin-top: 2px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 14px 0 6px;
+    font-size: 15px;
+    color: $neutral-text-title-heading;
+  }
+
+  h1,
+  h2 {
+    font-size: 17px;
+  }
+
+  h3 {
+    font-size: 16px;
+  }
+
+  strong {
+    color: $neutral-text-title-heading;
+  }
+
+  a {
+    color: $brand-surface-default-primary;
+  }
+
+  code {
+    padding: 0 4px;
+    border-radius: 4px;
+    background: $background-high;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 13px;
+  }
+
+  pre {
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: $background-default;
+    overflow-x: auto;
+
+    code {
+      padding: 0;
+      background: none;
+    }
+  }
+
+  blockquote {
+    padding-left: 10px;
+    border-left: 3px solid $border-default;
+    color: $neutral-text-caption;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid $border-light;
+  }
+
+  &[data-streaming] > :last-child::after {
+    content: '▍';
+    margin-left: 2px;
+    color: $brand-surface-default-primary;
+    animation: assistant-dot 1s steps(1) infinite;
+  }
+
+  &__img {
+    color: $neutral-text-caption;
+    font-style: italic;
+  }
+
+  &__table {
+    margin: 0 0 8px;
+    overflow-x: auto;
+
+    table {
+      border-collapse: collapse;
+      font-size: 14px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    th,
+    td {
+      padding: 6px 10px;
+      border: 1px solid $border-light;
+      text-align: left;
+    }
+
+    th {
+      background: $background-high;
+      color: $neutral-text-title-heading;
+    }
+  }
+}
+
+// ------------------------------------------------------------------ tool activity
+.tools {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__detail {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: $background-default;
+    font-size: 14px;
+    color: $neutral-text-label;
+
+    p {
+      margin: 6px 0 0;
+    }
+
+    pre {
+      margin: 8px 0 0;
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+
+    b {
+      color: $neutral-text-title-heading;
+    }
+
+    span {
+      color: $neutral-text-caption;
+    }
+  }
+}
+
+.tool {
+  @include plain-button;
+  @include focus-ring;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid $border-light;
+  border-radius: 25px;
+  background: $background-default;
+  color: $neutral-text-label;
+  font-size: 13px;
+
+  em {
+    font-style: normal;
+    color: $condition-critical-primary;
+  }
+
+  i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  &[aria-expanded='true'] {
+    border-color: $brand-surface-default-primary;
+  }
+
+  &--running i {
+    background: $brand-surface-default-primary;
+    animation: assistant-dot 1s ease-in-out infinite;
+  }
+
+  &--ok i {
+    background: $condition-normal-primary;
+  }
+
+  &--error i {
+    background: $condition-critical-primary;
+  }
+
+  &--interrupted i {
+    background: $neutral-text-caption;
+  }
+}
+
+// ------------------------------------------------------------------ charts
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid $border-light;
+  border-radius: 8px;
+  background: $background-low;
+
+  figcaption {
+    font-size: 14px;
+    font-weight: 600;
+    color: $neutral-text-title-heading;
+  }
+
+  &__empty {
+    padding: 16px;
+    color: $neutral-text-caption;
+    text-align: center;
+  }
+}
+
+// ------------------------------------------------------------------ citations
+.cites {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: $neutral-text-caption;
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}
+
+.cite {
+  @include plain-button;
+  @include focus-ring;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 10px;
+  border: 1px solid $border-light;
+  border-radius: 8px;
+  background: $background-default;
+  color: $neutral-text-label;
+  font-size: 13px;
+
+  b {
+    color: $brand-surface-default-primary;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 260px;
+  }
+
+  em {
+    font-style: normal;
+    color: $neutral-text-caption;
+  }
+
+  &:hover {
+    border-color: $brand-surface-default-primary;
+    color: $neutral-text-title-heading;
+  }
+}
+
+// ------------------------------------------------------------------ navigation (open_in_app)
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid $border-light;
+  border-left: 3px solid $brand-surface-default-primary;
+  border-radius: 8px;
+  background: $background-default;
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: $brand-surface-light-primary;
+    color: $brand-surface-default-primary;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+
+    strong,
+    span {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    strong {
+      color: $neutral-text-title-heading;
+      line-height: 1.3;
+    }
+
+    span {
+      font-size: 14px;
+      color: $neutral-text-caption;
+    }
+  }
+
+  &__denied {
+    @extend .btn;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  > .btn {
+    flex-shrink: 0;
+  }
+}
+
+// a page section the assistant navigated to (`?section=`), on any page: three pulses
+.nav-highlight {
+  outline: 2px solid $brand-surface-default-primary !important;
+  outline-offset: -2px;
+  animation: assistant-nav-flash 0.8s ease-in-out 3;
+}
+
+@keyframes assistant-nav-flash {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 4px color-mix(in srgb, #{$brand-surface-default-primary} 45%, transparent),
+      0 0 0 4px color-mix(in srgb, #{$brand-surface-default-primary} 30%, transparent);
+  }
+}
+
+// ------------------------------------------------------------------ simulation card
+.sim {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid $border-light;
+  border-left: 3px solid $brand-surface-default-primary;
+  border-radius: 8px;
+  background: $background-default;
+
+  // holds the focus after a decision was sent (tabIndex -1)
+  &:focus {
+    outline: none;
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+
+    > svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      color: $brand-surface-default-primary;
+    }
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+    }
+
+    strong {
+      color: $neutral-text-title-heading;
+      line-height: 1.3;
+    }
+  }
+
+  &__kicker {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $brand-surface-default-primary;
+  }
+
+  &__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 600;
+
+    i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+  }
+
+  &__rationale {
+    margin: 0;
+    line-height: 1.45;
+    color: $neutral-text-label;
+  }
+
+  &__spec {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 4px 10px;
+    margin: 0;
+    font-size: 11px;
+    color: $neutral-text-label;
+
+    div {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    dt {
+      color: $neutral-text-caption;
+      font-size: 10px;
+    }
+
+    dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+      color: $neutral-text-title-heading;
+    }
+  }
+
+  p.sim__spec {
+    display: block;
+  }
+
+  &__progress {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    > div {
+      height: 6px;
+      overflow: hidden;
+      border-radius: 3px;
+      background: $background-high;
+    }
+
+    span {
+      display: block;
+      height: 100%;
+      background: $brand-surface-default-primary;
+      transition: width 0.4s ease;
+
+      &[data-indeterminate] {
+        width: 35% !important;
+        animation: assistant-progress 1.4s ease-in-out infinite;
+      }
+    }
+
+    small {
+      font-size: 11px;
+      color: $neutral-text-caption;
+    }
+  }
+
+  &__result {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  &__table {
+    overflow-x: auto;
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    th,
+    td {
+      padding: 4px 6px;
+      border-bottom: 1px solid $border-light;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    th:first-child,
+    tbody th {
+      text-align: left;
+      color: $neutral-text-title-heading;
+    }
+
+    thead th {
+      color: $neutral-text-caption;
+      font-weight: 600;
+    }
+
+    em {
+      font-style: normal;
+      color: $condition-critical-primary;
+    }
+  }
+
+  &__error {
+    margin: 0;
+    font-size: 12px;
+    color: $condition-critical-primary;
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: 11px;
+    color: $neutral-text-caption;
+  }
+
+  &__link {
+    align-self: flex-start;
+    color: $brand-surface-default-primary;
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    small {
+      font-size: 11px;
+      color: $neutral-text-caption;
+    }
+  }
+}
+
+@keyframes assistant-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+// inline confirmation (simulation decisions, deletes): same rules as the twin control panel
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid $condition-warning-primary;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--afdd-condition-warning-primary) 10%, transparent);
+  font-size: 14px;
+  color: $neutral-text-title-heading;
+
+  // takes the focus when it opens (tabIndex -1), not a control itself
+  &:focus {
+    outline: none;
+  }
+
+  > div {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+
+  button {
+    @include plain-button;
+    @include focus-ring;
+    padding: 3px 12px;
+    border: 1px solid $border-light;
+    border-radius: 5px;
+    background: $background-high;
+    color: $neutral-text-label;
+    font-size: 12px;
+  }
+
+  &--go {
+    border-color: $brand-surface-default-primary !important;
+    background: $brand-surface-default-primary !important;
+    color: #fff !important;
+    font-weight: 600;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    span {
+      font-size: 11px;
+      color: $neutral-text-caption;
+    }
+
+    input {
+      padding: 4px 6px;
+      border: 1px solid $border-light;
+      border-radius: 5px;
+      background: $background-lowest;
+      color: $neutral-text-title-heading;
+      font: inherit;
+
+      &:focus {
+        outline: none;
+        border-color: $brand-surface-default-primary;
+      }
+    }
+  }
+}
+
+.session-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid $condition-critical-primary;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--afdd-condition-critical-primary) 10%, transparent);
+  color: $neutral-text-title-heading;
+  overflow-wrap: anywhere;
+
+  > div {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+}
+
+// ------------------------------------------------------------------ composer
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px 8px;
+  border-top: 1px solid $border-light;
+
+  &__context {
+    align-self: flex-start;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 13px;
+    cursor: default;
+  }
+
+  &__row {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    padding: 6px 6px 6px 10px;
+    border: 1px solid $border-light;
+    border-radius: 10px;
+    background: $background-lowest;
+
+    &:focus-within {
+      border-color: $brand-surface-default-primary;
+    }
+  }
+
+  textarea {
+    flex: 1;
+    min-height: 22px;
+    max-height: 160px;
+    padding: 3px 0;
+    border: none;
+    outline: none;
+    resize: none;
+    background: transparent;
+    color: $neutral-text-title-heading;
+    font: inherit;
+    font-size: 15px;
+    line-height: 1.45;
+
+    &::placeholder {
+      color: $neutral-text-caption;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+
+  // the app's Button as an icon button (Send / Stop)
+  &__btn {
+    flex-shrink: 0;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0 !important;
+    border-radius: 8px !important;
+
+    &[aria-disabled='true'] {
+      opacity: 0.5;
+      cursor: default;
+    }
+  }
+}
+
+.budget {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 10px;
+  font-size: 13px;
+  color: $neutral-text-caption;
+
+  span {
+    flex-shrink: 0;
+  }
+
+  &__bar {
+    flex: 1;
+    height: 4px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: $background-high;
+
+    span {
+      display: block;
+      height: 100%;
+      background: $condition-normal-primary;
+    }
+  }
+
+  &--high &__bar span {
+    background: $condition-warning-primary;
+  }
+}
+
+// ------------------------------------------------------------------ PDF viewer dialog
+.pdf {
+  position: fixed;
+  inset: 0;
+  z-index: $z-assistant-dialog;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.5);
+
+  &__dialog {
+    display: flex;
+    flex-direction: column;
+    width: min(1100px, calc(100vw - 32px));
+    height: calc(100vh - 48px);
+    overflow: hidden;
+    border: 1px solid $border-light;
+    border-radius: 12px;
+    background: $background-low;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    color: $neutral-text-body-neutral;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px 10px 16px;
+    border-bottom: 1px solid $border-light;
+
+    > svg {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      color: $brand-surface-default-primary;
+    }
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+    }
+
+    strong {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      color: $neutral-text-title-heading;
+    }
+
+    span {
+      font-size: 13px;
+      color: $neutral-text-caption;
+    }
+  }
+
+  &__snippet {
+    margin: 8px 16px 0;
+    padding: 6px 10px;
+    border-left: 3px solid $brand-surface-default-primary;
+    background: $background-default;
+    font-size: 14px;
+    color: $neutral-text-label;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__body {
+    flex: 1;
+    min-height: 0;
+    padding: 8px;
+  }
+
+  &__state {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    color: $neutral-text-caption;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .launcher,
+  .launcher--busy::after,
+  .msg__working i,
+  .tool--running i,
+  .md[data-streaming] > :last-child::after,
+  .sim__progress span,
+  .nav-highlight {
+    animation: none !important;
+    transition: none !important;
+  }
+}
