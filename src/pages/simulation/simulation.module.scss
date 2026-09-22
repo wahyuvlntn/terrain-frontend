@@ -1,0 +1,1005 @@
+@import '../../shared/components/lib/size';
+@import '../../shared/components/lib/color';
+
+// Simulation page: ribbon, job list (table) and the job detail / new scenario panel. The page
+// never scrolls; each panel has one scroll region (a tab panel or a table box).
+
+// ------------------------------------------------------------------ page
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $spacingXL;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+.ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacingXL;
+  height: 52px;
+  min-height: 52px;
+}
+
+.ribbon__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ribbon__right {
+  display: flex;
+  align-items: center;
+  gap: $spacingXL;
+}
+
+.filter {
+  width: 260px;
+}
+
+.body {
+  display: flex;
+  gap: $spacingXL;
+  flex: 1 0 0;
+  min-height: 0;
+}
+
+.list {
+  flex: 0 0 34%;
+  min-width: 420px;
+  max-width: 560px;
+  align-self: stretch;
+  position: relative;
+  overflow: hidden;
+}
+
+.list__table {
+  position: relative;
+  flex: 1 0 0;
+  height: 0;
+  overflow: auto;
+}
+
+.main {
+  flex: 1 0 0;
+  min-width: 0;
+  align-self: stretch;
+  position: relative;
+  overflow: hidden;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+}
+
+// ------------------------------------------------------------------ shared bits
+.badge {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.caption {
+  color: $neutral-text-caption;
+}
+
+.good {
+  color: $condition-normal-secondary;
+}
+
+.bad {
+  color: $condition-critical-secondary;
+}
+
+.text--error {
+  margin: 0;
+  color: $condition-critical-secondary;
+}
+
+.empty,
+.empty--error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 0 auto;
+  min-height: 96px;
+  padding: $spacingXL;
+  text-align: center;
+  color: $neutral-text-caption;
+}
+
+.empty--error {
+  color: $condition-critical-secondary;
+}
+
+.progress {
+  display: block;
+  width: 160px;
+  height: 6px;
+  border-radius: 3px;
+  background: $background-lowest;
+  overflow: hidden;
+
+  > span {
+    display: block;
+    height: 100%;
+    background: $brand-surface-default-primary;
+    transition: width 0.4s ease;
+  }
+}
+
+.section__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: $neutral-text-title-heading;
+}
+
+.swatch {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+// a cell button that opens / selects its table row (keyboard access to the row)
+.rowbutton,
+.jobcell {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:focus-visible {
+    outline: 2px solid $brand-border-light-primary;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.jobcell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.jobcell__title,
+.jobcell__sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// titles wrap to two lines (like other table cells) so the table never needs a horizontal scroll
+.jobcell__title {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.jobcell__title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.jobcell__sub {
+  font-size: 13px;
+  color: $neutral-text-caption;
+}
+
+// ------------------------------------------------------------------ tabs (folder style)
+.tabs {
+  flex: 1 0 0;
+  min-height: 0;
+}
+
+.tabs__list {
+  > div {
+    gap: 4px !important;
+    border-bottom: none !important;
+  }
+}
+
+.tabs__tab {
+  width: auto !important;
+  height: 40px;
+  padding: 0 20px !important;
+  border-radius: 8px 8px 0 0;
+  background: transparent !important;
+  color: $neutral-text-caption !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+
+  &[aria-selected='true'] {
+    background: $background-default !important;
+    color: $neutral-text-title-heading !important;
+  }
+}
+
+.tabs__panel {
+  display: flex;
+  flex-direction: column;
+  gap: $spacingXL;
+  flex: 1 0 0;
+  height: 0;
+  padding: $spacingXL !important;
+  overflow: auto;
+  background: $background-default;
+  border-radius: 0 8px 8px 8px;
+}
+
+.tabs__panel--fill {
+  overflow: hidden;
+}
+
+// ------------------------------------------------------------------ job detail head
+.detail__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.detail__variant {
+  width: 180px;
+}
+
+.detail__head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: none;
+}
+
+.detail__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  color: $neutral-text-caption;
+}
+
+.detail__note,
+.detail__note--error {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: $neutral-text-caption;
+}
+
+.detail__note--error {
+  color: $condition-critical-secondary;
+}
+
+.stepper {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+}
+
+.stepper__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 0;
+  min-width: 0;
+  color: $neutral-text-caption;
+
+  // connector to the next step
+  &:not(:last-child)::after {
+    content: '';
+    flex: 1 1 16px;
+    min-width: 12px;
+    height: 2px;
+    margin-right: 8px;
+    background: $border-light;
+  }
+
+  > i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid $border-light;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+.stepper__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+
+  strong,
+  time {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  time {
+    font-size: 13px;
+  }
+}
+
+.stepper__item--done {
+  color: $neutral-text-title-heading;
+
+  > i {
+    border-color: $condition-normal-primary;
+    background: $condition-normal-primary;
+    color: $neutral-text-body-light;
+  }
+
+  &::after {
+    background: $condition-normal-primary !important;
+  }
+}
+
+.stepper__item--current {
+  color: $neutral-text-title-heading;
+
+  > i {
+    border-color: $brand-surface-default-primary;
+    color: $brand-border-light-primary;
+    box-shadow: 0 0 0 3px rgba(0, 141, 225, 0.25);
+  }
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+.stepper__item--failed {
+  color: $condition-critical-secondary;
+
+  > i {
+    border-color: $condition-critical-primary;
+    background: $condition-critical-primary;
+    color: $neutral-text-body-light;
+  }
+}
+
+.stepper__item--skipped {
+  opacity: 0.5;
+}
+
+// ------------------------------------------------------------------ decision
+.decision {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.decision__lead {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.decision__buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.decision__status {
+  color: $condition-normal-secondary;
+}
+
+.decision__status--error {
+  color: $condition-critical-secondary;
+}
+
+.confirm {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid $brand-border-light-primary;
+  background: $background-default;
+
+  &:focus-visible {
+    outline: 2px solid $brand-border-light-primary;
+    outline-offset: 2px;
+  }
+}
+
+.confirm__question {
+  font-weight: 500;
+}
+
+.confirm__reason {
+  flex: 1 1 220px;
+  min-width: 180px;
+}
+
+// ------------------------------------------------------------------ results
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: $spacingXL;
+}
+
+.results__verdict {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+
+  > button {
+    margin-left: auto;
+    flex: none;
+  }
+}
+
+.results__reason {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: $neutral-text-caption;
+}
+
+.vcards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.vcard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: $background-low;
+  border: 1px solid $border-default;
+}
+
+.vcard__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+
+  strong {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+.vcard__kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+}
+
+.vkpi {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.vkpi__label {
+  font-size: 14px;
+  color: $neutral-text-caption;
+}
+
+.vkpi__value {
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  small {
+    font-size: 14px;
+    font-weight: 400;
+    color: $neutral-text-caption;
+  }
+}
+
+.compare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: $spacingXL;
+}
+
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: $background-low;
+
+  figcaption {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+.findings__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.findings {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.findings__name {
+  min-width: 120px;
+  font-weight: 500;
+}
+
+.cellDelta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+
+  small {
+    font-size: 13px;
+  }
+}
+
+// ------------------------------------------------------------------ trends
+.trends {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trends__legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: $neutral-text-caption;
+}
+
+.trends__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: $spacingXL;
+}
+
+// ------------------------------------------------------------------ events
+.events {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1 0 0;
+  min-height: 0;
+}
+
+.events__filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: none;
+}
+
+.events__kinds {
+  width: 240px;
+}
+
+.events__select {
+  width: 200px;
+}
+
+.events__count {
+  margin-left: auto;
+  color: $neutral-text-caption;
+}
+
+.events__timeline {
+  flex: none;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: $background-low;
+}
+
+.events__table {
+  position: relative;
+  flex: 1 0 0;
+  height: 0;
+  overflow: auto;
+}
+
+.event {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.event__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.event__message {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.event__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  margin: 0;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  dt {
+    color: $neutral-text-caption;
+  }
+
+  dd {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// ------------------------------------------------------------------ scenario summary
+.scenario {
+  display: flex;
+  flex-direction: column;
+  gap: $spacingXL;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: $background-low;
+  min-width: 0;
+}
+
+.fact__label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  color: $neutral-text-caption;
+}
+
+.fact__value {
+  font-size: 16px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ------------------------------------------------------------------ new scenario form
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacingXL;
+  flex: 1 0 0;
+  min-height: 0;
+  width: 100%;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  > i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    font-size: 13px;
+    font-style: normal;
+  }
+}
+
+.step__error {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $condition-critical-secondary;
+}
+
+.formgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 24px;
+  max-width: 960px;
+}
+
+.formgrid__wide {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.field__label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.radios {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-height: 36px;
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lists {
+  display: flex;
+  flex-direction: column;
+  gap: $spacingXL;
+}
+
+.lists__bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.lists__tabs {
+  width: auto !important;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.subtabs {
+  > div {
+    gap: 4px !important;
+    border-bottom: none !important;
+  }
+}
+
+.subtabs__tab {
+  width: auto !important;
+  height: 36px;
+  padding: 0 14px !important;
+  border-radius: 8px;
+  background: $background-low !important;
+  color: $neutral-text-caption !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+
+  &[aria-selected='true'] {
+    background: $brand-surface-default-primary !important;
+    color: $neutral-text-body-light !important;
+  }
+}
+
+.lists__variant {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  > div:first-child {
+    width: 420px;
+  }
+}
+
+.action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.action-list__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: $background-low;
+}
+
+.action__fields {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.action__at {
+  width: 110px;
+}
+
+.action__kind {
+  width: 170px;
+}
+
+.action__asset {
+  width: 140px;
+}
+
+.action__wide {
+  flex: 1 1 200px;
+  min-width: 200px;
+}
+
+.action__value {
+  width: 150px;
+}
+
+.action__duration {
+  width: 140px;
+}
+
+.action__tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  // aligned with the fields under their labels
+  padding-top: 26px;
+}
+
+.action__hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: $condition-warning-secondary;
+
+  svg {
+    flex: none;
+  }
+}
+
+.form__footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  flex: none;
+}
+
+.form__buttons {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.planActions {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th {
+    text-align: left;
+    font-weight: 500;
+    color: $neutral-text-caption;
+    padding: 6px 8px;
+    border-bottom: 1px solid $border-light;
+  }
+
+  td {
+    padding: 6px 8px;
+    border-bottom: 1px solid $border-light;
+    vertical-align: middle;
+  }
+}
+
+.planEvents {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
