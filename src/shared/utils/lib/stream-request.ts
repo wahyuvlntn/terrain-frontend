@@ -1,5 +1,4 @@
-import { createSearchParams } from 'react-router-dom';
-
+import { redirectToSignin } from './auth-redirect';
 import { getMessageTranslation, t } from './i18n';
 import { getURL, SESSION_ID_HEADER } from './request';
 
@@ -48,20 +47,6 @@ export class StreamRequestError extends Error {
 /** True for the rejection of a request or stream read cancelled through its AbortSignal */
 export const isAbortError = (e: unknown) =>
   (e instanceof DOMException || e instanceof Error) && e.name === 'AbortError';
-
-/** Same sign-out as `request()` on a 401: keep the remembered credentials, go to the sign-in page */
-const redirectToSignin = () =>
-  setTimeout(() => {
-    const credentials = window.localStorage.getItem('digital-twin-credentials');
-    window.localStorage.clear();
-    if (credentials) window.localStorage.setItem('digital-twin-credentials', credentials);
-    window.location.replace(
-      '/signin' +
-        `?${createSearchParams({
-          'redirect-url': encodeURIComponent(window.location.pathname + window.location.search),
-        })}`
-    );
-  }, 1000);
 
 const parseData = (raw: string): unknown => {
   try {

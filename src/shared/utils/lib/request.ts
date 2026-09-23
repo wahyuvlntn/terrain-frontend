@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
-import { createSearchParams } from 'react-router-dom';
 
+import { redirectToSignin } from './auth-redirect';
 import { t } from './i18n';
 import { DATABASE_ALIAS, ORG_ALIAS, PROJECT_ALIAS } from './org-prj';
 import { showToastError } from './react-query'; // Typedefs
@@ -60,25 +60,10 @@ axios.interceptors.request.use(
   }
 );
 
-export const getURL = () => {
-  const getStatus = process.env.VITE_DEV;
+// Same-origin requests work with the dev proxy, nginx, or the backend's static server.
+export const getURL = () => (process.env.VITE_API_URL || '').replace(/\/$/, '');
 
-  if (getStatus === 'true') {
-    return 'https://192.168.14.85:4500';
-  } else {
-    return '';
-  }
-};
-
-export const getURLExplicit = () => {
-  const getStatus = process.env.VITE_DEV;
-
-  if (getStatus === 'true') {
-    return 'https://192.168.14.85:4500';
-  } else {
-    return window.location.origin;
-  }
-};
+export const getURLExplicit = () => getURL() || window.location.origin;
 
 export const request = async ({
   method = 'POST',
@@ -110,19 +95,6 @@ export const request = async ({
       let isConnectivityIssue = false;
 
       if (e.code === 'ERR_NETWORK') {
-        // error because of cors error
-        // setTimeout(() => {
-        //   window.localStorage.clear();
-        //   window.location.replace(
-        //     '/signin' +
-        //       `?${createSearchParams({
-        //         'redirect-url': encodeURIComponent(
-        //           location.pathname + location.search
-        //         ),
-        //       })}`
-        //   );
-        // }, 3000);
-
         showToastError(t('common.err_network_error'), 'ERR_NETWORK');
         throw new Error(t('common.err_network_error'));
       }
@@ -141,21 +113,9 @@ export const request = async ({
 
         if (statusCode === 401) {
           message = 'Unauthorized, please re-login';
-          setTimeout(() => {
-            const credentials = window.localStorage.getItem('digital-twin-credentials');
-            window.localStorage.clear();
-            if (credentials)
-              window.localStorage.setItem('digital-twin-credentials', credentials);
-            window.location.replace(
-              '/signin' +
-                `?${createSearchParams({
-                  'redirect-url': encodeURIComponent(
-                    location.pathname + location.search
-                  ),
-                })}`
-            );
-          }, 1000);
-        } else if (e.response.data) {
+          redirectToSignin();
+        }
+        if (e.response.data) {
           if (typeof e.response.data === 'object') {
             details = e.response.data;
 
