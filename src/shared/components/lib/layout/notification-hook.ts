@@ -31,6 +31,9 @@ import {
   updateReadStatus,
 } from '../feat/notification/notification.api';
 
+/** how often the newest notifications are fetched without a broker */
+const NOTIFY_POLL_MS = 15_000;
+
 const playNotificationSound = () => {
   const audio = new Audio(NotifSound);
   audio.autoplay = true;
@@ -326,7 +329,51 @@ export const useNotification = (enabled: boolean) => {
     setIncomingNotifCount((prev) => prev + parsedMessages.length);
   };
 
+  // Without a broker (VITE_NOTIFY_MODE=poll, the cloud deployment) the newest
+  // notifications are fetched every NOTIFY_POLL_MS; the first answer only marks
+  // what exists, later ones raise the same alerts as broker messages.
   useEffect(() => {
+    if (process.env.VITE_NOTIFY_MODE !== 'poll' || !userData) return;
+    let lastId: number | null = null;
+    let stopped = false;
+    const poll = async () => {
+      try {
+        const today = formatDateHTMLInput(new Date());
+        const page = await getNotifications(
+          getLocalDateMidnight(today),
+          getLocalDateMidnight(today),
+          '',
+          1,
+          20,
+          'all'
+        );
+        if (stopped) return;
+        const list = page.notifications;
+        const newest = list.reduce((m, n) => Math.max(m, n.id), lastId ?? 0);
+        if (lastId !== null) {
+          const fresh = list.filter((n) => n.id > (lastId ?? 0)).sort((a, b) => a.id - b.id);
+          const latest = fresh[fresh.length - 1];
+          if (latest) {
+            handleNotification(latest, getRedirectURL(latest, getTimeFilters(latest.timestamp)));
+            setIncomingNotifications((prev) => [...fresh.reverse(), ...prev]);
+            setIncomingNotifCount((prev) => prev + fresh.length);
+          }
+        }
+        lastId = newest;
+      } catch {
+        // the next poll retries
+      }
+    };
+    void poll();
+    const timer = window.setInterval(poll, NOTIFY_POLL_MS);
+    return () => {
+      stopped = true;
+      window.clearInterval(timer);
+    };
+  }, [userData, handleNotification, getRedirectURL, getTimeFilters]);
+
+  useEffect(() => {
+    if (process.env.VITE_NOTIFY_MODE === 'poll') return;
     const username: string = (process.env.VITE_MQTT_USERNAME ?? '').toString();
     const password: string = (process.env.VITE_MQTT_PASSWORD ?? '').toString();
     const mqttAddress = process.env.VITE_MQTT_URL || `wss://${window.location.hostname}:9002/mqtt`;
