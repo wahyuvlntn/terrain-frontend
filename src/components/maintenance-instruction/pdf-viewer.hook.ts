@@ -71,7 +71,8 @@ export const usePdfViewer = (pdfUrl: string, pdfName: string) => {
         );
       };
 
-      const processedOutline = await outlineWithPages(rawOutline);
+      // PDF.js gives null for a PDF without an outline
+      const processedOutline = await outlineWithPages(rawOutline ?? []);
       setOutline(processedOutline);
     };
 
