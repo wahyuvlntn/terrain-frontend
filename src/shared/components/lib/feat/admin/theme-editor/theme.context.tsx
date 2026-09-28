@@ -1,23 +1,31 @@
+import logoSource from '@digital-twin/images/app-icon.svg?raw';
 import { useQuery } from '@tanstack/react-query';
 import { createContext, ReactNode, useEffect } from 'react';
 
 import { COLOR, DEFAULT_COLOR, STATIC_COLOR } from '../../../color';
 import { Color, colorsSchema, getActiveTheme } from './api';
 
+const cssVar = (name: string) =>
+  `--afdd-${name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`;
+
 export const changeColors = (colors: Color[], querySelector: string) => {
   const themePreview = document.querySelector(querySelector);
   if (!themePreview) return;
   if (themePreview instanceof HTMLElement) {
-    colors.forEach((color) =>
-      themePreview.style.setProperty(
-        `--afdd-${color.name.replace(
-          /[A-Z]/g,
-          (letter) => `-${letter.toLowerCase()}`
-        )}`,
-        color.hexCode
-      )
-    );
+    colors.forEach((color) => themePreview.style.setProperty(cssVar(color.name), color.hexCode));
   }
+};
+
+/**
+ * The browser tab's icon in the theme's colours: an SVG image cannot read the page's variables,
+ * so the logo gets them in a style of its own.
+ */
+const setThemedFavicon = (colors: Color[]) => {
+  const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+  if (!link) return;
+  const vars = colors.map((c) => `${cssVar(c.name)}:${c.hexCode}`).join(';');
+  const svg = logoSource.replace('>', `><style>svg{${vars}}</style>`);
+  link.href = `data:image/svg+xml,${encodeURIComponent(svg)}`;
 };
 
 export const ThemeContext = createContext<{
@@ -82,13 +90,12 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   useEffect(() => {
     if (!data?.colors) return;
 
-    changeColors(
-      Object.keys(data.colors).map((color) => ({
-        name: color,
-        hexCode: data.colors[color as keyof typeof data.colors],
-      })),
-      ':root'
-    );
+    const colors = Object.keys(data.colors).map((color) => ({
+      name: color,
+      hexCode: data.colors[color as keyof typeof data.colors],
+    }));
+    changeColors(colors, ':root');
+    setThemedFavicon(colors);
   }, [data?.colors]);
 
   return (

@@ -1,6 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <rect width="64" height="64" rx="14" fill="#075985"/>
-  <path d="m32 10 20 11v22L32 54 12 43V21l20-11Z" stroke="#e0f2fe" stroke-width="3" stroke-linejoin="round"/>
-  <path d="m12 21 20 11 20-11M32 32v22" stroke="#e0f2fe" stroke-width="3" stroke-linejoin="round"/>
-  <path d="m17 37 6-6 5 6 8-13 5 7 6-4" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Digital Twin AFDD">
+  <!-- Twin wafer: the physical half solid, the digital half its dies, one die flagging a fault. Colours follow the theme's afdd colour variables, the default theme as fallback. -->
+  <defs>
+    <linearGradient id="afdd-wafer-solid" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" style="stop-color:var(--afdd-brand-surface-dark-primary,#0061AB)"/>
+      <stop offset="1" style="stop-color:var(--afdd-brand-surface-default-primary,#008DE1)"/>
+    </linearGradient>
+    <linearGradient id="afdd-wafer-dies" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" style="stop-color:var(--afdd-brand-surface-default-primary,#008DE1)"/>
+      <stop offset="1" style="stop-color:var(--afdd-brand-surface-light-primary,#75CDFF)"/>
+    </linearGradient>
+  </defs>
+  <path d="M31 6.02A26 26 0 0 0 28.87 57.81A3.2 3.2 0 0 1 31 55.46Z" fill="url(#afdd-wafer-solid)"/>
+  <g fill="url(#afdd-wafer-dies)">
+  <rect x="34" y="11" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="40.2" y="11" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="34" y="17.2" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="40.2" y="17.2" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="46.4" y="17.2" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="34" y="23.4" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="40.2" y="23.4" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="34" y="29.6" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="40.2" y="29.6" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="46.4" y="29.6" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="52.6" y="29.6" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="34" y="35.8" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="40.2" y="35.8" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="46.4" y="35.8" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="34" y="42" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="40.2" y="42" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="46.4" y="42" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="34" y="48.2" width="4.8" height="4.8" rx="0.8"/>
+  <rect x="40.2" y="48.2" width="4.8" height="4.8" rx="0.8"/>
+  </g>
+  <rect x="46.4" y="23.4" width="4.8" height="4.8" rx="0.8" style="fill:var(--afdd-persimmon-500,#FF6043)"/>
 </svg>
