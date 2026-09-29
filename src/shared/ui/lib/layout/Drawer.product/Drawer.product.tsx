@@ -130,7 +130,7 @@ export const Drawer = ({
     >
       {open ? (
         <motion.div
-          className="fixed inset-0 bg-black/30 flex items-start justify-end"
+          className="fixed inset-0 z-[850] bg-black/30 flex items-start justify-end"
           onMouseDown={closeByBlur}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -138,7 +138,7 @@ export const Drawer = ({
         >
           <motion.div
             className={cn(
-              'flex flex-col items-center gap-4.5 min-w-130.25 max-w-130.25 bg-(--afdd-background-low) p-4 h-full box-border',
+              'flex flex-col items-center gap-4.5 min-w-130.25 max-w-130.25 bg-(--afdd-background-low) border-l border-(--look-line) p-5 h-full box-border',
               contentClassName
             )}
             style={contentStyle}
@@ -154,7 +154,7 @@ export const Drawer = ({
             transition={{ type: 'tween' }}
           >
             <div className="flex flex-row items-center justify-between text-(--afdd-neutral-text-title-heading) h-7 w-full">
-              <div className="flex flex-row items-center gap-2 text-[22px] font-semibold [&>svg]:cursor-pointer [&>svg]:h-6 [&>svg]:w-6">
+              <div className="flex flex-row items-center gap-2 text-[20px] font-semibold [&>svg]:cursor-pointer [&>svg]:h-6 [&>svg]:w-6 before:content-[''] before:shrink-0 before:w-1 before:h-5 before:rounded-[2px] before:bg-(--afdd-brand-surface-default-primary)">
                 {icon}
                 <h3>{title}</h3>
                 {informationIcon}

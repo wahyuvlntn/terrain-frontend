@@ -34,7 +34,7 @@ export const TabPanelProduct = ({ className, ...props }: TabPanelProps) => {
     <TabPanel
       className={cn(
         className,
-        "aria-[aria-description='panel-secondary']:bg-(--afdd-background-low)"
+        "aria-[aria-description='panel-secondary']:bg-transparent"
       )}
       {...props}
     />
@@ -46,7 +46,7 @@ export const TabPanelPlatform = ({ className, ...props }: TabPanelProps) => {
     <TabPanel
       className={cn(
         className,
-        "aria-[aria-description='panel-secondary']:bg-(--afdd-background-default)",
+        "aria-[aria-description='panel-secondary']:bg-transparent",
         "aria-[aria-description='panel-tertiary']:bg-transparent"
       )}
       {...props}

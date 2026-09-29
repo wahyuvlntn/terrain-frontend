@@ -169,10 +169,7 @@ export const TabListProduct = ({ className, ...props }: TabListProps) => {
       {...props}
       className={cn(
         className,
-        "[&_div[aria-details='list-primary']]:border-b-2 [&_div[aria-details='list-primary']]:border-b-(--afdd-background-highest)",
-        "[&_div[aria-details='list-secondary']]:border-b-2 [&_div[aria-details='list-secondary']]:border-b-(--afdd-background-low)",
-        "[&_div[aria-details='list-tertiary']]:border-b-2 [&_div[aria-details='list-tertiary']]:border-b-transparent",
-        "[&_div[aria-details='list-quaternary']]:border-b-2 [&_div[aria-details='list-quaternary']]:border-b-transparent"
+        "[&_div[aria-details^='list-']]:border-b [&_div[aria-details^='list-']]:border-b-(--look-line)"
       )}
     />
   );
@@ -184,10 +181,7 @@ export const TabListPlatform = ({ className, ...props }: TabListProps) => {
       {...props}
       className={cn(
         className,
-        "[&_div[aria-details='list-primary']]:border-b-2 [&_div[aria-details='list-primary']]:border-b-(--afdd-brand-surface-default-primary)",
-        "[&_div[aria-details='list-secondary']]:border-b-2 [&_div[aria-details='list-secondary']]:border-b-(--afdd-background-default)",
-        "[&_div[aria-details='list-tertiary']]:border-b-2 [&_div[aria-details='list-tertiary']]:border-b-transparent",
-        "[&_div[aria-details='list-quaternary']]:border-b-2 [&_div[aria-details='list-quaternary']]:border-b-transparent"
+        "[&_div[aria-details^='list-']]:border-b [&_div[aria-details^='list-']]:border-b-(--look-line)"
       )}
     />
   );

@@ -101,9 +101,9 @@ export const Card = ({
   return (
     <div
       className={cn(
-        'flex flex-col w-full border-none rounded-lg h-full overflow-hidden',
+        'flex flex-col w-full border border-(--look-line) rounded-[6px] h-full overflow-hidden bg-(--afdd-background-low)',
         isSelected &&
-          'outline-2 outline-(--afdd-brand-border-default-primary) -outline-offset-2',
+          'border-(--afdd-brand-surface-default-primary) shadow-[inset_0_0_0_1px_var(--afdd-brand-surface-default-primary)]',
         className
       )}
       {...props}
@@ -112,18 +112,24 @@ export const Card = ({
         <>
           <div
             className={cn(
-              'flex bg-(--afdd-background-high) min-h-13 px-4 py-2 items-center justify-between box-border',
+              'flex bg-(--afdd-background-low) min-h-14 px-4 py-2 gap-3 items-center justify-between box-border border-b border-(--look-line)',
               headerClassName
             )}
             {...headerProps}
           >
-            <span className="text-(--afdd-neutral-text-title-heading)" {...titleProps}>
+            <span
+              {...titleProps}
+              className={cn(
+                "flex items-center gap-2 min-w-0 text-(--afdd-neutral-text-title-heading) text-[20px] font-semibold before:content-[''] before:shrink-0 before:w-1 before:h-5 before:rounded-[2px] before:bg-(--afdd-brand-surface-default-primary)",
+                titleProps?.className
+              )}
+            >
               {title}
             </span>
             {headerChildren}
           </div>
           <div
-            className="flex bg-(--afdd-background-default) p-4 h-full box-border"
+            className="flex bg-(--afdd-background-low) p-4 h-full box-border"
             {...combinedProps}
           >
             {children}

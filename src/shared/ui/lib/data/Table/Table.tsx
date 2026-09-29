@@ -157,9 +157,9 @@ const TableRowComponent = <T extends TableData = TableData>({
       className={cn(
         'align-middle last:rounded-b-lg',
         selectable && 'cursor-pointer group',
-        !useCheckbox &&
-          isSelected &&
-          'outline-2 outline-(--afdd-brand-surface-default-primary) -outline-offset-2'
+        // selected: one raised strip with a brand bar on its left edge
+        isSelected &&
+          '[&>td]:bg-(--afdd-background-high)! [&>td:first-child]:shadow-[inset_4px_0_0_var(--afdd-brand-surface-default-primary)]'
       )}
       onClick={handleClick}
       onDoubleClick={onDoubleClick ? handleDoubleClick : undefined}
@@ -168,11 +168,10 @@ const TableRowComponent = <T extends TableData = TableData>({
       {useCheckbox ? (
         <td
           className={cn(
-            'border-0 border-solid border-(--afdd-border-default) text-center overflow-hidden text-ellipsis whitespace-nowrap box-border align-middle text-sm font-normal bg-(--afdd-background-low) h-10',
+            'border-0 border-solid border-(--look-line) text-center overflow-hidden text-ellipsis whitespace-nowrap box-border align-middle text-[15px] font-normal bg-(--afdd-background-low) h-10 transition-colors duration-150',
             tone !== 'zebra' && !isLastRow && 'border-b',
             selectable && 'group-hover:bg-(--afdd-background-default)',
             isZebra && isEvenRow && 'bg-(--afdd-background-lowest)',
-            isSelected && 'bg-(--afdd-background-default)!'
           )}
           style={{
             width: 0,
@@ -203,11 +202,10 @@ const TableRowComponent = <T extends TableData = TableData>({
             key={`${id}__${field}`}
             className={cn(
               // cells wrap (up to 4 lines, see below) instead of forcing one line and a wide table
-              'px-2 py-1.5 border-0 border-solid border-(--afdd-border-default) text-center overflow-hidden box-border align-middle text-sm font-normal bg-(--afdd-background-low) h-10',
+              'px-2 py-1.5 border-0 border-solid border-(--look-line) text-center overflow-hidden box-border align-middle text-[15px] font-normal bg-(--afdd-background-low) h-10 transition-colors duration-150',
               !isZebra && !isLastRow && 'border-b',
               selectable && 'group-hover:bg-(--afdd-background-default)',
-              isZebra && isEvenRow && 'bg-(--afdd-background-lowest)',
-              isSelected && 'bg-(--afdd-background-default)!'
+              isZebra && isEvenRow && 'bg-(--afdd-background-lowest)'
             )}
             style={{
               width: width,
@@ -218,7 +216,6 @@ const TableRowComponent = <T extends TableData = TableData>({
             <div
               className={cn(
                 'flex justify-center items-center gap-1.5 h-full',
-                isSelected && 'bg-(--afdd-background-default)',
                 alignment === 'left' && 'justify-start',
                 alignment === 'right' && 'justify-end'
               )}
@@ -324,8 +321,7 @@ export const Table = <T extends TableData = TableData>({
         <th
           key={field}
           className={cn(
-            'text-base font-medium bg-(--afdd-background-lowest) px-3 py-2 sticky top-0 h-11 border-0 border-solid border-(--afdd-border-default) text-center overflow-hidden text-ellipsis whitespace-nowrap box-border align-middle',
-            isZebra && !emptyRows ? 'border-b-(--afdd-background-lowest)' : 'border-b'
+            'text-[14px] font-semibold text-(--afdd-neutral-text-caption) bg-(--afdd-background-default) px-2 py-2 sticky top-0 z-1 h-11 border-0 text-center overflow-hidden text-ellipsis whitespace-nowrap box-border align-middle'
           )}
           style={{
             width: width,
@@ -409,7 +405,7 @@ export const Table = <T extends TableData = TableData>({
   return (
     <div
       className={cn(
-        'w-full text-base text-(--afdd-neutral-text-title-heading) rounded-lg overflow-auto border border-solid border-(--afdd-border-default)',
+        'w-full text-base text-(--afdd-neutral-text-title-heading) rounded-[6px] overflow-auto border border-solid border-(--look-line)',
         wrapperClassName
       )}
       style={{ width, height, ...wrapperStyle }}
@@ -425,10 +421,7 @@ export const Table = <T extends TableData = TableData>({
               <th
                 style={{ width: 0, maxWidth: 0, padding: '0 1.5rem' }}
                 className={cn(
-                  'text-base font-medium bg-(--afdd-background-lowest) sticky top-0 h-11 border-0 border-solid border-(--afdd-border-default) text-center overflow-hidden text-ellipsis whitespace-nowrap box-border align-middle',
-                  tone === 'zebra' && !emptyRows
-                    ? 'border-b-(--afdd-background-lowest)'
-                    : 'border-b'
+                  'text-[14px] font-semibold text-(--afdd-neutral-text-caption) bg-(--afdd-background-default) sticky top-0 z-1 h-11 border-0 text-center overflow-hidden text-ellipsis whitespace-nowrap box-border align-middle'
                 )}
               >
                 {useCheckAll ? (

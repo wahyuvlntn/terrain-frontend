@@ -151,6 +151,22 @@ export const PopoverTrigger = React.forwardRef<
   );
 });
 
+let topLayer: HTMLElement | null = null;
+
+/**
+ * Where floating content renders: a body-level container React Aria treats as a top layer, so a
+ * modal HeroUI overlay that opened this popover (the header's notifications) neither makes it
+ * inert nor closes when it is clicked.
+ */
+const topLayerRoot = () => {
+  if (!topLayer?.isConnected) {
+    topLayer = document.createElement('div');
+    topLayer.setAttribute('data-react-aria-top-layer', '');
+    document.body.appendChild(topLayer);
+  }
+  return topLayer;
+};
+
 export const PopoverContent = React.forwardRef<HTMLDivElement, React.HTMLProps<HTMLDivElement>>(
   function PopoverContent({ style, ...props }, propRef) {
     const { context: floatingContext, ...context } = usePopoverContext();
@@ -159,7 +175,7 @@ export const PopoverContent = React.forwardRef<HTMLDivElement, React.HTMLProps<H
     if (!floatingContext.open) return null;
 
     return (
-      <FloatingPortal>
+      <FloatingPortal root={topLayerRoot()}>
         <FloatingFocusManager context={floatingContext} modal={context.modal}>
           <div
             ref={ref}

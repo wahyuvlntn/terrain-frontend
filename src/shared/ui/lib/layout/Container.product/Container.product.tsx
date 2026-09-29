@@ -71,7 +71,7 @@ export const Container = forwardRef<HTMLDivElement, ContainerProps>(
       <div
         ref={ref}
         className={cn(
-          'flex flex-col items-center gap-4 bg-(--afdd-background-low) p-4 rounded-lg text-(--afdd-neutral-text-title-heading)',
+          'flex flex-col items-center gap-3 bg-(--afdd-background-low) border border-(--look-line) p-4 rounded-[6px] text-(--afdd-neutral-text-title-heading)',
           className
         )}
         {...props}
@@ -80,13 +80,16 @@ export const Container = forwardRef<HTMLDivElement, ContainerProps>(
           <div
             {...headerProps}
             className={cn(
-              'flex justify-between items-center w-full min-h-7 max-h-7 gap-1',
+              'flex justify-between items-center w-full min-h-8 max-h-8 gap-2',
               headerProps?.className
             )}
           >
             <div
               {...titleProps}
-              className={cn('flex flex-row items-center gap-1', titleProps?.className)}
+              className={cn(
+                "flex flex-row items-center gap-2 before:content-[''] before:shrink-0 before:w-1 before:h-5 before:rounded-[2px] before:bg-(--afdd-brand-surface-default-primary)",
+                titleProps?.className
+              )}
             >
               <Fragment>
                 {icon}
@@ -99,7 +102,7 @@ export const Container = forwardRef<HTMLDivElement, ContainerProps>(
         )}
 
         <div
-          className="flex flex-[1_1_0] bg-(--afdd-background-lowest) rounded self-stretch gap-5.25"
+          className="flex flex-[1_1_0] bg-[color-mix(in_srgb,var(--afdd-background-lowest)_55%,transparent)] rounded-[4px] self-stretch gap-5.25"
           {...contentWrapperProps}
         >
           {children}

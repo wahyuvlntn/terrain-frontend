@@ -36,10 +36,8 @@ const Tab: React.FC<TabProps> = ({
   return (
     <div
       className={cn(
-        'px-7 py-2 cursor-pointer text-(--afdd-neutral-text-title-heading) text-[16px] font-medium flex items-center justify-center gap-1 [&_span]:overflow-hidden [&_span]:text-ellipsis [&_span]:whitespace-nowrap [&_svg]:min-h-5 [&_svg]:min-w-5 [&_svg]:max-h-5',
-        type === '2' && 'rounded-t-sm',
-        type === '3' && 'relative rounded',
-        selectedValue === value && 'rounded-t-sm',
+        'px-5 h-11 cursor-pointer text-(--afdd-neutral-text-caption) text-[16px] font-medium flex items-center justify-center gap-2 transition-colors duration-150 hover:text-(--afdd-neutral-text-title-heading) [&_span]:overflow-hidden [&_span]:text-ellipsis [&_span]:whitespace-nowrap [&_svg]:min-h-5 [&_svg]:min-w-5 [&_svg]:max-h-5',
+        type === '3' && 'relative',
         selectedValue === value && type === '3' && 'z-10',
         className
       )}
@@ -84,13 +82,8 @@ export const TabProduct = ({ className, ...props }: TabProps) => {
       {...props}
       className={cn(
         className,
-        "[&[aria-details='primary'][aria-selected='true']]:bg-(--afdd-background-highest) [&[aria-details='primary'][aria-selected='true']]:text-white",
-        "[&[aria-details='secondary']]:bg-(--afdd-background-lowest)",
-        "[&[aria-details='secondary'][aria-selected='true']]:bg-(--afdd-background-low)",
-        "[&[aria-details='tertiary']]:bg-(--afdd-background-default)",
-        "[&[aria-details='tertiary'][aria-selected='true']]:bg-(--afdd-background-highest) [&[aria-details='tertiary'][aria-selected='true']]:text-white",
-        "[&[aria-details='quaternary']]:border-b-2 [&[aria-details='quaternary']]:border-b-transparent",
-        "[&[aria-details='quaternary'][aria-selected='true']]:border-b-(--afdd-brand-surface-default-primary)"
+        // one look for every tab type: an underline in the brand color
+        "[&[aria-selected='true']]:text-(--afdd-neutral-text-title-heading) [&[aria-selected='true']]:font-semibold [&[aria-selected='true']]:shadow-[inset_0_-3px_0_var(--afdd-brand-surface-default-primary)]"
       )}
     />
   );
@@ -102,13 +95,8 @@ export const TabPlatform = ({ className, ...props }: TabProps) => {
       {...props}
       className={cn(
         className,
-        "[&[aria-details='primary'][aria-selected='true']]:bg-(--afdd-brand-surface-default-primary) [&[aria-details='primary'][aria-selected='true']]:text-white",
-        "[&[aria-details='secondary']]:bg-(--afdd-background-low)",
-        "[&[aria-details='secondary'][aria-selected='true']]:bg-(--afdd-background-default)",
-        "[&[aria-details='tertiary']]:bg-(--afdd-background-default)",
-        "[&[aria-details='tertiary'][aria-selected='true']]:bg-(--afdd-brand-surface-dark-primary) [&[aria-details='tertiary'][aria-selected='true']]:text-white",
-        "[&[aria-details='quaternary']]:border-b-2 [&[aria-details='quaternary']]:border-b-transparent",
-        "[&[aria-details='quaternary'][aria-selected='true']]:border-b-(--afdd-brand-surface-default-primary)"
+        // one look for every tab type: an underline in the brand color
+        "[&[aria-selected='true']]:text-(--afdd-neutral-text-title-heading) [&[aria-selected='true']]:font-semibold [&[aria-selected='true']]:shadow-[inset_0_-3px_0_var(--afdd-brand-surface-default-primary)]"
       )}
     />
   );
