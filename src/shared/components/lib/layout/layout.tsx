@@ -1,23 +1,15 @@
 import '@digital-twin/reusables/styles/reusables.css';
 import '../app.scss';
 
-import { NotificationBell } from '@digital-twin/icons';
 import { APP_NAME, formatDateHTMLInput, getURL, t, useLanguageSwitcher } from '@digital-twin/utils';
 import {
   DvrFillIcon,
   DvrIcon,
-  HeaderProduct,
   KeyboardArrowDownIcon,
   KeyboardArrowUpIcon,
-  LogoutIcon,
-  MainLayoutContainerProduct,
-  PersonAddIcon,
-  SettingsFillIcon,
-  SettingsIcon,
   Sidebar,
 } from '@digital-twin/reusables';
 import { LazyRouteFunction } from '@remix-run/router/utils';
-import clsx from 'clsx';
 import {
   ComponentType,
   LazyExoticComponent,
@@ -34,6 +26,7 @@ import {
   Outlet,
   RouterProvider,
   useMatches,
+  useNavigate,
   useSearchParams,
 } from 'react-router-dom';
 import {
@@ -58,8 +51,10 @@ import { FILTER_KEY_BRAND } from '../feat/filter/filter.brand';
 import { FILTER_KEY_ASSET, FILTER_KEY_LOCATION } from '../feat/filter/filter.location';
 import { FILTER_KEY_SERIES } from '../feat/filter/filter.series';
 import { ProfileConfig } from '../feat/profile-configuration';
+import { AppShell } from './app-shell';
 import styles from './layout.module.scss';
 import { useNotification } from './notification-hook';
+import { useOutletKey } from './outlet-key';
 import { ThemeLogo } from './theme-logo';
 
 type Menu = {
@@ -67,6 +62,8 @@ type Menu = {
   filledIcon?: ReactNode;
   path?: string;
   title?: string;
+  /** routed (links from notifications, the assistant) but not listed in the sidebar */
+  hideInMenu?: boolean;
   permissionGroupAlias?: TPermissionGroupAliasEnum;
 };
 
@@ -119,15 +116,6 @@ export const extractFilterSearchParams = (searchParams: URLSearchParams) => {
   return filterParams;
 };
 
-const NotificationIcon = ({ notifCount }: { notifCount: number }) => {
-  return (
-    <div className={styles['notification-bell']}>
-      <NotificationBell />
-      <span className={styles['notification-count']}>{notifCount > 99 ? '99+' : notifCount}</span>
-    </div>
-  );
-};
-
 const SidebarHeader = ({ menus, adminMenus, icon, assistant }: SidebarHeaderProps) => {
   const matches = useMatches();
   const [crumbs, setCrumbs] = useState<
@@ -136,11 +124,12 @@ const SidebarHeader = ({ menus, adminMenus, icon, assistant }: SidebarHeaderProp
       to: { pathname: string; search?: string };
     }[]
   >([]);
-  const [activeBreadcrumbIndex, setActiveBreadcrumbIndex] = useState(0);
   const { hasPermission, signout, userData } = useContext(AuthCtx);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [profileConfigOpen, setProfileConfigOpen] = useState(false);
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const outletKey = useOutletKey();
 
   const { currentLanguage } = useLanguageSwitcher();
 
@@ -229,7 +218,13 @@ const SidebarHeader = ({ menus, adminMenus, icon, assistant }: SidebarHeaderProp
 
   const filterMenu = (menus: SidebarMenu[]) =>
     menus.filter((menuItem) => {
-      if (!menuItem.icon || !menuItem.path || !menuItem.title || !menuItem.filledIcon) {
+      if (
+        menuItem.hideInMenu ||
+        !menuItem.icon ||
+        !menuItem.path ||
+        !menuItem.title ||
+        !menuItem.filledIcon
+      ) {
         return false;
       }
       // Basic user cannot access these pages
@@ -264,110 +259,35 @@ const SidebarHeader = ({ menus, adminMenus, icon, assistant }: SidebarHeaderProp
     });
 
   const filteredMenus = filterMenu(menus);
-  const filteredAdminMenus = filterMenu(adminMenus);
-
-  const findActiveIndex = () => {
-    const allMenus = [
-      ...filteredMenus.map((menu, idx) => ({
-        ...menu,
-        parentIdx: 0,
-        subIdx: idx,
-      })),
-      ...filteredAdminMenus.map((menu, idx) => ({
-        ...menu,
-        parentIdx: 1,
-        subIdx: idx,
-      })),
-    ];
-
-    const activeMenu = allMenus.find((menu) =>
-      matches.some((match) => menu.path === match.pathname)
-    );
-
-    return activeMenu
-      ? {
-          menu: activeMenu.parentIdx,
-          subMenu: activeMenu.subIdx,
-          icon: activeMenu.filledIcon,
-        }
-      : { menu: 0, subMenu: 0, icon: null };
-  };
-
-  const activeIndex = findActiveIndex();
-
-  const [expanded, setExpanded] = useState(activeIndex.menu);
-
+  const activeMenu = filteredMenus.find((menu) =>
+    matches.some((match) => menu.path === match.pathname)
+  );
   const filterParams = extractFilterSearchParams(searchParams);
 
-  const createMenuItem = (
-    text: string,
-    icon: ReactNode,
-    filledIcon: ReactNode,
-    subMenus: Menu[],
-    parentIdx: number
-  ) => ({
-    text,
-    icon,
-    iconFilled: filledIcon,
-    collapsedRightIcon: <KeyboardArrowDownIcon />,
-    expandedRightIcon: <KeyboardArrowUpIcon />,
-    active: parentIdx === activeIndex.menu,
-    isChildrenExpanded: parentIdx === expanded,
-    subMenus: subMenus.map((subMenu, subIdx) => ({
-      icon: subMenu.icon,
-      iconFilled: subMenu.filledIcon,
-      text: subMenu.title ?? '',
-      to: {
-        pathname: subMenu.path,
-        search: `?${createSearchParams({
-          ...filterParams,
-        })}`,
-      },
-      active: parentIdx === activeIndex.menu && subIdx === activeIndex.subMenu,
-    })),
-  });
-
-  const appMenuItems = createMenuItem(
-    t('common.application'),
-    <DvrIcon />,
-    <DvrFillIcon />,
-    filteredMenus,
-    0
-  );
-
-  const adminMenuItems = createMenuItem(
-    t('common.system_setup'),
-    <SettingsIcon />,
-    <SettingsFillIcon />,
-    filteredAdminMenus,
-    1
-  );
-
-  const menuItems =
-    adminMenuItems.subMenus.length > 0 ? [appMenuItems, adminMenuItems] : [appMenuItems];
-
-  // useEffect(() => {
-  //   const notifIcon = document.querySelector(
-  //     `.${styles['header']} > div > div`
-  //   );
-  //   if (notifIcon) {
-  //     notifIcon.innerHTML = `<svg width="22" height="26" viewBox="0 0 22 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-  //   <path d="M10.6667 26C12.1333 26 13.3333 24.8 13.3333 23.3333H8C8 24.8 9.2 26 10.6667 26ZM18.6667 18V11.3333C18.6667 7.24 16.4933 3.81333 12.6667 2.90667V2C12.6667 0.893333 11.7733 0 10.6667 0C9.56 0 8.66667 0.893333 8.66667 2V2.90667C4.85333 3.81333 2.66667 7.22667 2.66667 11.3333V18L0 20.6667V22H21.3333V20.6667L18.6667 18ZM16 19.3333H5.33333V11.3333C5.33333 8.02667 7.34667 5.33333 10.6667 5.33333C13.9867 5.33333 16 8.02667 16 11.3333V19.3333Z" fill="white"/>
-  //   </svg>${
-  //     unreadNotificationCounts + incomingNotifCount > 0
-  //       ? `<div style="position: absolute; top: -8px; left: 10px; background-color: red; color: #fff; border-radius: 8px; padding: 2px 5px; font-size: 12px;">${
-  //           unreadNotificationCounts + incomingNotifCount
-  //         }</div>`
-  //       : ``
-  //   }
-  //   `;
-  //   }
-  // }, [unreadNotificationCounts, incomingNotifCount]);
-
+  // the original sidebar: one "Application" group holding the pages
+  const [expanded, setExpanded] = useState(0);
   const [sidebarIsExpanded, setSidebarIsExpanded] = useState(false);
+  const menuItems = [
+    {
+      text: t('common.application'),
+      icon: <DvrIcon />,
+      iconFilled: <DvrFillIcon />,
+      collapsedRightIcon: <KeyboardArrowDownIcon />,
+      expandedRightIcon: <KeyboardArrowUpIcon />,
+      active: Boolean(activeMenu),
+      isChildrenExpanded: expanded === 0,
+      subMenus: filteredMenus.map((menu) => ({
+        icon: menu.icon,
+        iconFilled: menu.filledIcon,
+        text: menu.title ?? '',
+        to: { pathname: menu.path, search: `?${createSearchParams({ ...filterParams })}` },
+        active: menu === activeMenu,
+      })),
+    },
+  ];
 
   return (
-    <MainLayoutContainerProduct
+    <AppShell
       sidebar={
         <div className={styles['sidebar-container']}>
           <div className={styles['sidebar-wrapper']}>
@@ -376,14 +296,8 @@ const SidebarHeader = ({ menus, adminMenus, icon, assistant }: SidebarHeaderProp
               menuItems={menuItems}
               logoType={<span className={styles.title}>{APP_NAME}</span>}
               symbol={icon}
-              onMenuClick={(menu) => {
-                const menuIndex = menuItems.findIndex((m) => m.text === menu.text);
-                setExpanded((prev) => (prev === menuIndex ? -1 : menuIndex));
-              }}
-              onSubMenuClick={(menu, _) => {
-                const menuIndex = menuItems.findIndex((m) => m.text === menu.text);
-                setExpanded(menuIndex);
-              }}
+              onMenuClick={() => setExpanded((prev) => (prev === 0 ? -1 : 0))}
+              onSubMenuClick={() => setExpanded(0)}
               minWidth={80}
               maxWidth={328}
               expanded={sidebarIsExpanded}
@@ -393,79 +307,54 @@ const SidebarHeader = ({ menus, adminMenus, icon, assistant }: SidebarHeaderProp
           <ThemeLogo isExpanded={sidebarIsExpanded} minWidth={80} maxWidth={328} />
         </div>
       }
-      header={
-        <HeaderProduct
-          className={styles['header']}
-          breadcrumbProps={{
-            icon: activeIndex.icon,
-            items: crumbs.map((crumb, idx) => ({
-              ...crumb,
-              active: idx === activeBreadcrumbIndex,
-            })),
-            maxVisibleItems: 3,
-            onClick: (crumb) =>
-              setActiveBreadcrumbIndex(crumbs.findIndex((c) => c.text === crumb.text)),
-          }}
-          notificationProps={{
-            count: unreadNotificationCounts + incomingNotifCount,
-            children: (
-              <NotificationList
-                from={from}
-                to={to}
-                handleDateChange={handleDateChange}
-                handleReadAllNotif={handleReadAllNotif}
-                handleReadUnread={handleReadUnread}
-                handleTypeChange={handleTypeChange}
-                handleSearchChange={handleSearchChange}
-                fetchNextPage={fetchNextPage}
-                incomingNotifCount={incomingNotifCount}
-                incomingNotifications={incomingNotifications}
-                isLoading={isLoading}
-                notifType={notifType}
-                notifications={notifications}
-                search={search}
-                uniqueDt={uniqueDt}
-                unreadNotificationCounts={unreadNotificationCounts}
-              />
-            ),
-            open: notificationOpen,
-            onOpenChange: setNotificationOpen,
-            icon: <NotificationIcon notifCount={unreadNotificationCounts + incomingNotifCount} />,
-          }}
-          userAvatarProps={{
-            fullName: userData?.fullName ?? '',
-            imgSrc: `${getURL()}/${userData?.photo}`,
-            onClick: () => setProfileConfigOpen(true),
-          }}
-          userOptionsProps={{
-            fullName: userData?.fullName ?? '',
-            email: '',
-            dropdownItems: [
-              {
-                prefixIcon: <PersonAddIcon />,
-                id: 'my-profile',
-                text: t('common.my_profile'),
-                subItems: [],
-              },
-              {
-                prefixIcon: <LogoutIcon />,
-                id: 'sign-out',
-                text: t('common.sign_out'),
-                subItems: [],
-              },
-            ],
-            onSelectItem: (_, item) => {
-              if (item.id === 'my-profile') setProfileConfigOpen(true);
-              else signout();
-            },
-          }}
-        />
-      }
+      icon={activeMenu?.filledIcon}
+      crumbs={crumbs}
+      notifications={{
+        count: unreadNotificationCounts + incomingNotifCount,
+        open: notificationOpen,
+        onOpenChange: setNotificationOpen,
+        children: (
+          <NotificationList
+            from={from}
+            to={to}
+            handleDateChange={handleDateChange}
+            handleReadAllNotif={handleReadAllNotif}
+            handleReadUnread={handleReadUnread}
+            handleTypeChange={handleTypeChange}
+            handleSearchChange={handleSearchChange}
+            fetchNextPage={fetchNextPage}
+            incomingNotifCount={incomingNotifCount}
+            incomingNotifications={incomingNotifications}
+            isLoading={isLoading}
+            notifType={notifType}
+            notifications={notifications}
+            search={search}
+            uniqueDt={uniqueDt}
+            unreadNotificationCounts={unreadNotificationCounts}
+            onNavigate={() => setNotificationOpen(false)}
+          />
+        ),
+      }}
+      user={{
+        fullName: userData?.fullName ?? '',
+        role: userData?.role,
+        photo: userData?.photo ? `${getURL()}/${userData.photo}` : undefined,
+        labels: {
+          myProfile: t('common.my_profile'),
+          themeEditor: t('common.theme_editor'),
+          signOut: t('common.sign_out'),
+        },
+        onAction: (key) => {
+          if (key === 'my-profile') setProfileConfigOpen(true);
+          else if (key === 'theme-editor') navigate('/theme-editor');
+          else signout();
+        },
+      }}
     >
       <ProfileConfig open={profileConfigOpen} onClose={() => setProfileConfigOpen(false)} />
-      <Outlet />
+      <Outlet key={outletKey} />
       {assistant}
-    </MainLayoutContainerProduct>
+    </AppShell>
   );
 };
 
@@ -557,7 +446,8 @@ export const Layout = ({
                   <AuthProtection isProtected>
                     <SidebarHeader
                       menus={modules}
-                      adminMenus={adminRoutes}
+                      // demo build: no administration pages (the theme editor is in the user menu)
+                      adminMenus={[]}
                       icon={icon}
                       assistant={assistant}
                     />
@@ -570,42 +460,10 @@ export const Layout = ({
                     children: modules,
                   },
                   {
+                    // demo build: of the administration pages only the theme editor remains
                     path: '',
                     element: <Outlet />,
-                    children: [
-                      {
-                        // Superuser, admin, and basic can access these routes
-                        path: '',
-                        element: <Outlet />,
-                        children: adminRoutes.filter((item) => item.title === 'Theme Editor'),
-                      },
-                      {
-                        // Superuser & admin can access these routes
-                        path: '',
-                        element: (
-                          <AuthProtection isAdmin isProtected>
-                            <Outlet />
-                          </AuthProtection>
-                        ),
-                        children: adminRoutes.filter((item) =>
-                          ['User Management', 'Notification Manager'].includes(item.title ?? '')
-                        ),
-                      },
-                      {
-                        // Only superuser can access these routes
-                        path: '',
-                        element: (
-                          <AuthProtection isSuperUser isProtected>
-                            <Outlet />
-                          </AuthProtection>
-                        ),
-                        children: adminRoutes.filter((item) =>
-                          ['Connection Manager', 'Master Data', 'License Manager'].includes(
-                            item.title ?? ''
-                          )
-                        ),
-                      },
-                    ],
+                    children: adminRoutes.filter((item) => item.path === '/theme-editor'),
                   },
                 ],
               },

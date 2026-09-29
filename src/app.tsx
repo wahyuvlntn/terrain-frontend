@@ -97,6 +97,27 @@ const locationOverviewLoader = (args: LoaderFunctionArgs) => {
   });
 };
 
+type PlantOverviewCrumbData = {
+  rows: LocationType[] | null;
+  location: string | null;
+  period: string | null;
+};
+
+const plantOverviewLoader = (args: LoaderFunctionArgs) => {
+  const url = new URL(args.request.url);
+  return defer({
+    data: queryClient
+      .ensureQueryData({ queryFn: getAllLocations, queryKey: ['getAllLocations'] })
+      .then(
+        (rows): PlantOverviewCrumbData => ({
+          rows: rows as LocationType[] | null,
+          location: url.searchParams.get('location'),
+          period: url.searchParams.get('period'),
+        })
+      ),
+  });
+};
+
 const LocationOverview = async () => ({
   Component: (await import('./pages/location-overview')).LocationOverview,
 });
@@ -143,6 +164,13 @@ const EarlyWarningAndDiagnostic = async () => ({
 
 const EarlyWarningDashboard = async () => ({
   Component: (await import('./pages/early-warning-dashboard')).EarlyWarningDashboard,
+});
+
+const PlantOverview = async () => ({
+  Component: withAuth(
+    (await import('./pages/plant-overview')).PlantOverview,
+    PermissionGroupAliasEnum.enum.locationoverview
+  ),
 });
 
 const DigitalTwin = async () => ({
@@ -243,12 +271,125 @@ const App = () => {
           modules={[
             {
               index: true,
-              loader: () => redirect('/location-overview'),
+              loader: () => redirect('/plant-overview'),
             },
+            {
+              path: '/plant-overview',
+              icon: <DatasetGrid />,
+              filledIcon: <DatasetGridFill />,
+              title: 'Plant Overview',
+              permissionGroupAlias: PermissionGroupAliasEnum.enum.locationoverview,
+              handle: {
+                crumb: () => 'Plant Overview',
+              },
+              element: <Outlet />,
+              children: [
+                {
+                  index: true as const,
+                  lazy: PlantOverview,
+                  loader: plantOverviewLoader,
+                  handle: {
+                    // the drilled-into location and its ancestors
+                    crumb: async ({ data }: { data: Promise<PlantOverviewCrumbData> }) => {
+                      const { rows, location, period } = await data;
+                      const byId = new Map((rows ?? []).map((r) => [r.locationId, r]));
+                      const chain: LocationType[] = [];
+                      let id = location ? Number(location) : null;
+                      while (id !== null && byId.has(id) && chain.length < 20) {
+                        const row = byId.get(id) as LocationType;
+                        chain.unshift(row);
+                        id = row.parentId !== null && row.parentId !== id ? row.parentId : null;
+                      }
+                      // crumb objects ({ text, to.search }) are read by the layout like the
+                      // location overview's; the handle's type only knows strings
+                      return chain.map((row) => ({
+                        text: row.locationName,
+                        to: {
+                          search: {
+                            location: String(row.locationId),
+                            ...(period ? { period } : {}),
+                          },
+                        },
+                      })) as unknown as string[];
+                    },
+                  },
+                },
+              ],
+            },
+            {
+              path: '/digital-twin',
+              icon: <Cube />,
+              filledIcon: <CubeFill />,
+              title: 'Digital Twin',
+              permissionGroupAlias: PermissionGroupAliasEnum.enum.digitaltwin,
+              handle: {
+                crumb: () => 'Digital Twin',
+              },
+              lazy: DigitalTwin,
+            },
+            {
+              path: '/simulation',
+              icon: <Timer />,
+              filledIcon: <TimerFill />,
+              title: 'Simulation',
+              permissionGroupAlias: PermissionGroupAliasEnum.enum.simulation,
+              handle: {
+                crumb: () => 'Simulation',
+              },
+              lazy: SimulationJobs,
+            },
+            {
+              path: '/ai-insights',
+              icon: <Bulb />,
+              filledIcon: <BulbFill />,
+              title: 'AI Insights',
+              permissionGroupAlias: PermissionGroupAliasEnum.enum.aiinsights,
+              handle: {
+                crumb: () => 'AI Insights',
+              },
+              lazy: AiInsights,
+            },
+            {
+              path: '/early-warning-and-diagnostics',
+              icon: <SettingAlert />,
+              filledIcon: <SettingAlertFill />,
+              title: 'Early Warning & Diagnostics',
+              //TODO: change permission
+              permissionGroupAlias: PermissionGroupAliasEnum.enum.earlywarningdiagnostics,
+              handle: {
+                crumb: () => 'Early Warning & Diagnostics',
+              },
+              lazy: EarlyWarningAndDiagnostic,
+            },
+            {
+              path: '/maintenance-order',
+              icon: <MOrder />,
+              filledIcon: <MOrderFill />,
+              title: 'Maintenance Order',
+              //TODO: change permission
+              permissionGroupAlias: PermissionGroupAliasEnum.enum.maintenanceorder,
+              handle: {
+                crumb: () => 'Maintenance Order',
+              },
+              lazy: MaintenanceOrder,
+            },
+            {
+              path: '/production',
+              icon: <HardwareChip />,
+              filledIcon: <HardwareChipFill />,
+              title: 'Production',
+              permissionGroupAlias: PermissionGroupAliasEnum.enum.production,
+              handle: {
+                crumb: () => 'Production',
+              },
+              lazy: Production,
+            },
+            // routed for links from notifications and the AI assistant, not in the menu
             {
               path: '/location-overview',
               icon: <DatasetGrid />,
               filledIcon: <DatasetGridFill />,
+              hideInMenu: true,
               title: t('common.location_overview'),
               permissionGroupAlias: PermissionGroupAliasEnum.enum.locationoverview,
               handle: {
@@ -310,6 +451,7 @@ const App = () => {
               path: '/asset-overview',
               icon: <AssetV3 />,
               filledIcon: <AssetV3Fill />,
+              hideInMenu: true,
               title: t('common.equipment_overview'),
               permissionGroupAlias: PermissionGroupAliasEnum.enum.equipmentoverview,
               handle: {
@@ -337,6 +479,7 @@ const App = () => {
               path: '/alarm-report',
               icon: <AlertAlarm />,
               filledIcon: <AlertAlarmFill />,
+              hideInMenu: true,
               title: t('common.alarm_report'),
               permissionGroupAlias: PermissionGroupAliasEnum.enum.alarmsreport,
               handle: {
@@ -345,21 +488,10 @@ const App = () => {
               lazy: AlarmReport,
             },
             {
-              path: '/maintenance-order',
-              icon: <MOrder />,
-              filledIcon: <MOrderFill />,
-              title: 'Maintenance Order',
-              //TODO: change permission
-              permissionGroupAlias: PermissionGroupAliasEnum.enum.maintenanceorder,
-              handle: {
-                crumb: () => 'Maintenance Order',
-              },
-              lazy: MaintenanceOrder,
-            },
-            {
               path: '/maintenance-performance',
               icon: <MPerform />,
               filledIcon: <MPerformFill />,
+              hideInMenu: true,
               title: 'Maintenance Performance',
               //TODO: change permission
               permissionGroupAlias: PermissionGroupAliasEnum.enum.maintenanceperformance,
@@ -372,6 +504,7 @@ const App = () => {
               path: '/maintenance-instruction',
               icon: <Instruction />,
               filledIcon: <InstructionFill />,
+              hideInMenu: true,
               title: 'Maintenance Instruction',
               //TODO: change permission
               permissionGroupAlias: PermissionGroupAliasEnum.enum.maintenanceinstruction,
@@ -404,6 +537,7 @@ const App = () => {
               path: '/personnel-management',
               icon: <Personnel />,
               filledIcon: <PersonnelFill />,
+              hideInMenu: true,
               title: 'Personnel Management',
               //TODO: change permission
               permissionGroupAlias: PermissionGroupAliasEnum.enum.personnelmanagement,
@@ -413,21 +547,10 @@ const App = () => {
               lazy: PersonnelManagement,
             },
             {
-              path: '/early-warning-and-diagnostics',
-              icon: <SettingAlert />,
-              filledIcon: <SettingAlertFill />,
-              title: 'Early Warning & Diagnostics',
-              //TODO: change permission
-              permissionGroupAlias: PermissionGroupAliasEnum.enum.earlywarningdiagnostics,
-              handle: {
-                crumb: () => 'Early Warning & Diagnostics',
-              },
-              lazy: EarlyWarningAndDiagnostic,
-            },
-            {
               path: '/early-warning-dashboard',
               icon: <ChartAlert />,
               filledIcon: <ChartAlertFill />,
+              hideInMenu: true,
               title: 'Early Warning Dashboard',
               //TODO: change permission
               permissionGroupAlias: PermissionGroupAliasEnum.enum.earlywarningdashboard,
@@ -435,50 +558,6 @@ const App = () => {
                 crumb: () => 'Early Warning Dashboard',
               },
               lazy: EarlyWarningDashboard,
-            },
-            {
-              path: '/production',
-              icon: <HardwareChip />,
-              filledIcon: <HardwareChipFill />,
-              title: 'Production',
-              permissionGroupAlias: PermissionGroupAliasEnum.enum.production,
-              handle: {
-                crumb: () => 'Production',
-              },
-              lazy: Production,
-            },
-            {
-              path: '/digital-twin',
-              icon: <Cube />,
-              filledIcon: <CubeFill />,
-              title: 'Digital Twin',
-              permissionGroupAlias: PermissionGroupAliasEnum.enum.digitaltwin,
-              handle: {
-                crumb: () => 'Digital Twin',
-              },
-              lazy: DigitalTwin,
-            },
-            {
-              path: '/ai-insights',
-              icon: <Bulb />,
-              filledIcon: <BulbFill />,
-              title: 'AI Insights',
-              permissionGroupAlias: PermissionGroupAliasEnum.enum.aiinsights,
-              handle: {
-                crumb: () => 'AI Insights',
-              },
-              lazy: AiInsights,
-            },
-            {
-              path: '/simulation',
-              icon: <Timer />,
-              filledIcon: <TimerFill />,
-              title: 'Simulation',
-              permissionGroupAlias: PermissionGroupAliasEnum.enum.simulation,
-              handle: {
-                crumb: () => 'Simulation',
-              },
-              lazy: SimulationJobs,
             },
           ].map((module) => ({
             ...module,

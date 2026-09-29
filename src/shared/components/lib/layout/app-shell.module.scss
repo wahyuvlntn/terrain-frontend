@@ -1,0 +1,259 @@
+@import '../color';
+
+// App frame: the original sidebar, then the header over the page canvas.
+
+// the original sidebar's logo row is 55px: the header lines up with it
+$header-h: 55px;
+
+.shell {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: $background-lowest;
+  color: $neutral-text-title-heading;
+}
+
+.main {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.content {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  padding: 16px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* ----------------------------------------------------------------------------------------------
+ * Header
+ * -------------------------------------------------------------------------------------------- */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex: 0 0 $header-h;
+  height: $header-h;
+  padding: 0 16px 0 20px;
+  background: $background-low;
+  border-bottom: 1px solid var(--look-line);
+  box-sizing: border-box;
+}
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.crumb-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: $neutral-text-title-heading;
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.crumb-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.crumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.crumb-link {
+  font-size: 16px;
+  color: $neutral-text-caption;
+
+  &:hover {
+    color: $neutral-text-title-heading;
+  }
+}
+
+.crumb-sep {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: $neutral-text-caption;
+}
+
+.crumb-current {
+  font-size: 20px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.divider {
+  width: 1px;
+  height: 28px;
+  margin: 0 4px;
+  background: var(--look-line);
+}
+
+.icon-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--look-radius-sm);
+  color: $neutral-text-label;
+  cursor: pointer;
+
+  &:hover {
+    background: $background-default;
+    color: $neutral-text-title-heading;
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.count {
+  position: absolute;
+  top: 0;
+  left: 22px;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: $condition-critical-primary;
+  color: $neutral-text-body-light;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.notifications-popover {
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--look-radius);
+  background: $background-default;
+}
+
+.notifications-dialog {
+  padding: 0;
+  outline: none;
+}
+
+.user-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 10px 0 6px;
+  border-radius: var(--look-radius-sm);
+  cursor: pointer;
+
+  &:hover {
+    background: $background-default;
+  }
+}
+
+.avatar {
+  background: $brand-surface-dark-primary;
+  color: $neutral-text-body-light;
+  font-weight: 600;
+
+  // HeroUI's fallback paints its own (dark) circle over the avatar
+  :global(.avatar__fallback) {
+    background: transparent;
+    color: inherit;
+  }
+}
+
+.user-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.user-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: $neutral-text-title-heading;
+}
+
+.user-role {
+  font-size: 13px;
+  color: $neutral-text-caption;
+  text-transform: capitalize;
+}
+
+.user-popover {
+  min-width: 240px;
+  overflow: hidden;
+  background: $background-default;
+
+  hr {
+    margin: 0;
+  }
+
+  :global(.dropdown__menu) {
+    padding: 4px;
+  }
+
+  :global(.menu-item) {
+    color: $neutral-text-title-heading;
+  }
+
+  :global(.menu-item--danger) {
+    color: $condition-critical-secondary;
+  }
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 10px;
+}
+
+.menu-icon {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
