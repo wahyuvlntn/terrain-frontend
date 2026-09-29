@@ -1,10 +1,13 @@
 import { ImagePlaceholder } from '@digital-twin/icons';
 import appIcon from '@digital-twin/images/app-icon.svg';
-import { APP_NAME, getURL, t } from '@digital-twin/utils';
 import { Login as LoginReusable } from '@digital-twin/reusables';
-import { ReactNode, useContext } from 'react';
+import { APP_NAME, getPostSigninPath, getURL, SESSION_ID_HEADER, t } from '@digital-twin/utils';
+import { ReactNode, useContext, useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import { LoadingCircle } from '../../others';
 import { ThemeContext } from '../admin';
+import { getDemoSession } from './auth.api';
 import { AuthCtx } from './auth.context';
 import styles from './login.module.scss';
 
@@ -14,7 +17,44 @@ type LoginProps = {
   bgImageUrl: string;
 };
 
-export const Login = ({ bgImageUrl, productLogo, title }: LoginProps) => {
+/**
+ * Demo mode: the backend signs every visitor in as its DEMO_USER, so the sign-in route only
+ * shows a splash and continues to the requested page. The form appears when demo mode is off.
+ */
+export const Login = (props: LoginProps) => {
+  const [demoOff, setDemoOff] = useState(false);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect-url');
+
+  useEffect(() => {
+    let live = true;
+    getDemoSession()
+      .then((token) => {
+        if (!live) return;
+        if (!token) return setDemoOff(true);
+        window.localStorage.setItem(SESSION_ID_HEADER, token);
+        navigate(getPostSigninPath(redirect), { replace: true });
+      })
+      .catch(() => live && setDemoOff(true));
+    return () => {
+      live = false;
+    };
+  }, [navigate, redirect]);
+
+  if (demoOff) return <SigninForm {...props} />;
+  return (
+    <div className="relative flex h-full w-full flex-col items-center justify-center gap-6 bg-(--afdd-background-lowest) text-(--afdd-neutral-text-caption)">
+      {props.productLogo}
+      <div className="relative h-12 w-12">
+        <LoadingCircle isLoading={true} scale={0.5} />
+      </div>
+      <span>Starting demo session…</span>
+    </div>
+  );
+};
+
+const SigninForm = ({ bgImageUrl, productLogo, title }: LoginProps) => {
   const { signin, initialPassword, initialIsRemember, initialUsername } = useContext(AuthCtx);
   const {
     logo,

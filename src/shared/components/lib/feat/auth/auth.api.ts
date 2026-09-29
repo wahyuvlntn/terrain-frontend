@@ -31,6 +31,20 @@ export const signin = async (credentials: Credentials) => {
   }
 };
 
+/**
+ * Session of the backend's demo user (DEMO_USER), signed in without a password. Null when the
+ * backend runs without demo mode (404): the sign-in form is shown then.
+ */
+export const getDemoSession = async (): Promise<string | null> => {
+  try {
+    const data = await request({ url: '/api/user-management/exposed/demo-session' });
+    return z.string().parse(data.session_id);
+  } catch (e) {
+    if ((e as { statusCode?: number }).statusCode === 404) return null;
+    throw e;
+  }
+};
+
 export const PermissionAliasEnum = z.enum([
   'create',
   'read',
