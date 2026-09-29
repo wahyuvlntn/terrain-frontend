@@ -73,7 +73,7 @@ export const Checkbox = forwardRef<HTMLInputElement | null, CheckboxProps>(funct
         ref={innerRef}
         type="checkbox"
         className={cn(
-          'shrink-0 appearance-none m-0 cursor-pointer font-[inherit] text-current w-[1.125em] h-[1.125em] rounded-[0.25em] border border-(--afdd-border-default) bg-(--afdd-background-low) flex justify-center items-center transition-[background-color] duration-120 overflow-hidden',
+          'shrink-0 appearance-none m-0 cursor-pointer font-[inherit] text-current w-[1.125em] h-[1.125em] rounded-[0.25em] border border-(--look-line-strong) bg-(--afdd-background-lowest) flex justify-center items-center transition-[background-color] duration-120 overflow-hidden',
           "before:content-[''] before:opacity-0 before:w-[0.3em] before:h-[0.6em] before:border-0 before:border-r-[0.07em] before:border-b-[0.07em] before:border-solid before:border-(--afdd-neutral-text-body-light) before:mb-[0.24em] before:rotate-45",
           'checked:border-none checked:bg-(--afdd-brand-surface-default-primary) checked:before:opacity-100',
           'indeterminate:border-none indeterminate:bg-(--afdd-brand-surface-default-primary) indeterminate:before:opacity-100 indeterminate:before:w-[0.625em] indeterminate:before:h-0 indeterminate:before:border-none indeterminate:before:border-b-[0.07em] indeterminate:before:border-solid indeterminate:before:border-(--afdd-neutral-text-body-light) indeterminate:before:mb-0 indeterminate:before:rotate-0',

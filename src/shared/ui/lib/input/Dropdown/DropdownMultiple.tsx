@@ -282,8 +282,8 @@ export const DropdownMultiple = ({
           }}
           role="option"
           className={cn(
-            'flex items-center gap-1 bg-(--afdd-background-low) px-[0.875em] py-[0.5em] rounded hover:bg-(--afdd-background-default)',
-            isActive && 'bg-(--afdd-background-high)',
+            'flex items-center gap-1 bg-transparent px-[0.875em] py-[0.5em] rounded-[4px] hover:bg-(--afdd-background-high)',
+            isActive && 'bg-(--afdd-background-high) shadow-[inset_3px_0_0_var(--afdd-brand-surface-default-primary)]',
             disabled && 'opacity-40',
             optionItemClassName
           )}
@@ -390,7 +390,7 @@ export const DropdownMultiple = ({
           tabIndex={0}
           data-field-disabled={disabled || undefined}
           className={cn(
-            'w-full box-border flex items-center gap-[0.375em] h-[2.25em] px-[0.5625em] rounded border border-(--afdd-border-default) bg-(--afdd-background-low) transition-all duration-120 relative outline-none min-w-45.25',
+            'w-full box-border flex items-center gap-[0.375em] h-[2.25em] px-[0.5625em] rounded-[4px] border border-(--look-line-strong) bg-(--afdd-background-lowest) transition-all duration-150 hover:border-(--afdd-border-light) focus-within:border-(--afdd-brand-surface-default-primary) relative outline-none min-w-45.25',
             variant === 'small' && 'py-[0.25em] h-[1.75em]',
             variant === 'large' && 'h-[2.625em]',
             error && 'border-(--afdd-condition-critical-primary)',
@@ -467,7 +467,7 @@ export const DropdownMultiple = ({
               e.stopPropagation();
             }}
             className={cn(
-              'font-[inherit] text-base text-(--afdd-neutral-text-title-heading) box-border bg-(--afdd-background-low) border border-(--afdd-border-default) rounded-lg p-1 max-h-88.75 shadow-[0px_4px_8px_0px_#0000000f,0px_0px_4px_0px_#0000000a] flex flex-col min-w-45.25 overflow-y-hidden',
+              'font-[inherit] text-base text-(--afdd-neutral-text-title-heading) box-border bg-(--afdd-background-default) border border-(--look-line) rounded-[6px] p-1 max-h-88.75 shadow-[0px_4px_8px_0px_#0000000f,0px_0px_4px_0px_#0000000a] flex flex-col min-w-45.25 overflow-y-hidden',
               optionClassName
             )}
             role="listbox"

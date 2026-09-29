@@ -240,7 +240,7 @@ export const DaterangePicker = ({
           }}
         >
           {label && <span>{label}</span>}
-          <div className="flex flex-[1_1_0] flex-row gap-2 items-center justify-between px-[9.5px] py-1.25 pl-2.75 bg-(--afdd-background-low) rounded border border-(--afdd-border-default) text-(--afdd-neutral-text-title-heading) text-base leading-5.5 font-medium cursor-pointer [&>svg]:w-6 [&>svg]:h-6">
+          <div className="flex flex-[1_1_0] flex-row gap-2 items-center justify-between px-[9.5px] py-1.25 pl-2.75 bg-(--afdd-background-lowest) rounded-[4px] border border-(--look-line-strong) text-(--afdd-neutral-text-title-heading) text-base leading-5.5 font-medium cursor-pointer [&>svg]:w-6 [&>svg]:h-6">
             <span>{dateLabel}</span>
             <CalendarMonthIcon />
           </div>
@@ -251,7 +251,7 @@ export const DaterangePicker = ({
           style={{ display: 'flex', height: '100%', ...contentStyle }}
           className={contentClassName}
         >
-          <div className="flex flex-col p-2 bg-(--afdd-background-low) rounded border border-(--afdd-border-default)">
+          <div className="flex flex-col p-2 bg-(--afdd-background-lowest) rounded-[4px] border border-(--look-line-strong)">
             {type === 'daterange' ? (
               <>
                 <div className="flex justify-between p-3 gap-1.5 bg-(--afdd-background-lowest) items-center">

@@ -43,7 +43,7 @@ export const RadioButton = forwardRef<HTMLInputElement | null, RadioButtonProps>
           ref={ref}
           type="radio"
           className={cn(
-            'shrink-0 appearance-none m-0 cursor-pointer font-[inherit] text-current w-[1.125em] h-[1.125em] rounded-full border border-(--afdd-border-default) bg-(--afdd-background-low) flex justify-center items-center transition-[background-color] duration-120',
+            'shrink-0 appearance-none m-0 cursor-pointer font-[inherit] text-current w-[1.125em] h-[1.125em] rounded-full border border-(--look-line-strong) bg-(--afdd-background-lowest) flex justify-center items-center transition-[background-color] duration-120',
             "before:content-[''] before:opacity-0 before:w-[0.375em] before:h-[0.375em] before:rounded-full before:bg-(--afdd-neutral-text-body-light)",
             'checked:border-none checked:bg-(--afdd-brand-surface-default-primary) checked:before:opacity-100',
             'disabled:opacity-40'

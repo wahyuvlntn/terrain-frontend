@@ -34,7 +34,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         <button
           ref={ref}
           className={cn(
-            'px-3.5 py-2 rounded-md tracking-wider text-center text-base font-semibold leading-normal flex items-center gap-1 cursor-pointer border-none relative transition-[background] duration-250 ease-in-out',
+            'h-10 px-4 rounded-[4px] text-center text-[15px] font-semibold leading-normal flex items-center justify-center gap-2 cursor-pointer border border-transparent relative transition-[background,border-color] duration-150 ease-in-out',
             className
           )}
           {...props}

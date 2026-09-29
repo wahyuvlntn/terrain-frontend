@@ -14,8 +14,22 @@
 @import "./normalize.css" layer(base);
 @import "./fonts.css";
 
+/*
+ * HeroUI v3 components and theme variables, without Tailwind's Preflight and without HeroUI's
+ * global base rules (they would restyle the existing pages). Its variables follow the theme
+ * editor's --afdd-* colors (./app-look.css).
+ */
+@import "tw-animate-css";
+@import "@heroui/styles/components/index.css" layer(components);
+@import "@heroui/styles/themes/default" layer(theme);
+@import "@heroui/styles/utilities";
+@import "@heroui/styles/variants";
+@import "./app-look.css";
+
 @source "../lib";
 @source "../../..";
+@source "../../../../node_modules/@heroui/styles/dist";
+@source "../../../../node_modules/@heroui/react/dist";
 
 @layer base {
   *,

@@ -83,7 +83,7 @@ export const Input = forwardRef<HTMLInputElement | null, InputProps>(function In
         <div
           data-field-disabled={inputProps.disabled || undefined}
           className={cn(
-            'w-full box-border flex items-center gap-[0.375em] h-[2.25em] px-[0.5625em] rounded border border-(--afdd-border-default) bg-(--afdd-background-low) transition-all duration-120',
+            'w-full box-border flex items-center gap-[0.375em] h-[2.25em] px-[0.5625em] rounded-[4px] border border-(--look-line-strong) bg-(--afdd-background-lowest) transition-all duration-150 hover:border-(--afdd-border-light) focus-within:border-(--afdd-brand-surface-default-primary)',
             variant === 'small' && 'py-[0.25em] h-[1.75em]',
             variant === 'large' && 'h-[2.625em]',
             error && 'border-(--afdd-condition-critical-primary)',

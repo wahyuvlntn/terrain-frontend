@@ -72,7 +72,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement | null, TextAreaProps>(fu
           ref={ref}
           data-field-disabled={textAreaProps.disabled || undefined}
           className={cn(
-            'w-full box-border inline-block h-auto px-[0.5625em] py-[0.5em] rounded border border-(--afdd-border-default) bg-(--afdd-background-low) transition-all duration-120',
+            'w-full box-border inline-block h-auto px-[0.5625em] py-[0.5em] rounded-[4px] border border-(--look-line-strong) bg-(--afdd-background-lowest) transition-all duration-150 hover:border-(--afdd-border-light) focus-within:border-(--afdd-brand-surface-default-primary)',
             error && 'border-(--afdd-condition-critical-primary)',
             textAreaProps.readOnly && 'border-dashed',
             textAreaProps.disabled && 'bg-(--afdd-background-lowest)',

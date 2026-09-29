@@ -18,7 +18,7 @@ export const ButtonProduct = forwardRef<HTMLButtonElement, ButtonProductProps>(
           {
             'bg-(--afdd-brand-surface-default-primary) text-(--afdd-neutral-text-body-light) hover:bg-(--afdd-brand-surface-hover-primary) active:bg-(--afdd-brand-border-dark-primary)':
               colorType === 'default-primary',
-            'bg-(--afdd-background-high) text-(--afdd-neutral-text-title-heading) hover:bg-(--afdd-background-highest) active:bg-(--afdd-background-highest)':
+            'bg-transparent border-(--look-line-strong) text-(--afdd-neutral-text-title-heading) hover:bg-(--afdd-background-default) active:bg-(--afdd-background-high)':
               colorType === 'default-secondary',
           }
         )}

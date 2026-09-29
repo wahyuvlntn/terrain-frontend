@@ -1,0 +1,65 @@
+/*
+ * Look of the demo build: the original palette, density and type sizes with a flatter, crisper
+ * component language (4-6 px corners, solid brand-filled active states, accent bars on titles,
+ * underline tabs). Every color comes from the theme editor's --afdd-* variables.
+ */
+:root {
+  /* hairlines: the theme's border color blended into the panel color */
+  --look-line: color-mix(in srgb, var(--afdd-border-light) 30%, var(--afdd-background-low));
+  --look-line-strong: color-mix(in srgb, var(--afdd-border-light) 50%, var(--afdd-background-low));
+  --look-radius: 6px;
+  --look-radius-sm: 4px;
+
+  /* HeroUI variables (popovers, menus, tooltips) */
+  --background: var(--afdd-background-lowest);
+  --foreground: var(--afdd-neutral-text-title-heading);
+  --surface: var(--afdd-background-low);
+  --surface-foreground: var(--afdd-neutral-text-title-heading);
+  --surface-secondary: var(--afdd-background-default);
+  --surface-secondary-foreground: var(--afdd-neutral-text-title-heading);
+  --surface-tertiary: var(--afdd-background-high);
+  --surface-tertiary-foreground: var(--afdd-neutral-text-title-heading);
+  --overlay: var(--afdd-background-low);
+  --overlay-foreground: var(--afdd-neutral-text-title-heading);
+  --muted: var(--afdd-neutral-text-caption);
+  --default: var(--afdd-background-default);
+  --default-foreground: var(--afdd-neutral-text-title-heading);
+  --accent: var(--afdd-brand-surface-default-primary);
+  --accent-foreground: var(--afdd-neutral-text-body-light);
+  --success: var(--afdd-status-running-primary);
+  --success-foreground: var(--afdd-neutral-text-body-light);
+  --warning: var(--afdd-condition-warning-primary);
+  --warning-foreground: var(--afdd-neutral-text-body-light);
+  --danger: var(--afdd-condition-critical-primary);
+  --danger-foreground: var(--afdd-neutral-text-body-light);
+  --border: var(--look-line);
+  --separator: var(--look-line);
+  --focus: var(--afdd-brand-border-light-primary);
+  --field-background: var(--afdd-background-lowest);
+  --field-foreground: var(--afdd-neutral-text-title-heading);
+  --field-placeholder: var(--afdd-neutral-text-caption);
+  --field-border: var(--look-line-strong);
+  --field-border-width: 1px;
+  --field-radius: var(--look-radius-sm);
+  --radius: 0.375rem;
+  --overlay-shadow: 0 12px 32px color-mix(in srgb, var(--afdd-background-lowest) 70%, transparent), 0 0 0 1px var(--look-line);
+  --surface-shadow: none;
+  --tooltip-delay: 300ms;
+  --tooltip-close-delay: 100ms;
+}
+
+/* HeroUI dropdown / popover items at the app's text size */
+.dropdown__popover,
+.popover {
+  border-radius: var(--look-radius);
+}
+
+.menu-item {
+  font-size: 15px;
+  border-radius: var(--look-radius-sm);
+}
+
+.tooltip {
+  font-size: 14px;
+  border-radius: var(--look-radius-sm);
+}
