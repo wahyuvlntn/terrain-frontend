@@ -16,7 +16,7 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import NotifSound from '../../../assets/lib/audio/notif.mp3';
 import appIcon from '../../../assets/lib/image/app-icon.svg';
-import { AuthCtx } from '../feat';
+import { AuthCtx, PermissionAliasEnum, PermissionGroupAliasEnum } from '../feat';
 import {
   FILTER_KEY_ASSET,
   FILTER_KEY_LOCATION,
@@ -25,6 +25,8 @@ import {
   GetNotifications,
   getNotifications,
   getUnreadNotificationCounts,
+  NOTIFICATIONS_EVENT,
+  notificationTwinUrl,
   NotificationType,
   readAllNotifications,
   UpdateReadStatus,
@@ -54,6 +56,9 @@ const registerServiceWorker = () => {
   return navigator.serviceWorker.register('/sw.js');
 };
 
+const announce = (notifications: NotificationType[]) =>
+  window.dispatchEvent(new CustomEvent(NOTIFICATIONS_EVENT, { detail: notifications }));
+
 export const useNotification = (enabled: boolean) => {
   const [incomingNotifications, setIncomingNotifications] = useState<
     NotificationType[]
@@ -61,7 +66,11 @@ export const useNotification = (enabled: boolean) => {
 
   const [incomingNotifCount, setIncomingNotifCount] = useState(0);
   const [notifType, setNotifType] = useState<'all' | 'unread'>('all');
-  const { userData, username } = useContext(AuthCtx);
+  const { userData, username, hasPermission } = useContext(AuthCtx);
+  const canViewTwin = hasPermission(
+    PermissionGroupAliasEnum.enum.digitaltwin,
+    PermissionAliasEnum.enum.read
+  );
 
   //TODO: Don't hardcode the mapping here, fetch from backend instead
   const PERMISSION_TO_CATEGORIES: Record<
@@ -204,6 +213,9 @@ export const useNotification = (enabled: boolean) => {
     ) => {
       const { timeFilterStart, timeFilterEnd } = timeFilters;
       const baseURL = window.location.origin;
+      // the notification's item in the digital twin (the old pages without twin access)
+      const twinUrl = canViewTwin ? notificationTwinUrl(notification) : null;
+      if (twinUrl) return `${baseURL}${twinUrl}`;
       const overviewType = 'asset-overview';
 
       const urlMap = {
@@ -233,7 +245,7 @@ export const useNotification = (enabled: boolean) => {
 
       return getLocationOverviewURL(notification, timeFilters);
     },
-    [getLocationOverviewURL]
+    [getLocationOverviewURL, canViewTwin]
   );
 
   const handleNotification = useCallback(
@@ -327,6 +339,7 @@ export const useNotification = (enabled: boolean) => {
   const updateNotificationState = (parsedMessages: NotificationType[]) => {
     setIncomingNotifications((prev) => [...parsedMessages, ...prev]);
     setIncomingNotifCount((prev) => prev + parsedMessages.length);
+    announce(parsedMessages);
   };
 
   // Without a broker (VITE_NOTIFY_MODE=poll, the cloud deployment) the newest
@@ -355,7 +368,8 @@ export const useNotification = (enabled: boolean) => {
           const latest = fresh[fresh.length - 1];
           if (latest) {
             handleNotification(latest, getRedirectURL(latest, getTimeFilters(latest.timestamp)));
-            setIncomingNotifications((prev) => [...fresh.reverse(), ...prev]);
+            announce(fresh);
+            setIncomingNotifications((prev) => [...[...fresh].reverse(), ...prev]);
             setIncomingNotifCount((prev) => prev + fresh.length);
           }
         }

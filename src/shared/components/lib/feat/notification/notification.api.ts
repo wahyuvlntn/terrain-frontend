@@ -55,6 +55,8 @@ export const notificationSchema = z.object({
   message: z.string(),
   messageHTML: z.string().nullable(),
   assetId: z.number().nullable(),
+  /** equipment alias: the notification's item in the digital twin */
+  assetAlias: z.string().nullish(),
   locationId: z.number().nullable(),
   parentId: z.number().nullable(),
   locationName: z.string().nullable(),
@@ -72,6 +74,20 @@ const getNotificationsSchema = z.object({
 
 export type GetNotifications = z.infer<typeof getNotificationsSchema>;
 export type NotificationType = z.infer<typeof notificationSchema>;
+
+/**
+ * Window event with the notifications that just came in (`detail`: NotificationType[], oldest
+ * first), for parts of the page that react to them (the assistant's avatar).
+ */
+export const NOTIFICATIONS_EVENT = 'afdd:notifications';
+
+/** Where a notification leads in the digital twin: its equipment, else its location; null: neither */
+export const notificationTwinUrl = (n: Pick<NotificationType, 'assetAlias' | 'locationId'>) =>
+  n.assetAlias
+    ? `/digital-twin?${new URLSearchParams({ asset: n.assetAlias })}`
+    : typeof n.locationId === 'number'
+      ? `/digital-twin?node=loc-${n.locationId}`
+      : null;
 export const getNotifications = async (
   from: string | null,
   to: string | null,
@@ -98,6 +114,7 @@ export const getNotifications = async (
     notifications: data.notifications.map((item: any) => ({
       ...item,
       assetId: item.asset_id,
+      assetAlias: item.asset_alias,
       locationId: item.location_id,
       parentId: item.parent_id,
       locationName: item.location_name,
