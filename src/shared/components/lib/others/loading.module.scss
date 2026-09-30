@@ -1,69 +1,51 @@
 @import '../color';
 @import '../size';
 
+// Loading state of an area: a soft shimmer sweeping across it (theme colors only). Covers the area
+// like the former overlay did, so clicks still wait for the data.
 .reusable-loading-data {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   position: absolute;
-  background-color: transparent;
+  top: 0;
+  left: 0;
+  z-index: 20;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  z-index: 20;
-  top: 0;
-  left: 0;
+  border-radius: inherit;
+  overflow: hidden;
 
-  &__cover {
-    background-color: $background-low;
-    opacity: 0.3;
-  }
+  &__shimmer {
+    background: color-mix(in srgb, $background-default 30%, transparent);
 
-  &__container {
-    top: 0;
-    left: 0;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    gap: 20px;
-    z-index: 22;
-
-    > div {
-      > svg {
-        > rect {
-          fill: $background-default;
-        }
-        path {
-          fill: $neutral-text-title-heading;
-        }
-      }
-    }
-
-    &__loading1 {
-      animation: loading-animation 1.5s -0.75s ease-in-out infinite;
-    }
-    &__loading2 {
-      animation: loading-animation 1.5s -0.5s ease-in-out infinite;
-    }
-    &__loading3 {
-      animation: loading-animation 1.5s -0.25s ease-in-out infinite;
-    }
-    &__loading4 {
-      animation: loading-animation 1.5s 0s ease-in-out infinite;
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        100deg,
+        transparent 20%,
+        color-mix(in srgb, $neutral-text-title-heading 9%, transparent) 45%,
+        color-mix(in srgb, $neutral-text-title-heading 14%, transparent) 50%,
+        color-mix(in srgb, $neutral-text-title-heading 9%, transparent) 55%,
+        transparent 80%
+      );
+      background-size: 250% 100%;
+      animation: loading-shimmer 1.4s ease-in-out infinite;
     }
   }
 }
 
-@keyframes loading-animation {
-  0%,
-  100% {
-    transform: scale(0);
+@keyframes loading-shimmer {
+  from {
+    background-position: 120% 0;
   }
-  50% {
-    transform: scale(1);
+  to {
+    background-position: -120% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reusable-loading-data__shimmer::after {
+    animation-duration: 3s;
   }
 }

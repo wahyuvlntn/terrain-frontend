@@ -9,12 +9,12 @@
   padding: 4px 8px;
 
   line-height: normal;
-  font-weight: 400;
+  font-weight: 500;
 
   cursor: pointer;
 
-  // border-radius: $borderRadiusMedium;
-  border-radius: 8px;
+  // squared, solid
+  border-radius: 4px;
 }
 
 .badge-icon {
@@ -35,13 +35,15 @@
   border-radius: $borderRadiusPill;
 }
 
+// primary / secondary follow the theme's brand (in the default theme these tokens equal the info
+// accents they replace)
 .badge-primary-filled {
-  background: $accent-info-primary;
+  background: $brand-surface-hover-primary;
   color: $neutral-text-body-light;
 }
 
 .badge-secondary-filled {
-  background: $accent-info-secondary;
+  background: $brand-text-label_light-primary;
   color: $neutral-text-body-light;
 }
 
@@ -109,14 +111,14 @@
 
 .badge-primary-outlined {
   background: transparent;
-  border: 2px solid $accent-info-primary;
-  color: $accent-info-primary;
+  border: 2px solid $brand-surface-hover-primary;
+  color: $brand-surface-hover-primary;
 }
 
 .badge-secondary-outlined {
   background: transparent;
-  border: 2px solid $accent-info-secondary;
-  color: $accent-info-secondary;
+  border: 2px solid $brand-text-label_light-primary;
+  color: $brand-text-label_light-primary;
 }
 
 .badge-running-outlined {
