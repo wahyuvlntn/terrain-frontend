@@ -48,12 +48,9 @@
   width: 494px;
   height: 522px;
   color: $neutral-text-title-heading;
-  border-radius: 8px;
+  border-radius: 6px;
   position: relative;
-  transform: translate(24px, 15px);
-  box-shadow: 0px 4px 20px 0px rgba(11, 43, 75, 0.79);
-
-  box-shadow: 0px 0px 32px 0px rgba(29, 29, 29, 0.68);
+  // sits in the header popover (app-shell), which carries the shadow
 
   .header {
     @include flex-col-gap(10px);
@@ -99,6 +96,7 @@
       justify-content: space-between;
       align-items: center;
       flex-direction: row;
+      gap: 12px;
 
       width: 100%;
 
@@ -156,6 +154,7 @@
 }
 
 .arrow {
+  display: none;
   position: absolute;
   top: -16px;
   right: 20px;

@@ -30,6 +30,8 @@ type NotificationListProps = {
   handleReadAllNotif: () => void;
   handleTypeChange: (type: 'all' | 'unread') => void;
   fetchNextPage: () => void;
+  /** a notification's link was followed */
+  onNavigate?: () => void;
 };
 
 interface SwitchReadType {
@@ -90,6 +92,7 @@ export const NotificationList = ({
   handleTypeChange,
   handleSearchChange,
   fetchNextPage,
+  onNavigate,
 }: NotificationListProps) => {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -200,7 +203,9 @@ export const NotificationList = ({
               startDate={from}
               endDate={to}
               onChange={handleDateChange}
-              triggerButtonStyle={{ width: 320 }}
+              triggerButtonStyle={{ width: 300 }}
+              // above the header's notifications popover (HeroUI, z-index 100000)
+              contentWrapperStyle={{ zIndex: 100001 }}
             />
           }
           <SwitchReadType
@@ -238,6 +243,7 @@ export const NotificationList = ({
                       if (!isRead) {
                         handleReadUnread(notification.id, notification.isRead);
                       }
+                      onNavigate?.();
                     }}
                   />
                 );

@@ -27,8 +27,10 @@ import { z } from 'zod';
 
 import { COLOR, extractFilterSearchParams, ThemeContext } from '../../..';
 import utilStyles from '../../util-class.module.scss';
+import { PermissionAliasEnum, PermissionGroupAliasEnum } from '../auth/auth.api';
+import { AuthCtx } from '../auth/auth.context';
 import { FILTER_KEY_ASSET, FILTER_KEY_LOCATION } from '../filter/filter.location';
-import { CategoryEnum, notificationSchema } from './notification.api';
+import { CategoryEnum, notificationSchema, notificationTwinUrl } from './notification.api';
 import styles from './notification-item.module.scss';
 
 type NotificationItemProps = Omit<z.infer<typeof notificationSchema>, 'id'> & {
@@ -50,6 +52,8 @@ export const NotificationItem = ({
   onLinkClick,
   timestamp,
   assetId,
+  assetAlias,
+  locationId,
   notifType,
   parentId,
   locationName,
@@ -61,6 +65,14 @@ export const NotificationItem = ({
   const [readStatusChanged, setReadStatusChanged] = useState(false);
   const width = useMotionValue(readStatusChanged ? 442 : 0);
   const { colors } = useContext(ThemeContext);
+  const { hasPermission } = useContext(AuthCtx);
+  // every notification opens its item in the digital twin (the old pages without twin access)
+  const twinUrl = hasPermission(
+    PermissionGroupAliasEnum.enum.digitaltwin,
+    PermissionAliasEnum.enum.read
+  )
+    ? notificationTwinUrl({ assetAlias, locationId })
+    : null;
 
   const categoryLabelMap: Record<Category, string> = {
     [CategoryEnum.enum.COST]: t('common.cost'),
@@ -229,7 +241,7 @@ export const NotificationItem = ({
     ) {
       return `?${createSearchParams({
         ...extractFilterSearchParams(searchParams),
-        selected: additionalData ? JSON.parse(additionalData).id || '' : '',
+        selected: additionalData ? JSON.parse(additionalData).selected || '' : '',
         view: 'list',
         page: '1',
         tab: additionalData ? JSON.parse(additionalData).tab || '' : '',
@@ -411,10 +423,12 @@ export const NotificationItem = ({
       </motion.div> */}
       <Link
         onClick={() => onLinkClick(isRead)}
-        to={{
-          pathname: getUrlForCategory(),
-          search: getQueryParamsForCategory(),
-        }}
+        to={
+          twinUrl ?? {
+            pathname: getUrlForCategory(),
+            search: getQueryParamsForCategory(),
+          }
+        }
         className={styles.content}
       >
         <div className={styles.header}>
