@@ -37,7 +37,7 @@ export default function AlarmEventView({
   } = useAlarmEventView({ assets, startDate, endDate, period });
 
   return (
-    <div className={styles['alarm-event-wrapper']}>
+    <div className={styles['alarm-event-wrapper']} data-nav-section="events">
       <div className={styles['metrics']}>
         <AlarmMetric
           totalAlarm={totalAlarm ?? 0}

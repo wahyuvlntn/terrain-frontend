@@ -15,6 +15,7 @@ const MAINTENANCE_STATUS_DATA: Record<string, string> = {
   4: 'In Progress',
   5: 'Done',
   6: 'Closed',
+  7: 'Paused',
 };
 
 type MaintenanceStatusShortcutProps = {

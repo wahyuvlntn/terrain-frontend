@@ -134,6 +134,7 @@ export const AssetDetails = () => {
             offline={assetDetails?.offlineCounts ?? 0}
           />
           <RecentList
+            navSection={isAlarm ? 'alarms' : 'maintenance'}
             icon={isAlarm ? <AlertAlarm /> : <Edit1 />}
             selectorProps={{
               options: [

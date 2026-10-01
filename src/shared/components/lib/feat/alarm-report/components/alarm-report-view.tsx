@@ -59,7 +59,7 @@ export default function AlarmReportView({
   });
 
   return (
-    <div className={styles['alarm-report-wrapper']}>
+    <div className={styles['alarm-report-wrapper']} data-nav-section="report">
       <div className={styles['metrics']}>
         <AlarmMetric
           totalAlarm={totalAlarm ?? 0}

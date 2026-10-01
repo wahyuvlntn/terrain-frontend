@@ -60,6 +60,8 @@ type RecentListProps = {
   informationTooltipContent?: ReactNode;
   data: Row[];
   columns: Column[];
+  /** `data-nav-section` of the list (assistant section links) */
+  navSection?: string;
 };
 
 export const RecentList = ({
@@ -71,11 +73,12 @@ export const RecentList = ({
   informationTooltipContent,
   data,
   columns,
+  navSection,
 }: RecentListProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   return (
-    <div className={styles['recent-list']} style={style}>
+    <div className={styles['recent-list']} style={style} data-nav-section={navSection}>
       <div className={styles['recent-list__header']}>
         <div className={styles['recent-list__header__title']}>
           {icon}
