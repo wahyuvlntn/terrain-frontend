@@ -7,6 +7,7 @@ import {
   fromHistory,
   pendingAnswer,
   simulationFollowUpText,
+  updateForm,
 } from './ai-assistant.messages';
 import { ChatEvent, parseChatEvent } from './api/ai-assistant.api';
 
@@ -224,6 +225,8 @@ describe('fromHistory', () => {
       citations: [],
       simulations: [],
       toolCalls: [],
+      forms: [],
+      orders: [],
       navigations: [],
       createdAt: '2026-10-10T00:00:00.000Z',
     });
@@ -241,6 +244,8 @@ describe('fromHistory', () => {
       toolCalls: [
         { id: 'x', name: 'get_plant_state', agent: '', args: null, ok: null, summary: '' },
       ],
+      forms: [],
+      orders: [],
       navigations: [],
       createdAt: null,
     });
@@ -283,5 +288,107 @@ describe('fromHistory', () => {
     expect(answer.blocks.map((b) => b.kind)).toEqual(['tool', 'navigation', 'navigation', 'text']);
     expect(answer.blocks[1]).toMatchObject({ target: { asset: 'CT_01', view: 'walk' } });
     expect(answer.blocks[2]).toMatchObject({ target: { page: 'simulation', itemId: 12 } });
+  });
+});
+
+describe('forms and maintenance orders', () => {
+  const FORM = {
+    form_id: 'f-1',
+    kind: 'maintenance_order.reject',
+    title: 'Reject CM-10-26-140',
+    submit_label: 'Reject',
+    danger: true,
+    fields: [
+      { name: 'reason', label: 'Reason', type: 'textarea', required: true },
+      { name: 'weird', label: 'Odd', type: 'slider' },
+      { label: 'no name' },
+    ],
+    context: { order_id: 44 },
+  };
+
+  it('adds a form once and an order card', () => {
+    const m = fold([
+      ['form', FORM],
+      ['form', FORM],
+      [
+        'maintenance_order',
+        {
+          id: 44,
+          name: 'CM-10-26-140',
+          action: 'rejected',
+          status: 'rejected',
+          technicians: ['Ahmad Faizal'],
+        },
+      ],
+    ]);
+    expect(m.blocks.map((b) => b.kind)).toEqual(['form', 'order']);
+    const form = m.blocks[0];
+    if (form.kind !== 'form') throw new Error('not a form');
+    expect(form.state).toBe('open');
+    expect(form.form).toMatchObject({
+      formId: 'f-1',
+      submitLabel: 'Reject',
+      danger: true,
+      context: { order_id: 44 },
+    });
+    // an unknown field type falls back to text, a field without a name is dropped
+    expect(form.form.fields.map((f) => [f.name, f.type, f.required])).toEqual([
+      ['reason', 'textarea', true],
+      ['weird', 'text', false],
+    ]);
+    const order = m.blocks[1];
+    expect(order.kind === 'order' && order.order).toMatchObject({
+      name: 'CM-10-26-140',
+      status: 'REJECTED',
+    });
+  });
+
+  it('marks the submitted form in the answer that holds it', () => {
+    const asked = fold([['form', FORM]]);
+    const other = fold([['message', { text: 'later', agent: 'maintenance_agent' }]]);
+    const messages = [asked, other];
+    const next = updateForm(messages, 'f-1', { state: 'done', message: 'Rejected.' });
+    expect(next[0].blocks[0]).toMatchObject({ kind: 'form', state: 'done', message: 'Rejected.' });
+    expect(next[1]).toBe(other);
+    expect(updateForm(messages, 'missing', { state: 'done' })).toBe(messages);
+    expect(parseChatEvent('form_result', { form_id: 'f-1', ok: false, message: 'No' })).toEqual({
+      type: 'form_result',
+      formId: 'f-1',
+      ok: false,
+      message: 'No',
+    });
+  });
+
+  it('restores forms with their outcome from a stored answer', () => {
+    const answer = fromHistory({
+      id: '3',
+      role: 'assistant',
+      text: 'Fill in the reason below.',
+      agent: 'maintenance_agent',
+      charts: [],
+      citations: [],
+      simulations: [],
+      toolCalls: [],
+      navigations: [],
+      forms: [
+        {
+          formId: 'f-1',
+          kind: 'maintenance_order.reject',
+          title: 'Reject',
+          description: '',
+          submitLabel: 'Reject',
+          danger: true,
+          fields: [],
+          context: {},
+          submitted: { ok: true, message: 'Rejected.' },
+        },
+      ],
+      orders: [],
+      createdAt: null,
+    });
+    expect(answer.blocks.find((b) => b.kind === 'form')).toMatchObject({
+      state: 'done',
+      message: 'Rejected.',
+    });
   });
 });

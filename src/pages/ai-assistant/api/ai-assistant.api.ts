@@ -19,6 +19,18 @@ const text = z
   .transform((v) => v ?? '');
 const num = z.coerce.number().nullish().catch(null);
 
+/** an element of a list that fails validation is dropped, not the whole message */
+const lenientList = <T extends z.ZodTypeAny>(schema: T) =>
+  z
+    .array(z.unknown())
+    .nullish()
+    .transform((items) =>
+      (items ?? []).flatMap((item) => {
+        const r = schema.safeParse(item);
+        return r.success ? [r.data as z.output<T>] : [];
+      })
+    );
+
 // ------------------------------------------------------------------ shared payloads
 
 const citationSchema = z
@@ -101,6 +113,30 @@ const optionalText = z
   .transform((v) => v?.trim() || null);
 const positiveId = z.coerce.number().int().positive().nullish().catch(null);
 
+const FILTER_KEY = /^[A-Za-z][\w-]{0,39}$/; // also matches 'no-locationIds-filter', 'parameter-search'
+const filterValue = (v: unknown) =>
+  typeof v === 'string' ? v.trim() : typeof v === 'number' && Number.isFinite(v) ? String(v) : '';
+/**
+ * The page's own URL search params the target sets (url key → values, ids resolved by the agent);
+ * null when none. `navigationLink` keeps only the page's keys; a malformed one is just left out.
+ */
+const filtersField = z
+  .record(z.unknown())
+  .nullish()
+  .catch(null)
+  .transform((f) => {
+    const out: Record<string, string[]> = {};
+    for (const [key, raw] of Object.entries(f ?? {})) {
+      if (!FILTER_KEY.test(key)) continue;
+      const values = (Array.isArray(raw) ? raw : [raw])
+        .map(filterValue)
+        .filter((v) => v !== '' && v.length <= 64)
+        .slice(0, 60);
+      if (values.length) out[key] = values;
+    }
+    return Object.keys(out).length ? out : null;
+  });
+
 /**
  * Where the agent's `open_in_app` tool sends the user (`navigate` event, `navigations` of a stored
  * answer). An unknown page drops the target; a malformed optional field is just left out.
@@ -121,6 +157,7 @@ const navigationSchema = z
     view: optionalText,
     panel: optionalText,
     section: optionalText,
+    filters: filtersField,
   })
   .transform((n) => {
     const view = n.view?.toLowerCase();
@@ -136,9 +173,129 @@ const navigationSchema = z
       view: view === 'walk' || view === 'orbit' ? view : null,
       panel: n.panel,
       section: n.section && isSectionId(n.section) ? n.section : null,
+      filters: n.filters ?? null,
     };
   });
 export type NavigationTarget = z.output<typeof navigationSchema>;
+
+/**
+ * A form the agent asks the user to fill in (`form` event, `forms` of a stored answer: elicitation
+ * when a request lacks something required). Submitting it sends its values with the next message;
+ * the service carries the action out as the user. `submitted` is set on stored answers.
+ */
+export const FORM_FIELD_TYPES = [
+  'text',
+  'textarea',
+  'number',
+  'select',
+  'multiselect',
+  'datetime',
+  'checkbox',
+  'info',
+] as const;
+export type FormFieldType = (typeof FORM_FIELD_TYPES)[number];
+const formValue = z.union([z.string(), z.number(), z.boolean()]);
+const formFieldSchema = z
+  .object({
+    name: z.string().min(1),
+    label: text,
+    type: z.enum(FORM_FIELD_TYPES).catch('text'),
+    required: z.boolean().nullish(),
+    value: z.unknown().optional(),
+    options: z
+      .array(z.object({ value: formValue, label: text }))
+      .nullish()
+      .catch(null),
+    options_source: z.enum(['technicians', 'issues']).nullish().catch(null),
+    depends_on: z.string().nullish(),
+    min: num,
+    max: num,
+    step: num,
+    unit: text,
+    help: text,
+    visible_if: z
+      .object({ field: z.string(), in: z.array(z.unknown()) })
+      .nullish()
+      .catch(null),
+  })
+  .transform((f) => ({
+    name: f.name,
+    label: f.label,
+    type: f.type,
+    required: !!f.required,
+    value: f.value ?? null,
+    options: (f.options ?? []).map((o) => ({ value: o.value, label: o.label || String(o.value) })),
+    optionsSource: f.options_source ?? null,
+    dependsOn: f.depends_on ?? null,
+    min: f.min ?? null,
+    max: f.max ?? null,
+    step: f.step ?? null,
+    unit: f.unit,
+    help: f.help,
+    visibleIf: f.visible_if ? { field: f.visible_if.field, in: f.visible_if.in } : null,
+  }));
+export type FormField = z.output<typeof formFieldSchema>;
+const formOutcomeSchema = z.object({ ok: z.boolean(), message: text });
+const formSchema = z
+  .object({
+    form_id: z.string().min(1),
+    kind: z.string().min(1),
+    title: text,
+    description: text,
+    submit_label: text,
+    danger: z.boolean().nullish(),
+    fields: lenientList(formFieldSchema),
+    context: z.record(z.unknown()).nullish().catch(null),
+    submitted: formOutcomeSchema.nullish().catch(null),
+  })
+  .transform((f) => ({
+    formId: f.form_id,
+    kind: f.kind,
+    title: f.title || 'Form',
+    description: f.description,
+    submitLabel: f.submit_label || 'Submit',
+    danger: !!f.danger,
+    fields: f.fields,
+    context: f.context ?? {},
+    submitted: f.submitted ?? null,
+  }));
+export type AssistantForm = z.output<typeof formSchema>;
+
+/** A maintenance order after the assistant acted on it (`maintenance_order` event, `orders`) */
+const orderSchema = z
+  .object({
+    id: z.coerce.number().int().positive(),
+    name: text,
+    action: text,
+    status: text,
+    type: optionalText,
+    severity: optionalText,
+    priority: optionalText,
+    equipment: optionalText,
+    equipment_name: optionalText,
+    planned_start: optionalText,
+    planned_end: optionalText,
+    technicians: z.array(z.string()).nullish().catch(null),
+    description: text,
+    occurrences: num,
+  })
+  .transform((o) => ({
+    id: o.id,
+    name: o.name || `#${o.id}`,
+    action: o.action,
+    status: o.status.toUpperCase(),
+    type: o.type,
+    severity: o.severity,
+    priority: o.priority,
+    equipment: o.equipment,
+    equipmentName: o.equipment_name,
+    plannedStart: o.planned_start,
+    plannedEnd: o.planned_end,
+    technicians: o.technicians ?? [],
+    description: o.description,
+    occurrences: o.occurrences ?? null,
+  }));
+export type MaintenanceOrderCard = z.output<typeof orderSchema>;
 
 // ------------------------------------------------------------------ sessions
 
@@ -170,18 +327,6 @@ const toolCallSchema = z
   }));
 export type HistoryToolCall = z.output<typeof toolCallSchema>;
 
-/** an element of a list that fails validation is dropped, not the whole message */
-const lenientList = <T extends z.ZodTypeAny>(schema: T) =>
-  z
-    .array(z.unknown())
-    .nullish()
-    .transform((items) =>
-      (items ?? []).flatMap((item) => {
-        const r = schema.safeParse(item);
-        return r.success ? [r.data as z.output<T>] : [];
-      })
-    );
-
 const historyMessageSchema = z
   .object({
     id: id.nullish(),
@@ -193,6 +338,8 @@ const historyMessageSchema = z
     simulations: lenientList(simulationSchema),
     tool_calls: lenientList(toolCallSchema),
     navigations: lenientList(navigationSchema),
+    forms: lenientList(formSchema),
+    orders: lenientList(orderSchema),
     created_at: z.string().nullish(),
   })
   .transform((m) => ({
@@ -205,6 +352,8 @@ const historyMessageSchema = z
     simulations: m.simulations,
     toolCalls: m.tool_calls,
     navigations: m.navigations,
+    forms: m.forms,
+    orders: m.orders,
     createdAt: m.created_at ?? null,
   }));
 export type HistoryMessage = z.output<typeof historyMessageSchema>;
@@ -276,10 +425,19 @@ export type ChatContextBody = {
   view?: string;
 };
 
+/** A submitted form of the conversation: the service carries it out before the answer */
+export type FormSubmissionBody = {
+  form_id: string;
+  kind: string;
+  values: Record<string, unknown>;
+  context: Record<string, unknown>;
+};
+
 export type ChatRequestBody = {
   session_id?: string;
   message: string;
   context?: ChatContextBody;
+  form?: FormSubmissionBody;
 };
 
 const eventSchemas = {
@@ -321,6 +479,17 @@ const eventSchemas = {
   simulation: simulationSchema.transform((d) => ({ type: 'simulation' as const, simulation: d })),
   usage: usageSchema.transform((d) => ({ type: 'usage' as const, usage: d })),
   navigate: navigationSchema.transform((d) => ({ type: 'navigate' as const, target: d })),
+  form: formSchema.transform((d) => ({ type: 'form' as const, form: d })),
+  form_result: z.object({ form_id: z.string(), ok: z.boolean(), message: text }).transform((d) => ({
+    type: 'form_result' as const,
+    formId: d.form_id,
+    ok: d.ok,
+    message: d.message,
+  })),
+  maintenance_order: orderSchema.transform((d) => ({
+    type: 'maintenance_order' as const,
+    order: d,
+  })),
   error: z
     .object({ message: text })
     .transform((d) => ({ type: 'error' as const, message: d.message || 'The assistant failed' })),

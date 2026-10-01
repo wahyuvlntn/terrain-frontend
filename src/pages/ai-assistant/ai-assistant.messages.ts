@@ -1,8 +1,10 @@
 import {
+  AssistantForm,
   ChartPayload,
   ChatEvent,
   Citation,
   HistoryMessage,
+  MaintenanceOrderCard,
   NavigationTarget,
   SimulationProposal,
   Usage,
@@ -33,7 +35,27 @@ export type ChartBlock = { kind: 'chart'; key: string; chart: ChartPayload };
 export type SimulationBlock = { kind: 'simulation'; key: string; simulation: SimulationProposal };
 /** a place in the app the agent opened (`open_in_app`) */
 export type NavigationBlock = { kind: 'navigation'; key: string; target: NavigationTarget };
-export type Block = TextBlock | ToolBlock | ChartBlock | SimulationBlock | NavigationBlock;
+/** open: to fill in; submitting: sent with a message; done: carried out; failed: refused (editable again) */
+export type FormState = 'open' | 'submitting' | 'done' | 'failed';
+/** a form the agent asks the user to fill in (elicitation) */
+export type FormBlock = {
+  kind: 'form';
+  key: string;
+  form: AssistantForm;
+  state: FormState;
+  /** the outcome of the submission (done / failed) */
+  message: string;
+};
+/** a maintenance order after the assistant (or a submitted form) acted on it */
+export type OrderBlock = { kind: 'order'; key: string; order: MaintenanceOrderCard };
+export type Block =
+  | TextBlock
+  | ToolBlock
+  | ChartBlock
+  | SimulationBlock
+  | NavigationBlock
+  | FormBlock
+  | OrderBlock;
 
 export type ChatMessage = {
   id: string;
@@ -58,7 +80,7 @@ let keySeq = 0;
 export const nextKey = (prefix: string) => `${prefix}-${++keySeq}`;
 
 const AGENT_LABEL: Record<string, string> = {
-  plant_assistant: 'Plant assistant',
+  plant_assistant: 'LEVO',
   insight_agent: 'Insight agent',
   twin_agent: 'Digital twin agent',
   deep_analyst: 'Deep analyst',
@@ -302,6 +324,23 @@ export const applyChatEvent = (m: ChatMessage, e: ChatEvent): ChatMessage => {
       };
     }
 
+    case 'form': {
+      if (m.blocks.some((b) => b.kind === 'form' && b.form.formId === e.form.formId)) return m;
+      return {
+        ...m,
+        blocks: [
+          ...m.blocks,
+          { kind: 'form', key: nextKey('blk'), form: e.form, state: 'open', message: '' },
+        ],
+      };
+    }
+
+    case 'maintenance_order':
+      return {
+        ...m,
+        blocks: [...m.blocks, { kind: 'order', key: nextKey('blk'), order: e.order }],
+      };
+
     case 'usage':
       return { ...m, usage: e.usage };
 
@@ -328,6 +367,33 @@ export const finishAnswer = (
     return b;
   }),
 });
+
+/**
+ * The conversation with one form's state changed (the form sits in an earlier answer than the
+ * message that submitted it). Returns the same array when the form is not there.
+ */
+export const updateForm = (
+  messages: ChatMessage[],
+  formId: string,
+  patch: { state: FormState; message?: string }
+): ChatMessage[] => {
+  let changed = false;
+  const next = messages.map((m) => {
+    const i = m.blocks.findIndex((b) => b.kind === 'form' && b.form.formId === formId);
+    if (i < 0) return m;
+    changed = true;
+    const block = m.blocks[i] as FormBlock;
+    return {
+      ...m,
+      blocks: replaceAt(m.blocks, i, {
+        ...block,
+        state: patch.state,
+        message: patch.message ?? block.message,
+      }),
+    };
+  });
+  return changed ? next : messages;
+};
 
 /** A stored message of a conversation (GET /sessions/{id}) */
 export const fromHistory = (h: HistoryMessage): ChatMessage => {
@@ -368,6 +434,14 @@ export const fromHistory = (h: HistoryMessage): ChatMessage => {
       kind: 'simulation',
       key: nextKey('blk'),
       simulation,
+    })),
+    ...h.orders.map<OrderBlock>((order) => ({ kind: 'order', key: nextKey('blk'), order })),
+    ...h.forms.map<FormBlock>((form) => ({
+      kind: 'form',
+      key: nextKey('blk'),
+      form,
+      state: form.submitted ? (form.submitted.ok ? 'done' : 'failed') : 'open',
+      message: form.submitted?.message ?? '',
     })),
   ];
   return {
