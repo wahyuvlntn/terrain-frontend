@@ -3,10 +3,12 @@ import { useSyncExternalStore } from 'react';
 import {
   applyChatEvent,
   ChatMessage,
+  FormBlock,
   finishAnswer,
   fromHistory,
   pendingAnswer,
   simulationFollowUpText,
+  updateForm,
   userMessage,
 } from './ai-assistant.messages';
 import {
@@ -14,6 +16,7 @@ import {
   ChatEvent,
   ChatRequestBody,
   Citation,
+  FormSubmissionBody,
   getSession,
   NavigationTarget,
   streamChat,
@@ -232,7 +235,10 @@ const flushQueue = () => {
  * Send a message in the current conversation (a new one when none is open) and stream the answer.
  * Returns false when nothing was sent: empty text, or busy (an automatic message is queued then).
  */
-const send = (text: string, options: { automatic?: boolean } = {}): boolean => {
+const send = (
+  text: string,
+  options: { automatic?: boolean; form?: FormSubmissionBody } = {}
+): boolean => {
   const message = text.trim();
   if (!message) return false;
   if (state.streaming || state.loading) {
@@ -251,7 +257,9 @@ const send = (text: string, options: { automatic?: boolean } = {}): boolean => {
     message,
     ...(state.sessionId ? { session_id: state.sessionId } : {}),
     ...(context ? { context } : {}),
+    ...(options.form ? { form: options.form } : {}),
   };
+  const formId = options.form?.form_id ?? null;
   set({
     messages: [...state.messages, question, answer],
     streaming: true,
@@ -290,6 +298,12 @@ const send = (text: string, options: { automatic?: boolean } = {}): boolean => {
         patch.budget = { todayUsd: e.usage.todayUsd, limitUsd: e.usage.limitUsd };
       } else if (e.type === 'simulation') {
         observeJob(e.simulation.jobId, e.simulation.status);
+      } else if (e.type === 'form_result') {
+        // the submitted form sits in an earlier answer: mark it carried out (or editable again)
+        patch.messages = updateForm(patch.messages ?? state.messages, e.formId, {
+          state: e.ok ? 'done' : 'failed',
+          message: e.message,
+        });
       } else if (e.type === 'navigate' && followNavigation) {
         destinations.push(e.target);
       }
@@ -347,6 +361,16 @@ const send = (text: string, options: { automatic?: boolean } = {}): boolean => {
         rememberSession(null);
         set({ sessionId: null, sessionTitle: '' });
       }
+      // a submission whose outcome never arrived (refused request, lost connection)
+      if (formId && formState(formId) === 'submitting') {
+        set({
+          messages: updateForm(state.messages, formId, {
+            state: 'failed',
+            message:
+              'The form could not be sent. Check the order or simulation before sending it again.',
+          }),
+        });
+      }
       set({
         streaming: false,
         activeAgent: '',
@@ -356,6 +380,32 @@ const send = (text: string, options: { automatic?: boolean } = {}): boolean => {
       flushQueue();
     });
   return true;
+};
+
+const findForm = (formId: string): FormBlock | null => {
+  for (const m of state.messages) {
+    for (const b of m.blocks) if (b.kind === 'form' && b.form.formId === formId) return b;
+  }
+  return null;
+};
+
+const formState = (formId: string) => findForm(formId)?.state ?? null;
+
+/**
+ * Submit a form of the conversation: its values go with a message (`summary`, shown as the user's
+ * message) and the service carries it out before the agent answers. False when it cannot be sent
+ * now (an answer is streaming, or the form is gone or already done).
+ */
+const submitForm = (formId: string, values: Record<string, unknown>, summary: string): boolean => {
+  const block = findForm(formId);
+  if (!block || block.state === 'done' || block.state === 'submitting') return false;
+  if (state.streaming || state.loading) return false;
+  set({ messages: updateForm(state.messages, formId, { state: 'submitting', message: '' }) });
+  const sent = send(summary, {
+    form: { form_id: formId, kind: block.form.kind, values, context: block.form.context },
+  });
+  if (!sent) set({ messages: updateForm(state.messages, formId, { state: 'open' }) });
+  return sent;
 };
 
 // --------------------------------------------------------------------- conversations
@@ -490,6 +540,8 @@ export const assistantStore = {
   },
 
   send,
+
+  submitForm,
 
   /** Stop the answer being streamed (what arrived so far stays) */
   stop() {
