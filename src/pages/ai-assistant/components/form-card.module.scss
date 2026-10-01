@@ -1,0 +1,281 @@
+@import '../../../shared/components/lib/color';
+
+// Forms the agent asks the user to fill in, and maintenance order cards, in the assistant's
+// conversation. Colors only from the theme variables.
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--look-line-strong);
+  border-left: 3px solid $brand-surface-default-primary;
+  border-radius: var(--look-radius);
+  background: $background-default;
+}
+
+.card--danger {
+  border-left-color: $condition-critical-primary;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  strong {
+    flex: 1;
+    min-width: 0;
+    color: $neutral-text-title-heading;
+    font-size: 15px;
+  }
+}
+
+.badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: var(--look-radius-sm);
+  background: $background-high;
+  color: $neutral-text-label;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.desc {
+  margin: 0;
+  font-size: 14px;
+  color: $neutral-text-caption;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+
+  &:disabled {
+    opacity: 0.75;
+  }
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: $neutral-text-label;
+}
+
+.unit {
+  font-weight: 400;
+  color: $neutral-text-caption;
+}
+
+.input {
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  border: 1px solid var(--look-line-strong);
+  border-radius: var(--look-radius-sm);
+  background: $background-lowest;
+  color: $neutral-text-title-heading;
+  font: inherit;
+  font-size: 14px;
+  color-scheme: dark;
+
+  &:focus-visible {
+    outline: 2px solid $brand-surface-default-primary;
+    outline-offset: 1px;
+  }
+}
+
+textarea.input {
+  resize: vertical;
+}
+
+.input--invalid {
+  border-color: $condition-critical-primary !important;
+}
+
+.multi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 168px;
+  overflow: auto;
+  padding: 6px 8px;
+  border: 1px solid var(--look-line);
+  border-radius: var(--look-radius-sm);
+  background: $background-lowest;
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  color: $neutral-text-body-neutral;
+  cursor: pointer;
+
+  input {
+    margin: 3px 0 0;
+    accent-color: $brand-surface-default-primary;
+  }
+}
+
+.info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 14px;
+  color: $neutral-text-body-neutral;
+
+  span:first-child:not(:last-child) {
+    color: $neutral-text-caption;
+  }
+}
+
+.hint {
+  font-size: 12px;
+  color: $neutral-text-caption;
+}
+
+.result {
+  margin: 0;
+  font-size: 14px;
+  color: $condition-normal-primary;
+}
+
+.error {
+  margin: 0;
+  font-size: 14px;
+  color: $condition-critical-primary;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.submit {
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--look-radius-sm);
+  background: $brand-surface-default-primary;
+  color: $neutral-text-body-light;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.submit--danger {
+  background: $condition-critical-primary;
+}
+
+.missing {
+  font-size: 13px;
+  color: $neutral-text-caption;
+}
+
+// ------------------------------------------------------------------ maintenance order card
+.order {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--look-line-strong);
+  border-left: 3px solid $brand-surface-default-primary;
+  border-radius: var(--look-radius);
+  background: $background-default;
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--look-radius-sm);
+    background: $background-high;
+    color: $brand-surface-default-primary;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    strong {
+      color: $neutral-text-title-heading;
+    }
+  }
+
+  &__action {
+    font-size: 13px;
+    color: $neutral-text-caption;
+  }
+
+  &__fact {
+    overflow: hidden;
+    font-size: 14px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: $neutral-text-body-neutral;
+  }
+}
+
+.status {
+  padding: 1px 8px;
+  border-radius: var(--look-radius-sm);
+  background: var(--status);
+  color: $neutral-text-body-light;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.open {
+  flex-shrink: 0;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--look-line-strong);
+  border-radius: var(--look-radius-sm);
+  background: transparent;
+  color: $neutral-text-title-heading;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $brand-surface-default-primary;
+  }
+}
