@@ -1,0 +1,388 @@
+@import '../../../shared/components/lib/color';
+
+// LEVO's moods (data-mood, levo.tsx), played like a GIF: parts swap and move in whole sprite pixels
+// (steps, transforms in viewBox units). Expressions and effects stay hidden unless the mood shows
+// them. idle bobs, blinks and looks around; hovered (idle, busy, unread) it beams and hops; drag
+// wiggles in the air; busy thinks (eyes wander up, antenna sends waves, the bubble types); unread hops with a speech bubble; warning / critical (a
+// fault, a trip) shakes with ! / !! and its antenna flashing.
+.levo {
+  --levo-bulb: #{$persimmon-500};
+  --levo-bulb-light: #{$persimmon-200};
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+
+  &[data-mood='warning'] {
+    --levo-bulb: #{$condition-warning-primary};
+    --levo-bulb-light: #{$condition-warning-secondary};
+  }
+
+  &[data-mood='critical'] {
+    --levo-bulb: #{$status-unplanned_down-primary};
+    --levo-bulb-light: #{$condition-critical-secondary};
+  }
+}
+
+.shadow {
+  opacity: 0.3;
+}
+
+.tailB,
+.eyesOpen,
+.eyesClosed,
+.eyesHappy,
+.eyesSquint,
+.eyesWide,
+.eyesUp,
+.smile,
+.grin,
+.gasp,
+.scream,
+.blush,
+.sweat,
+.bang,
+.bang2,
+.signalA,
+.signalB,
+.bubble,
+.dot1,
+.dot2,
+.dot3 {
+  visibility: hidden;
+}
+
+.sprite,
+.fins,
+.tailA,
+.tailB,
+.bulb,
+.eyesOpen,
+.eyesClosed,
+.eyesUp,
+.bang,
+.bang2,
+.signalA,
+.signalB,
+.dot1,
+.dot2,
+.dot3 {
+  animation-timing-function: steps(1, end);
+  animation-iteration-count: infinite;
+}
+
+.levo {
+  .sprite {
+    animation-name: levo-bob;
+    animation-duration: 1.4s;
+  }
+
+  .tailA {
+    animation-name: levo-first;
+    animation-duration: 1s;
+  }
+
+  .tailB {
+    animation-name: levo-second;
+    animation-duration: 1s;
+  }
+}
+
+.levo[data-mood='idle'] {
+  :is(.eyesOpen, .smile, .blush) {
+    visibility: visible;
+  }
+
+  &:not(:hover) {
+    .eyesOpen {
+      animation-name: levo-blink-open, levo-look;
+      animation-duration: 4.2s, 8.4s;
+    }
+
+    .eyesClosed {
+      animation-name: levo-blink-closed;
+      animation-duration: 4.2s;
+    }
+  }
+}
+
+.levo[data-mood='busy'] {
+  :is(.eyesUp, .smile, .blush, .signalA, .signalB, .bubble, .dot1, .dot2, .dot3) {
+    visibility: visible;
+  }
+
+  .sprite {
+    animation-duration: 0.8s;
+  }
+
+  .eyesUp {
+    animation-name: levo-wander;
+    animation-duration: 1.6s;
+  }
+
+  :is(.bulb, .signalA) {
+    animation-name: levo-first;
+    animation-duration: 0.8s;
+  }
+
+  .signalB {
+    animation-name: levo-second;
+    animation-duration: 0.8s;
+  }
+
+  .dot1 {
+    animation-name: levo-dot1;
+    animation-duration: 1.2s;
+  }
+
+  .dot2 {
+    animation-name: levo-dot2;
+    animation-duration: 1.2s;
+  }
+
+  .dot3 {
+    animation-name: levo-dot3;
+    animation-duration: 1.2s;
+  }
+}
+
+.levo[data-mood='unread'] {
+  :is(.eyesHappy, .smile, .blush, .bubble, .dot1, .dot2, .dot3) {
+    visibility: visible;
+  }
+
+  .sprite {
+    animation-name: levo-hop;
+    animation-duration: 0.8s;
+  }
+}
+
+// hovered it beams and hops, fins flapping
+.levo:is([data-mood='idle'], [data-mood='busy'], [data-mood='unread']):hover {
+  :is(.eyesOpen, .eyesUp, .smile) {
+    visibility: hidden;
+  }
+
+  :is(.eyesHappy, .grin, .blush) {
+    visibility: visible;
+  }
+
+  .sprite {
+    animation-name: levo-hop;
+    animation-duration: 0.5s;
+  }
+
+  .fins {
+    animation-name: levo-flap;
+    animation-duration: 0.3s;
+  }
+
+  :is(.tailA, .tailB) {
+    animation-duration: 0.5s;
+  }
+}
+
+.levo[data-mood='drag'] {
+  :is(.eyesSquint, .grin, .blush) {
+    visibility: visible;
+  }
+
+  .sprite {
+    animation-name: levo-wiggle;
+    animation-duration: 0.2s;
+  }
+
+  .fins {
+    animation-name: levo-flap;
+    animation-duration: 0.2s;
+  }
+
+  :is(.tailA, .tailB) {
+    animation-duration: 0.3s;
+  }
+
+  .shadow {
+    opacity: 0.15;
+  }
+}
+
+.levo[data-mood='warning'] {
+  :is(.eyesWide, .gasp, .sweat, .bang) {
+    visibility: visible;
+  }
+
+  .sprite {
+    animation-name: levo-shake, levo-bob;
+    animation-duration: 0.16s, 1.4s;
+    animation-iteration-count: 8, infinite;
+    animation-delay: 0s, 1.28s;
+  }
+
+  :is(.bang, .bulb) {
+    animation-name: levo-first;
+    animation-duration: 0.6s;
+  }
+}
+
+.levo[data-mood='critical'] {
+  :is(.eyesWide, .scream, .bang2) {
+    visibility: visible;
+  }
+
+  .sprite {
+    animation-name: levo-shake, levo-bob;
+    animation-duration: 0.12s, 1.4s;
+    animation-iteration-count: 20, infinite;
+    animation-delay: 0s, 2.4s;
+  }
+
+  :is(.bang2, .bulb) {
+    animation-name: levo-first;
+    animation-duration: 0.3s;
+  }
+}
+
+@keyframes levo-bob {
+  0% {
+    transform: none;
+  }
+  50% {
+    transform: translateY(1px);
+  }
+}
+
+@keyframes levo-hop {
+  0% {
+    transform: none;
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes levo-wiggle {
+  0% {
+    transform: translate(-1px, -2px);
+  }
+  50% {
+    transform: translate(1px, -2px);
+  }
+}
+
+@keyframes levo-shake {
+  0% {
+    transform: translateX(-1px);
+  }
+  50% {
+    transform: translateX(1px);
+  }
+}
+
+@keyframes levo-flap {
+  0% {
+    transform: none;
+  }
+  50% {
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes levo-look {
+  0% {
+    transform: none;
+  }
+  55% {
+    transform: translateX(-1px);
+  }
+  70% {
+    transform: translateX(1px);
+  }
+  85% {
+    transform: none;
+  }
+}
+
+@keyframes levo-wander {
+  0% {
+    transform: none;
+  }
+  50% {
+    transform: translateX(-2px);
+  }
+}
+
+@keyframes levo-first {
+  0% {
+    visibility: visible;
+  }
+  50% {
+    visibility: hidden;
+  }
+}
+
+@keyframes levo-second {
+  0% {
+    visibility: hidden;
+  }
+  50% {
+    visibility: visible;
+  }
+}
+
+@keyframes levo-blink-open {
+  0% {
+    visibility: visible;
+  }
+  94% {
+    visibility: hidden;
+  }
+}
+
+@keyframes levo-blink-closed {
+  0% {
+    visibility: hidden;
+  }
+  94% {
+    visibility: visible;
+  }
+}
+
+@keyframes levo-dot1 {
+  0% {
+    visibility: visible;
+  }
+  75% {
+    visibility: hidden;
+  }
+}
+
+@keyframes levo-dot2 {
+  0% {
+    visibility: hidden;
+  }
+  25% {
+    visibility: visible;
+  }
+  75% {
+    visibility: hidden;
+  }
+}
+
+@keyframes levo-dot3 {
+  0% {
+    visibility: hidden;
+  }
+  50% {
+    visibility: visible;
+  }
+  75% {
+    visibility: hidden;
+  }
+}
+
+// still frames: the mood's expression stays, nothing moves
+@media (prefers-reduced-motion: reduce) {
+  .levo * {
+    animation: none !important;
+  }
+}
