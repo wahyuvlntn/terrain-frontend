@@ -23,6 +23,7 @@ export const NAV_PAGES = [
   'early-warning-and-diagnostics',
   'early-warning-dashboard',
   'personnel-management',
+  'plant-overview',
 ] as const;
 export type NavPage = (typeof NAV_PAGES)[number];
 
@@ -41,6 +42,7 @@ export const PAGE_TITLE: Record<NavPage, string> = {
   'early-warning-and-diagnostics': 'Early warning & diagnostics',
   'early-warning-dashboard': 'Early warning dashboard',
   'personnel-management': 'Personnel management',
+  'plant-overview': 'Plant overview',
 };
 
 /** The permission group whose Read opens each page (`permissionGroupAlias` of its route, app.tsx) */
@@ -58,6 +60,7 @@ export const PAGE_PERMISSION: Record<NavPage, TPermissionGroupAliasEnum> = {
   'early-warning-and-diagnostics': 'earlywarningdiagnostics',
   'early-warning-dashboard': 'earlywarningdashboard',
   'personnel-management': 'personnelmanagement',
+  'plant-overview': 'locationoverview',
 };
 
 type HasPermission = (group: TPermissionGroupAliasEnum, alias: 'read') => boolean;
@@ -100,6 +103,69 @@ export const ASSET_SPC_PARAM = 'show-spc-list';
  */
 export const TWIN_REPLAY_PARAMS = ['replay', 'variant', 't'] as const;
 
+/** URL keys of each page the assistant's `filters` may set (the backend emits exactly these) */
+export const PAGE_FILTER_KEYS: Partial<Record<NavPage, readonly string[]>> = {
+  production: [
+    'tab',
+    'window',
+    'lot-status',
+    'lot-search',
+    'lot',
+    'char',
+    'quality-window',
+    'quality-tool',
+    'timeline-window',
+  ],
+  'plant-overview': ['location', 'period'],
+  'ai-insights': ['status', 'asset', 'rule', 'hours', 'display', 'detector', 'q', 'type', 'unit'],
+  simulation: ['status', 'origin', 'domain'],
+  'asset-overview': ['recent', 'date', 'parameter-search'],
+  'maintenance-order': [
+    'view',
+    'maintenanceStatusIds',
+    'severityIds',
+    'priorityIds',
+    'maintenanceTypeIds',
+    'assetIds',
+    'no-locationIds-filter',
+    'start',
+    'end',
+    'search',
+  ],
+  'alarm-report': [
+    'eventview',
+    'alarmTypeIds',
+    'assetIds',
+    'no-locationIds-filter',
+    'start',
+    'end',
+    'search',
+  ],
+  'early-warning-and-diagnostics': [
+    'severityIds',
+    'assetIds',
+    'no-locationIds-filter',
+    'start',
+    'end',
+    'search',
+  ],
+};
+
+/** filter keys that only switch a part of the page (section-derived): not filters of their own */
+const SECTION_FILTER_KEYS = ['tab', 'view', 'eventview', 'recent', 'no-locationIds-filter'];
+
+/** a bad date crashes early-warning pages (`new Date(x).toISOString()`); stored answers replay */
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_KEYS = ['start', 'end', 'date'];
+
+const appendFilters = (params: URLSearchParams, t: NavigationTarget) => {
+  for (const key of PAGE_FILTER_KEYS[t.page] ?? []) {
+    const values = t.filters?.[key];
+    if (!values || params.has(key)) continue; // never overrides what the branch set
+    for (const v of values) if (!DATE_KEYS.includes(key) || ISO_DAY.test(v)) params.append(key, v);
+  }
+};
+
 const withQuery = (path: string, params: URLSearchParams) => {
   const query = params.toString();
   return query ? `${path}?${query}` : path;
@@ -113,9 +179,12 @@ export type NavigationOrigin = { pathname: string; search: string };
  * apply to the page are ignored; `view: 'orbit'` (leave walk mode) is the twin URL without `view`.
  * A twin target opened from a replay in the twin (`from`) stays in that replay (job, variant and
  * the deep link's time, so the playhead stays put): the agent answers about the replayed run.
+ * Other pages get the target's `filters` of their `PAGE_FILTER_KEYS`; a target that only switches
+ * a part of the page on show (`from`) keeps the user's own parameters there.
  */
 export const navigationLink = (t: NavigationTarget, from?: NavigationOrigin): string => {
   const params = new URLSearchParams();
+  let path = `/${t.page}`;
   switch (t.page) {
     case 'digital-twin': {
       if (t.asset) params.set('asset', t.asset);
@@ -138,33 +207,58 @@ export const navigationLink = (t: NavigationTarget, from?: NavigationOrigin): st
       params.set(INSIGHTS_TAB_PARAM, t.tab);
       const key = INSIGHTS_SELECTION_PARAM[t.tab];
       if (key && t.itemId !== null) params.set(key, String(t.itemId));
-      return withQuery('/ai-insights', params);
+      break;
     }
 
     case 'simulation':
       if (t.itemId !== null) params.set('job', String(t.itemId));
       else if (t.section === 'new') params.set('new', '1');
-      else if (t.section === 'new-plan') params.set('new', 'production');
-      return withQuery('/simulation', params);
+      else if (t.section === 'new-plan') {
+        params.set('new', 'production');
+        params.set('domain', 'fab'); // the plan form belongs to the fab workspace
+      }
+      break;
 
     case 'production':
       if (t.section && PRODUCTION_TABS.includes(t.section)) params.set('tab', t.section);
-      return withQuery('/production', params);
+      else if (t.section) params.set(SECTION_PARAM, t.section);
+      break;
 
     case 'asset-overview':
       if (t.section) params.set(SECTION_PARAM, t.section);
       // the SPC charts are a tab of the parameter list: open it so the section exists
       if (t.section === 'spc' && t.assetId !== null) params.set(ASSET_SPC_PARAM, 'true');
-      return withQuery(
-        t.assetId !== null ? `/asset-overview/${t.assetId}` : '/asset-overview',
-        params
-      );
+      if (t.assetId !== null) path = `/asset-overview/${t.assetId}`;
+      break;
 
     default:
       if (t.section) params.set(SECTION_PARAM, t.section);
-      return withQuery(`/${t.page}`, params);
   }
+  appendFilters(params, t);
+  // a same-page section switch: a URL of its own would reset the user's own filters
+  const sectionOnly = t.filters
+    ? Object.keys(t.filters).every((k) => SECTION_FILTER_KEYS.includes(k))
+    : !!t.section && t.page !== 'simulation'; // a new scenario or plan never keeps the job on show
+  if (from && from.pathname === path && sectionOnly) {
+    const own = new Set(params.keys());
+    for (const [k, v] of new URLSearchParams(from.search)) {
+      // the live parameters are the first tab of the list, not the SPC tab on show
+      const spcTab = k === ASSET_SPC_PARAM && t.section === 'parameters';
+      if (!own.has(k) && k !== SECTION_PARAM && !spcTab) params.append(k, v);
+    }
+  }
+  return withQuery(path, params);
 };
+
+let navSeq = Date.now();
+/**
+ * History state of an assistant link with filters to the page on show: the layout remounts the
+ * page (`useOutletKey`) so it reads its URL again
+ */
+export const navigationState = (t: NavigationTarget, from?: NavigationOrigin) =>
+  t.filters && t.page !== 'digital-twin' && from && pageOfPath(from.pathname) === t.page
+    ? { assistantNav: ++navSeq }
+    : undefined;
 
 const SECTION_LABEL: Record<string, string> = {
   spc: 'SPC',
@@ -209,6 +303,14 @@ export const navigationDetail = (t: NavigationTarget): string => {
       break;
     default:
       if (t.section) parts.push(sectionLabel(t.section));
+  }
+  // the label names the filters; section-derived keys belong to the section
+  if (
+    t.page !== 'digital-twin' &&
+    t.filters &&
+    Object.keys(t.filters).some((k) => !SECTION_FILTER_KEYS.includes(k))
+  ) {
+    parts.push('filtered');
   }
   return parts.join(' · ');
 };

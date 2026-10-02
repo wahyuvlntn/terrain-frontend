@@ -8,6 +8,7 @@ import {
   INSIGHTS_TABS,
   navigationDetail,
   navigationLink,
+  navigationState,
   sameTarget,
   TWIN_REPLAY_PARAMS,
 } from './navigation';
@@ -65,6 +66,7 @@ describe('navigate event', () => {
       view: 'walk',
       panel: null,
       section: null,
+      filters: null,
     });
     // only the page is required; the label falls back to the page's title
     expect(target({ page: ' Alarm-Report ' })).toMatchObject({
@@ -89,6 +91,41 @@ describe('navigate event', () => {
         asset: 7,
       })
     ).toMatchObject({ tab: 'faults', itemId: 43, assetId: null, view: null, section: null });
+    expect(target({ page: 'plant-overview' })).toMatchObject({
+      page: 'plant-overview',
+      label: 'Plant overview',
+    });
+  });
+
+  it('keeps the filters as url key → trimmed strings, a malformed one left out', () => {
+    expect(
+      target({
+        page: 'maintenance-order',
+        filters: {
+          severityIds: [1, '2'],
+          search: ' pump ',
+          'bad key': ['x'],
+          empty: ['', '  '],
+          flag: true,
+        },
+      }).filters
+    ).toEqual({ severityIds: ['1', '2'], search: ['pump'] });
+    expect(target({ page: 'maintenance-order', label: 'x', filters: 'status=open' })).toMatchObject(
+      {
+        page: 'maintenance-order',
+        label: 'x',
+        filters: null,
+      }
+    );
+    expect(target({ page: 'maintenance-order', filters: ['open'] }).filters).toBeNull();
+    const many = Array.from({ length: 70 }, (_, i) => i + 1);
+    expect(target({ page: 'alarm-report', filters: { assetIds: many } }).filters?.assetIds).toEqual(
+      many.slice(0, 60).map(String)
+    );
+    expect(
+      target({ page: 'alarm-report', filters: { search: 'x'.repeat(65), start: '2026-10-14' } })
+        .filters
+    ).toEqual({ start: ['2026-10-14'] });
   });
 });
 
@@ -176,6 +213,10 @@ describe('navigationLink', () => {
       '/simulation?new=1'
     );
     expect(navigationLink(target({ page: 'simulation' }))).toBe('/simulation');
+    // the plan form belongs to the fab workspace
+    expect(navigationLink(target({ page: 'simulation', section: 'new-plan' }))).toBe(
+      '/simulation?new=production&domain=fab'
+    );
   });
 
   it('opens an equipment detail page at a section', () => {
@@ -207,6 +248,180 @@ describe('navigationLink', () => {
       '/early-warning-and-diagnostics'
     );
   });
+
+  it('adds the filters of the page, in its key order, after what the branch set', () => {
+    const link = (data: Record<string, unknown>) => navigationLink(target(data));
+    expect(link({ page: 'production', section: 'scrap', filters: { tab: ['quality'] } })).toBe(
+      '/production?section=scrap&tab=quality'
+    );
+    expect(link({ page: 'production', section: 'lots', filters: { 'lot-status': ['hold'] } })).toBe(
+      '/production?tab=lots&lot-status=hold'
+    );
+    // a tab filter never overrides a tab section
+    expect(link({ page: 'production', section: 'lots', filters: { tab: ['quality'] } })).toBe(
+      '/production?tab=lots'
+    );
+    // object order does not count; repeated keys keep their order; unknown keys are dropped
+    expect(
+      link({
+        page: 'maintenance-order',
+        filters: {
+          end: ['2026-10-18'],
+          start: ['2026-10-12'],
+          'no-locationIds-filter': ['true'],
+          assetIds: ['1'],
+          colour: ['red'],
+          severityIds: ['1'],
+          maintenanceStatusIds: ['1', '3', '4'],
+        },
+      })
+    ).toBe(
+      '/maintenance-order?maintenanceStatusIds=1&maintenanceStatusIds=3&maintenanceStatusIds=4&severityIds=1&assetIds=1&no-locationIds-filter=true&start=2026-10-12&end=2026-10-18'
+    );
+    expect(link({ page: 'alarm-report', filters: { assetIds: ['7', '2'] } })).toBe(
+      '/alarm-report?assetIds=7&assetIds=2'
+    );
+    expect(
+      link({
+        page: 'alarm-report',
+        section: 'events',
+        filters: {
+          eventview: ['true'],
+          assetIds: ['4'],
+          'no-locationIds-filter': ['true'],
+          start: ['2026-10-14'],
+          end: ['2026-10-14'],
+        },
+      })
+    ).toBe(
+      '/alarm-report?section=events&eventview=true&assetIds=4&no-locationIds-filter=true&start=2026-10-14&end=2026-10-14'
+    );
+    expect(link({ page: 'plant-overview', filters: { location: ['15'], period: ['30'] } })).toBe(
+      '/plant-overview?location=15&period=30'
+    );
+    expect(
+      link({ page: 'plant-overview', section: 'locations', filters: { location: ['16'] } })
+    ).toBe('/plant-overview?section=locations&location=16');
+    expect(
+      link({
+        page: 'asset-overview',
+        asset_id: 4,
+        section: 'alarms',
+        filters: { recent: ['alarm'], date: ['2026-10-14'] },
+      })
+    ).toBe('/asset-overview/4?section=alarms&recent=alarm&date=2026-10-14');
+    // the branch's own keys stay: the job, the plan form's workspace
+    expect(
+      link({ page: 'simulation', item_id: 12, filters: { job: ['9'], status: ['approval'] } })
+    ).toBe('/simulation?job=12&status=approval');
+    expect(
+      link({ page: 'simulation', section: 'new-plan', filters: { domain: ['chiller'] } })
+    ).toBe('/simulation?new=production&domain=fab');
+    // the twin has no filters; AI Insights needs its tab
+    expect(link({ page: 'digital-twin', asset: 'CT_01', filters: { asset: ['CT_02'] } })).toBe(
+      '/digital-twin?asset=CT_01'
+    );
+    expect(link({ page: 'ai-insights', filters: { status: ['all'] } })).toBe('/ai-insights');
+    expect(
+      link({
+        page: 'ai-insights',
+        tab: 'faults',
+        item_id: 43,
+        filters: { hours: ['720'], status: ['CLEARED'] },
+      })
+    ).toBe('/ai-insights?tab=faults&fault=43&status=CLEARED&hours=720');
+    // dates only as YYYY-MM-DD (a bad one crashes early-warning pages)
+    expect(
+      link({ page: 'alarm-report', filters: { start: ['2026-13-1x'], end: ['2026-10-14'] } })
+    ).toBe('/alarm-report?end=2026-10-14');
+    expect(link({ page: 'asset-overview', asset_id: 4, filters: { date: ['yesterday'] } })).toBe(
+      '/asset-overview/4'
+    );
+  });
+
+  it("keeps the user's own parameters on a same-page section switch", () => {
+    const calendar = target({
+      page: 'maintenance-order',
+      section: 'calendar',
+      filters: { view: ['calendar'] },
+    });
+    const from = {
+      pathname: '/maintenance-order',
+      search: '?start=2026-10-01&end=2026-10-15&severityIds=1&view=list&page=1',
+    };
+    expect(navigationLink(calendar, from)).toBe(
+      '/maintenance-order?section=calendar&view=calendar&start=2026-10-01&end=2026-10-15&severityIds=1&page=1'
+    );
+    // a real filter: the target's URL alone
+    expect(
+      navigationLink(
+        target({
+          page: 'maintenance-order',
+          section: 'calendar',
+          filters: { view: ['calendar'], severityIds: ['2'] },
+        }),
+        from
+      )
+    ).toBe('/maintenance-order?section=calendar&view=calendar&severityIds=2');
+    // another path (another unit's details): nothing copied
+    expect(
+      navigationLink(
+        target({
+          page: 'asset-overview',
+          asset_id: 7,
+          section: 'alarms',
+          filters: { recent: ['alarm'] },
+        }),
+        { pathname: '/asset-overview/4', search: '?date=2026-10-01' }
+      )
+    ).toBe('/asset-overview/7?section=alarms&recent=alarm');
+    // the section on show is never copied
+    expect(
+      navigationLink(target({ page: 'alarm-report', filters: { eventview: ['true'] } }), {
+        pathname: '/alarm-report',
+        search: '?section=report&start=2026-10-01',
+      })
+    ).toBe('/alarm-report?eventview=true&start=2026-10-01');
+    // a section without filters keeps them too (these pages read their URL on every render)
+    expect(
+      navigationLink(target({ page: 'plant-overview', section: 'locations' }), {
+        pathname: '/plant-overview',
+        search: '?location=15&period=30',
+      })
+    ).toBe('/plant-overview?section=locations&location=15&period=30');
+    expect(
+      navigationLink(target({ page: 'production', section: 'kpi' }), {
+        pathname: '/production',
+        search: '?tab=quality&window=720',
+      })
+    ).toBe('/production?section=kpi&tab=quality&window=720');
+    expect(
+      navigationLink(target({ page: 'production', section: 'lots' }), {
+        pathname: '/production',
+        search: '?tab=quality&window=720',
+      })
+    ).toBe('/production?tab=lots&window=720');
+    // the live parameters leave the SPC tab
+    expect(
+      navigationLink(target({ page: 'asset-overview', asset_id: 4, section: 'parameters' }), {
+        pathname: '/asset-overview/4',
+        search: '?show-spc-list=true&date=2026-10-01',
+      })
+    ).toBe('/asset-overview/4?section=parameters&date=2026-10-01');
+    // not copied: the page itself, a new scenario next to the job on show
+    expect(
+      navigationLink(target({ page: 'maintenance-order' }), {
+        pathname: '/maintenance-order',
+        search: '?start=2026-10-01',
+      })
+    ).toBe('/maintenance-order');
+    expect(
+      navigationLink(target({ page: 'simulation', section: 'new' }), {
+        pathname: '/simulation',
+        search: '?job=5&status=failed',
+      })
+    ).toBe('/simulation?new=1');
+  });
 });
 
 describe('navigation helpers', () => {
@@ -226,6 +441,31 @@ describe('navigation helpers', () => {
       )
     ).toBe('CH_01 · SPC');
     expect(navigationDetail(target({ page: 'alarm-report' }))).toBe('');
+    // filters show as 'filtered' (the label names them); section-derived keys do not count
+    expect(
+      navigationDetail(target({ page: 'maintenance-order', filters: { severityIds: ['1'] } }))
+    ).toBe('filtered');
+    expect(
+      navigationDetail(
+        target({ page: 'production', section: 'scrap', filters: { tab: ['quality'] } })
+      )
+    ).toBe('scrap');
+    expect(
+      navigationDetail(
+        target({
+          page: 'maintenance-order',
+          section: 'calendar',
+          filters: { view: ['calendar'], severityIds: ['1'] },
+        })
+      )
+    ).toBe('calendar · filtered');
+    // a target that bypassed the schema (no filters property)
+    const bare = {
+      ...target({ page: 'alarm-report', section: 'events' }),
+      filters: undefined,
+    } as unknown as NavigationTarget;
+    expect(navigationDetail(bare)).toBe('events');
+    expect(navigationLink(bare)).toBe('/alarm-report?section=events');
   });
 
   it('checks Read on the permission group of the page route', () => {
@@ -237,7 +477,13 @@ describe('navigation helpers', () => {
     expect(canOpenTarget(target({ page: 'digital-twin' }), hasPermission)).toBe(true);
     expect(canOpenTarget(target({ page: 'ai-insights' }), hasPermission)).toBe(false);
     expect(canOpenTarget(target({ page: 'asset-overview' }), hasPermission)).toBe(false);
-    expect(asked).toEqual(['digitaltwin.read', 'aiinsights.read', 'equipmentoverview.read']);
+    expect(canOpenTarget(target({ page: 'plant-overview' }), hasPermission)).toBe(false);
+    expect(asked).toEqual([
+      'digitaltwin.read',
+      'aiinsights.read',
+      'equipmentoverview.read',
+      'locationoverview.read',
+    ]);
   });
 
   it('treats the same place with the same label as one target', () => {
@@ -251,6 +497,27 @@ describe('navigation helpers', () => {
     expect(sameTarget(a, target({ page: 'digital-twin', asset: 'CT_01', label: 'Fan' }))).toBe(
       false
     );
+    const orders = (severityIds: string[]) =>
+      target({ page: 'maintenance-order', label: 'Orders', filters: { severityIds } });
+    expect(sameTarget(orders(['1']), orders(['1']))).toBe(true);
+    expect(sameTarget(orders(['1']), orders(['2']))).toBe(false);
+  });
+
+  it('asks the page on show to remount for a link with filters', () => {
+    const orders = target({ page: 'maintenance-order', filters: { severityIds: ['1'] } });
+    const here = { pathname: '/maintenance-order', search: '?view=list' };
+    expect(navigationState(target({ page: 'maintenance-order' }), here)).toBeUndefined();
+    expect(navigationState(orders, { pathname: '/alarm-report', search: '' })).toBeUndefined();
+    expect(navigationState(orders)).toBeUndefined();
+    expect(
+      navigationState(target({ page: 'digital-twin', filters: { asset: ['CT_01'] } }), {
+        pathname: '/digital-twin',
+        search: '',
+      })
+    ).toBeUndefined();
+    const first = navigationState(orders, here)?.assistantNav;
+    expect(typeof first).toBe('number');
+    expect(navigationState(orders, here)?.assistantNav).toBeGreaterThan(first as number);
   });
 
   it('uses the URL parameters of the AI Insights page', async () => {
