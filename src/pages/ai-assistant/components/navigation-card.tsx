@@ -26,6 +26,7 @@ import {
   NavPage,
   navigationDetail,
   navigationLink,
+  navigationState,
   PAGE_TITLE,
 } from '../navigation';
 
@@ -44,6 +45,7 @@ const PAGE_ICON: Record<NavPage, ComponentType<SVGProps<SVGSVGElement>>> = {
   'early-warning-and-diagnostics': SettingAlert,
   'early-warning-dashboard': ChartAlert,
   'personnel-management': Personnel,
+  'plant-overview': DatasetGrid,
 };
 
 type NavigationCardProps = { target: NavigationTarget };
@@ -82,7 +84,7 @@ export const NavigationCard = memo(({ target }: NavigationCardProps) => {
           title={`Open ${link}`}
           aria-label={`Open ${target.label}`}
           onClick={() => {
-            navigate(link);
+            navigate(link, { state: navigationState(target, location) });
             assistantStore.setOpen(false);
           }}
         >

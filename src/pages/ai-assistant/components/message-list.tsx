@@ -9,8 +9,11 @@ import { AssistantContext } from '../assistant-context';
 import { BlockBoundary } from './block-boundary';
 import { ChartBlock } from './chart-block';
 import { Citations } from './citations';
+import { FormCard } from './form-card';
+import { Levo } from './levo';
 import { Markdown } from './markdown';
 import { NavigationCard } from './navigation-card';
+import { OrderCard } from './order-card';
 import { SimulationCard } from './simulation-card';
 import { ToolChips } from './tool-chips';
 
@@ -38,9 +41,15 @@ const groupBlocks = (blocks: Block[]): Group[] => {
 
 const usd = (v: number) => `$${v < 0.01 && v > 0 ? v.toFixed(4) : v.toFixed(2)}`;
 
-type AssistantMessageProps = { message: ChatMessage; last: boolean; activeAgent: string };
+type AssistantMessageProps = {
+  message: ChatMessage;
+  last: boolean;
+  activeAgent: string;
+  /** an answer is streaming: forms wait for it */
+  busy: boolean;
+};
 
-const AssistantMessage = memo(({ message, last, activeAgent }: AssistantMessageProps) => {
+const AssistantMessage = memo(({ message, last, activeAgent, busy }: AssistantMessageProps) => {
   const groups = groupBlocks(message.blocks);
   const tail = message.blocks[message.blocks.length - 1];
   const writing = message.streaming && tail?.kind === 'text' && !tail.final;
@@ -58,7 +67,7 @@ const AssistantMessage = memo(({ message, last, activeAgent }: AssistantMessageP
               : undefined
           }
         >
-          {agent ? agentLabel(agent) : 'Assistant'}
+          {agent ? agentLabel(agent) : 'LEVO'}
         </span>
       </div>
       {/* each part renders on its own: one that fails shows a note, the rest of the answer stays */}
@@ -81,16 +90,20 @@ const AssistantMessage = memo(({ message, last, activeAgent }: AssistantMessageP
               <SimulationCard simulation={b.simulation} />
             ) : b.kind === 'navigation' ? (
               <NavigationCard target={b.target} />
+            ) : b.kind === 'form' ? (
+              <FormCard block={b} disabled={busy} />
+            ) : b.kind === 'order' ? (
+              <OrderCard order={b.order} />
             ) : null}
           </BlockBoundary>
         );
       })}
       {message.streaming && !writing ? (
         <div className={styles.msg__working} role="status">
-          <i aria-hidden="true" />
-          <i aria-hidden="true" />
-          <i aria-hidden="true" />
-          <span>{agent ? `${agentLabel(agent)} is working…` : 'Thinking…'}</span>
+          <span className={styles.msg__levo}>
+            <Levo mood="busy" />
+          </span>
+          <span>{agent ? `${agentLabel(agent)} is thinking…` : 'LEVO is thinking…'}</span>
         </div>
       ) : null}
       <BlockBoundary resetKey={message.citations}>
@@ -230,6 +243,7 @@ export const MessageList = ({
               message={m}
               last={i === messages.length - 1}
               activeAgent={m.streaming ? activeAgent : ''}
+              busy={streaming || loading}
             />
           )
         )

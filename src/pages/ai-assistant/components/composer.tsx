@@ -89,7 +89,7 @@ export const Composer = forwardRef<HTMLTextAreaElement, ComposerProps>(
             maxLength={MAX_LENGTH}
             value={draft}
             placeholder="Ask about the plant, alarms, maintenance or a what-if…"
-            aria-label="Message to the AI assistant"
+            aria-label="Message to LEVO"
             aria-describedby={contextLabel ? hintId : undefined}
             disabled={disabled}
             onChange={(e) => update(e.target.value)}
