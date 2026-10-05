@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { NavigationType, useLocation, useNavigationType } from 'react-router-dom';
 
-import { WINDOW_OPTIONS } from './ai-insights.utils';
-import type {
+import { FAULT_STATUS_OPTIONS, WINDOW_OPTIONS } from './ai-insights.utils';
+import {
   Anomaly,
   DetectionStatus,
   Detector,
+  DetectorEnum,
   Fault,
   Recommendation,
 } from './api/ai-insights.api';
@@ -27,6 +28,78 @@ export type DetectionFilter = {
 export type FaultFilter = DetectionFilter & { rule: string };
 export type AnomalyFilter = DetectionFilter & { detector: Detector | '' };
 export type RecommendationFilter = { status: string };
+/** The faults tab's URL filters: its filters and the list or timeline display */
+export type FaultUrlFilter = FaultFilter & { view: 'list' | 'timeline' };
+
+/*
+ * The tabs' filters live in the URL (assistant links, reload). Only one tab is mounted and a tab
+ * switch clears the params, so the tabs share `status`, `asset` and `hours`. Unknown values fall
+ * back to the defaults; defaults are left out of the URL.
+ */
+
+export const oneOf = <T extends string>(
+  raw: string | null,
+  values: readonly T[],
+  fallback: T
+): T => ((values as readonly string[]).includes(raw ?? '') ? (raw as T) : fallback);
+
+/** A trimmed text of at most `max` characters, else '' */
+export const urlText = (raw: string | null, max: number) => {
+  const text = raw?.trim() ?? '';
+  return text.length <= max ? text : '';
+};
+
+const urlId = (raw: string | null) => (raw && /^\d+$/.test(raw) ? raw : '');
+
+/** `params` with each `[key, value, default]` set, or removed when it is empty or the default */
+export const withFilters = (params: URLSearchParams, entries: [string, string, string][]) => {
+  const next = new URLSearchParams(params);
+  for (const [key, value, fallback] of entries) {
+    if (value && value !== fallback) next.set(key, value);
+    else next.delete(key);
+  }
+  return next;
+};
+
+const STATUSES = FAULT_STATUS_OPTIONS.map((o) => o.value);
+const WINDOWS = WINDOW_OPTIONS.map((w) => w.value);
+
+const detectionFromUrl = (params: URLSearchParams, hours: string): DetectionFilter => {
+  const status = params.get('status');
+  return {
+    status: status === 'all' ? '' : oneOf(status, STATUSES, 'ACTIVE'),
+    assetId: urlId(params.get('asset')),
+    hours: oneOf(params.get('hours'), WINDOWS, hours),
+  };
+};
+
+const detectionEntries = (f: DetectionFilter, hours: string): [string, string, string][] => [
+  // absent is Active: All is written out
+  ['status', f.status || 'all', 'ACTIVE'],
+  ['asset', f.assetId, ''],
+  ['hours', f.hours, hours],
+];
+
+export const faultFilterFromUrl = (params: URLSearchParams): FaultUrlFilter => ({
+  ...detectionFromUrl(params, '168'),
+  rule: urlText(params.get('rule'), 20),
+  view: oneOf(params.get('display'), ['list', 'timeline'] as const, 'list'),
+});
+
+export const faultFilterToUrl = (params: URLSearchParams, f: FaultUrlFilter) =>
+  withFilters(params, [
+    ...detectionEntries(f, '168'),
+    ['rule', f.rule, ''],
+    ['display', f.view, 'list'],
+  ]);
+
+export const anomalyFilterFromUrl = (params: URLSearchParams): AnomalyFilter => ({
+  ...detectionFromUrl(params, '24'),
+  detector: oneOf<Detector | ''>(params.get('detector'), DetectorEnum.options, ''),
+});
+
+export const anomalyFilterToUrl = (params: URLSearchParams, f: AnomalyFilter) =>
+  withFilters(params, [...detectionEntries(f, '24'), ['detector', f.detector, '']]);
 
 type Detection = Pick<Fault, 'status' | 'assetId' | 'endedAt'>;
 
@@ -96,7 +169,8 @@ export const listedIn = (
  * a lookup by id). The filters are left alone afterwards, and also when the user changes them
  * before the item has loaded. An item the list shows never changes them: a row click is a
  * navigation too (the selection replaces the URL), and the window's margin in `reveal` would
- * otherwise widen the window for a row near its edge.
+ * otherwise widen the window for a row near its edge. A replace that keeps the selection (the
+ * tab writing its filters to the URL) is the same link.
  */
 export const useRevealSelection = <F extends object, T extends { id: number }>({
   selectedId,
@@ -116,10 +190,16 @@ export const useRevealSelection = <F extends object, T extends { id: number }>({
   apply: (filter: F) => void;
 }) => {
   const { key } = useLocation();
-  const link = useRef<{ key: string; filter: F; done: boolean } | null>(null);
+  const navigationType = useNavigationType();
+  const link = useRef<{ key: string; selectedId: number | null; filter: F; done: boolean } | null>(
+    null
+  );
 
   useEffect(() => {
-    if (link.current?.key !== key) link.current = { key, filter, done: false };
+    const prev = link.current;
+    if (prev && navigationType === NavigationType.Replace && prev.selectedId === selectedId)
+      prev.key = key;
+    if (link.current?.key !== key) link.current = { key, selectedId, filter, done: false };
     const current = link.current;
     if (current.done || selectedId === null) return;
     // the user set the filters while the item was loading: theirs stay
@@ -135,5 +215,5 @@ export const useRevealSelection = <F extends object, T extends { id: number }>({
     current.done = true;
     const next = reveal(filter, item);
     if (next) apply(next);
-  }, [key, selectedId, listed, item, filter, reveal, apply]);
+  }, [key, navigationType, selectedId, listed, item, filter, reveal, apply]);
 };

@@ -4,7 +4,11 @@ import { MemoryRouter, useNavigate } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  anomalyFilterFromUrl,
+  anomalyFilterToUrl,
   FaultFilter,
+  faultFilterFromUrl,
+  faultFilterToUrl,
   listedIn,
   revealAnomaly,
   revealFault,
@@ -97,6 +101,56 @@ describe('revealAnomaly and revealRecommendation', () => {
     });
     expect(revealRecommendation({ status: '' }, { status: 'VALIDATED' })).toBeNull();
     expect(revealRecommendation({ status: 'VALIDATED' }, { status: 'VALIDATED' })).toBeNull();
+  });
+});
+
+describe('URL filters of the tabs', () => {
+  const url = (search: string) => new URLSearchParams(search);
+
+  it('reads the faults filters, falling back to the defaults', () => {
+    expect(faultFilterFromUrl(url('status=all&asset=4&hours=720&display=timeline'))).toEqual({
+      status: '',
+      assetId: '4',
+      rule: '',
+      hours: '720',
+      view: 'timeline',
+    });
+    expect(faultFilterFromUrl(url('status=x&asset=CT_01&hours=5&display=gantt'))).toEqual({
+      ...DEFAULT,
+      view: 'list',
+    });
+    expect(faultFilterFromUrl(url('status=CLEARED&rule=CHL-011'))).toMatchObject({
+      status: 'CLEARED',
+      rule: 'CHL-011',
+    });
+    expect(faultFilterFromUrl(url(`rule=${'X'.repeat(21)}`)).rule).toBe('');
+  });
+
+  it('writes the faults filters: All spelled out, defaults left out, other params kept', () => {
+    const shown = url('tab=faults&fault=12&status=CLEARED&hours=720&display=timeline');
+    expect(faultFilterToUrl(shown, { ...DEFAULT, status: '', view: 'list' }).toString()).toBe(
+      'tab=faults&fault=12&status=all'
+    );
+    expect(
+      faultFilterToUrl(url('tab=faults'), { ...DEFAULT, assetId: '4', view: 'timeline' }).toString()
+    ).toBe('tab=faults&asset=4&display=timeline');
+  });
+
+  it('reads and writes the anomalies filters (24 h by default)', () => {
+    expect(anomalyFilterFromUrl(url('detector=zscore&hours=720'))).toEqual({
+      status: 'ACTIVE',
+      detector: 'zscore',
+      assetId: '',
+      hours: '720',
+    });
+    expect(anomalyFilterFromUrl(url('detector=foo&hours=5'))).toMatchObject({
+      detector: '',
+      hours: '24',
+    });
+    const all = { status: '' as const, detector: 'zscore' as const, assetId: '', hours: '24' };
+    expect(anomalyFilterToUrl(url('tab=anomalies&hours=720'), all).toString()).toBe(
+      'tab=anomalies&status=all&detector=zscore'
+    );
   });
 });
 
@@ -206,6 +260,28 @@ describe('useRevealSelection', () => {
     rerender({ selectedId: 12, item: edge, listed: false });
     expect(result.current.filter).toEqual(narrow);
     expect(apply).not.toHaveBeenCalled();
+  });
+
+  it('keeps the filters the tab writes to the URL (a replace of the same selection)', () => {
+    const apply = vi.fn();
+    const { result, rerender } = renderTab({ selectedId: 12, item: fault() }, apply);
+    act(() => result.current.setFilter(DEFAULT));
+    act(() => result.current.navigate('/ai-insights?tab=faults&fault=12', { replace: true }));
+    rerender({ selectedId: 12, item: fault() });
+    expect(result.current.filter).toEqual(DEFAULT);
+    expect(apply).toHaveBeenCalledTimes(1);
+
+    // set while the item loads, then written to the URL: still the user's
+    const loading = renderTab({ selectedId: 12 }, apply);
+    act(() => loading.result.current.setFilter({ ...DEFAULT, rule: 'CT-014' }));
+    act(() =>
+      loading.result.current.navigate('/ai-insights?tab=faults&fault=12&rule=CT-014', {
+        replace: true,
+      })
+    );
+    loading.rerender({ selectedId: 12, item: fault() });
+    expect(loading.result.current.filter).toEqual({ ...DEFAULT, rule: 'CT-014' });
+    expect(apply).toHaveBeenCalledTimes(1);
   });
 
   it('waits for the list of the current filters before widening them', () => {
