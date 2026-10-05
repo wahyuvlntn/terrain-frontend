@@ -19,9 +19,11 @@ import {
 } from '@digital-twin/icons';
 import { toast } from '@digital-twin/reusables';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { InsightsAccess, useInsightAssets } from '../ai-insights.hook';
 import styles from '../ai-insights.module.scss';
+import { oneOf, urlText, withFilters } from '../ai-insights.reveal';
 import { DOC_STATUS, DOC_TYPE_LABEL, errorText, fmtNum, fmtTime } from '../ai-insights.utils';
 import {
   AI_INSIGHTS_POLL,
@@ -65,11 +67,16 @@ type DocumentsTabProps = { access: InsightsAccess };
 export const DocumentsTab = ({ access }: DocumentsTabProps) => {
   const queryClient = useQueryClient();
   const { assets } = useInsightAssets(access.canViewTwin);
-  const [search, setSearch] = useState('');
-  const [docType, setDocType] = useState<DocType | ''>('');
-  const [status, setStatus] = useState<DocStatus | ''>('');
+  const [params, setParams] = useSearchParams();
+  const [search, setSearch] = useState(() => urlText(params.get('q'), 60));
+  const [docType, setDocType] = useState(() =>
+    oneOf<DocType | ''>(params.get('type'), DocTypeEnum.options, '')
+  );
+  const [status, setStatus] = useState(() =>
+    oneOf<DocStatus | ''>(params.get('status'), DocStatusEnum.options, '')
+  );
   const [assetType, setAssetType] = useState('');
-  const [unit, setUnit] = useState('');
+  const [unit, setUnit] = useState(() => urlText(params.get('unit'), 20));
   const [page, setPage] = useState(1);
   const [uploading, setUploading] = useState(false);
   const [pdf, setPdf] = useState<PdfTarget | null>(null);
@@ -77,6 +84,18 @@ export const DocumentsTab = ({ access }: DocumentsTabProps) => {
   const [deleting, setDeleting] = useState<AiDocument | null>(null);
   const fit = useFitRows();
   const pageSize = fit.rows;
+
+  // the filters live in the URL (assistant links, reload); a move that drops them writes them back;
+  // the asset type and page stay local
+  useEffect(() => {
+    const next = withFilters(params, [
+      ['q', search.slice(0, 60), ''], // no longer than urlText reads back
+      ['type', docType, ''],
+      ['status', status, ''],
+      ['unit', unit, ''],
+    ]);
+    if (next.toString() !== params.toString()) setParams(next, { replace: true });
+  }, [params, setParams, search, docType, status, unit]);
 
   /** any filter change starts from the first page */
   const changeFilter = (apply: () => void) => {

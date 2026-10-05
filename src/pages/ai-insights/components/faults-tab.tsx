@@ -8,12 +8,21 @@ import {
 } from '@digital-twin/components';
 import { AlertAlarm, ChartAreaTimeline, InformationCircle, ListAlt } from '@digital-twin/icons';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { InsightsAccess, useFaultRules, useInsightAssets } from '../ai-insights.hook';
 import styles from '../ai-insights.module.scss';
-import { FaultFilter, listedIn, revealFault, useRevealSelection } from '../ai-insights.reveal';
+import {
+  FaultFilter,
+  faultFilterFromUrl,
+  faultFilterToUrl,
+  listedIn,
+  revealFault,
+  useRevealSelection,
+} from '../ai-insights.reveal';
 import {
   assetTag,
+  FAULT_STATUS_OPTIONS,
   fmtDuration,
   fmtTime,
   SEVERITY_COLOR,
@@ -42,11 +51,6 @@ import {
   usePaged,
 } from './shared';
 
-const STATUS_OPTIONS = [
-  { value: 'ACTIVE', label: 'Active' },
-  { value: 'CLEARED', label: 'Cleared' },
-];
-
 const COLUMNS = [
   { key: 'severity', name: 'Severity', width: 104 },
   { key: 'rule', name: 'Rule' },
@@ -71,11 +75,13 @@ type FaultsTabProps = {
  */
 export const FaultsTab = ({ access, selectedId, onSelect }: FaultsTabProps) => {
   const now = useNow(60_000);
-  const [status, setStatus] = useState<DetectionStatus | ''>('ACTIVE');
-  const [assetId, setAssetId] = useState('');
-  const [rule, setRule] = useState('');
-  const [hours, setHours] = useState('168');
-  const [view, setView] = useState<'list' | 'timeline'>('list');
+  const [params, setParams] = useSearchParams();
+  const [initial] = useState(() => faultFilterFromUrl(params));
+  const [status, setStatus] = useState(initial.status);
+  const [assetId, setAssetId] = useState(initial.assetId);
+  const [rule, setRule] = useState(initial.rule);
+  const [hours, setHours] = useState(initial.hours);
+  const [view, setView] = useState(initial.view);
   const [pdf, setPdf] = useState<PdfTarget | null>(null);
   const { assets } = useInsightAssets(access.canViewTwin);
   const { rules, ruleName } = useFaultRules();
@@ -136,6 +142,11 @@ export const FaultsTab = ({ access, selectedId, onSelect }: FaultsTabProps) => {
     reveal: revealFault,
     apply: applyFilters,
   });
+  // the filters live in the URL (assistant links, reload); a move that drops them writes them back
+  useEffect(() => {
+    const next = faultFilterToUrl(params, { status, assetId, rule, hours, view });
+    if (next.toString() !== params.toString()) setParams(next, { replace: true });
+  }, [params, setParams, status, assetId, rule, hours, view]);
   const columns = status === 'ACTIVE' ? COLUMNS.filter((c) => c.key !== 'status') : COLUMNS;
 
   const rows = useMemo(
@@ -172,7 +183,7 @@ export const FaultsTab = ({ access, selectedId, onSelect }: FaultsTabProps) => {
           label="Status"
           value={status}
           onChange={(v) => changeFilter(() => setStatus(v as DetectionStatus | ''))}
-          options={STATUS_OPTIONS}
+          options={FAULT_STATUS_OPTIONS}
         />
         <FilterSelect
           label="Equipment"

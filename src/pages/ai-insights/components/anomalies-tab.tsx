@@ -9,12 +9,21 @@ import {
 } from '@digital-twin/components';
 import { AnomalyCircle, DatasetGrid, LineChart } from '@digital-twin/icons';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { InsightsAccess, useInsightAssets } from '../ai-insights.hook';
 import styles from '../ai-insights.module.scss';
-import { AnomalyFilter, listedIn, revealAnomaly, useRevealSelection } from '../ai-insights.reveal';
+import {
+  AnomalyFilter,
+  anomalyFilterFromUrl,
+  anomalyFilterToUrl,
+  listedIn,
+  revealAnomaly,
+  useRevealSelection,
+} from '../ai-insights.reveal';
 import {
   assetTag,
+  FAULT_STATUS_OPTIONS,
   fmtNum,
   fmtTime,
   humanize,
@@ -60,11 +69,6 @@ export const DETECTOR_INFO: Record<Detector, { label: string; text: string }> = 
   spc: { label: 'SPC', text: 'Control chart rules on 15-min means (3σ, 2 of 3, 7-point trend)' },
 };
 
-const STATUS_OPTIONS = [
-  { value: 'ACTIVE', label: 'Active' },
-  { value: 'CLEARED', label: 'Cleared' },
-];
-
 const COLUMNS = [
   { key: 'severity', name: 'Severity', width: 104 },
   { key: 'asset', name: 'Equipment', width: 110 },
@@ -88,10 +92,12 @@ type AnomaliesTabProps = {
  */
 export const AnomaliesTab = ({ access, selectedId, onSelect }: AnomaliesTabProps) => {
   const now = useNow(60_000);
-  const [status, setStatus] = useState<DetectionStatus | ''>('ACTIVE');
-  const [detector, setDetector] = useState<Detector | ''>('');
-  const [assetId, setAssetId] = useState('');
-  const [hours, setHours] = useState('24');
+  const [params, setParams] = useSearchParams();
+  const [initial] = useState(() => anomalyFilterFromUrl(params));
+  const [status, setStatus] = useState(initial.status);
+  const [detector, setDetector] = useState(initial.detector);
+  const [assetId, setAssetId] = useState(initial.assetId);
+  const [hours, setHours] = useState(initial.hours);
   const [showDetails, setShowDetails] = useState(false);
   const { assets } = useInsightAssets(access.canViewTwin);
   const fit = useFitRows();
@@ -153,6 +159,11 @@ export const AnomaliesTab = ({ access, selectedId, onSelect }: AnomaliesTabProps
     reveal: revealAnomaly,
     apply: applyFilters,
   });
+  // the filters live in the URL (assistant links, reload); a move that drops them writes them back
+  useEffect(() => {
+    const next = anomalyFilterToUrl(params, { status, detector, assetId, hours });
+    if (next.toString() !== params.toString()) setParams(next, { replace: true });
+  }, [params, setParams, status, detector, assetId, hours]);
 
   const counts = useMemo(() => {
     const c = new Map<Detector, number>();
@@ -190,7 +201,7 @@ export const AnomaliesTab = ({ access, selectedId, onSelect }: AnomaliesTabProps
           label="Status"
           value={status}
           onChange={(v) => changeFilter(() => setStatus(v as DetectionStatus | ''))}
-          options={STATUS_OPTIONS}
+          options={FAULT_STATUS_OPTIONS}
         />
         <FilterSelect
           label="Detector"

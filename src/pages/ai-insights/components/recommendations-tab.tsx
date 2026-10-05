@@ -9,14 +9,17 @@ import {
 import { ManageHistory, PlayFill, SettingSuggest } from '@digital-twin/icons';
 import { toast } from '@digital-twin/reusables';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { InsightsAccess } from '../ai-insights.hook';
 import styles from '../ai-insights.module.scss';
 import {
   listedIn,
+  oneOf,
   RecommendationFilter,
   revealRecommendation,
   useRevealSelection,
+  withFilters,
 } from '../ai-insights.reveal';
 import {
   fmtNum,
@@ -85,7 +88,10 @@ export const RecommendationsTab = ({
 }: RecommendationsTabProps) => {
   const queryClient = useQueryClient();
   const now = useNow(30_000);
-  const [statusFilter, setStatusFilter] = useState('');
+  const [params, setParams] = useSearchParams();
+  const [statusFilter, setStatusFilter] = useState(() =>
+    oneOf<string>(params.get('status'), RecommendationStatusEnum.options, '')
+  );
   const fit = useFitRows();
 
   const history = useQuery({
@@ -143,6 +149,12 @@ export const RecommendationsTab = ({
     reveal: revealRecommendation,
     apply: applyFilters,
   });
+  // the status filter lives in the URL (assistant links, reload), written back after a move
+  // that drops it
+  useEffect(() => {
+    const next = withFilters(params, [['status', statusFilter, '']]);
+    if (next.toString() !== params.toString()) setParams(next, { replace: true });
+  }, [params, setParams, statusFilter]);
 
   const run = useMutation({
     mutationFn: runOptimizer,
