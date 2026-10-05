@@ -35,6 +35,7 @@ $z-assistant-dialog: 1200;
 }
 
 // ------------------------------------------------------------------ launcher
+// LEVO (components/levo) is the launcher, always on screen; the chat bubble opens above it
 .launcher {
   @include plain-button;
   @include focus-ring;
@@ -42,73 +43,114 @@ $z-assistant-dialog: 1200;
   right: 20px;
   bottom: 20px;
   z-index: $z-assistant;
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: $brand-surface-default-primary;
-  color: #fff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-  transition: transform 0.15s ease;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--look-radius);
+  cursor: grab;
+  touch-action: none;
 
-  svg {
-    width: 26px;
-    height: 26px;
-  }
-
-  &:hover {
-    background: $brand-surface-hover-primary;
-    transform: translateY(-1px);
-  }
-
-  &--busy::after {
-    content: '';
-    position: absolute;
-    inset: -4px;
-    border-radius: 50%;
-    border: 2px solid $brand-surface-default-primary;
-    animation: assistant-pulse 1.4s ease-out infinite;
-  }
-
-  &__dot {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid $background-highest;
-    background: $condition-warning-primary;
+  &:active {
+    cursor: grabbing;
   }
 }
 
-@keyframes assistant-pulse {
-  from {
-    opacity: 0.8;
-    transform: scale(1);
+// what LEVO says about a fault or a trip that just came in, on the side of the window's centre
+.say {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: max-content;
+  max-width: 280px;
+  padding: 8px 12px;
+  border-radius: var(--look-radius-sm);
+  border: 1px solid var(--look-line-strong);
+  border-left: 4px solid var(--levo-say, #{$condition-warning-primary});
+  background: $background-highest;
+  box-shadow: 0 8px 24px color-mix(in srgb, #{$background-lowest} 70%, transparent);
+  color: $neutral-text-body-neutral;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  pointer-events: none;
+  animation: levo-say ease forwards;
+
+  strong {
+    color: var(--levo-say, #{$condition-warning-primary});
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
   }
-  to {
+
+  &--critical {
+    --levo-say: #{$status-unplanned_down-primary};
+  }
+
+  &[data-v='down'] {
+    top: calc(100% + 10px);
+    bottom: auto;
+  }
+
+  &[data-h='left'] {
+    left: 0;
+    right: auto;
+  }
+}
+
+@keyframes levo-say {
+  0% {
     opacity: 0;
-    transform: scale(1.35);
+    transform: translateY(4px);
+  }
+  4%,
+  90% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+// the bubble's tail, pointing at LEVO (data-down: the bubble is below LEVO)
+.tail {
+  position: fixed;
+  z-index: $z-assistant + 1;
+  width: 16px;
+  height: 16px;
+  margin: -9px 0 0 -8px;
+  border: solid var(--look-line-strong);
+  border-width: 0 1px 1px 0;
+  background: var(--afdd-background-highest);
+  // only the half outside the bubble (it covers the bubble's border there)
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  transform: rotate(45deg);
+  pointer-events: none;
+
+  &[data-down] {
+    margin-top: -7px;
+    border-width: 1px 0 0 1px;
+    background: $background-high;
+    clip-path: polygon(0 0, 100% 0, 0 100%);
   }
 }
 
 // ------------------------------------------------------------------ panel
+// the chat bubble: placed by bubbleAt (ai-assistant.tsx) above or below LEVO
 .panel {
   position: fixed;
-  right: 16px;
-  bottom: 16px;
   z-index: $z-assistant;
   display: flex;
   flex-direction: column;
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 32px);
-  border-radius: 12px;
-  border: 1px solid $border-light;
+  border-radius: var(--look-radius);
+  border: 1px solid var(--look-line-strong);
   background: color-mix(in srgb, var(--afdd-background-highest) 97%, transparent);
   backdrop-filter: blur(12px);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 16px 48px color-mix(in srgb, #{$background-lowest} 80%, transparent);
   color: $neutral-text-body-neutral;
   font-size: 14px;
   overflow: hidden;
@@ -122,11 +164,7 @@ $z-assistant-dialog: 1200;
     outline: none;
   }
 
-  &--expanded {
-    width: min(980px, calc(100vw - 32px));
-    height: calc(100vh - 32px);
-  }
-
+  // on the corner away from LEVO (data-grip: t / b, l / r)
   &__resize {
     position: absolute;
     top: 0;
@@ -136,6 +174,27 @@ $z-assistant-dialog: 1200;
     height: 18px;
     cursor: nwse-resize;
     touch-action: none;
+
+    &[data-grip^='b'] {
+      top: auto;
+      bottom: 0;
+      transform: scaleY(-1);
+    }
+
+    &[data-grip$='r'] {
+      left: auto;
+      right: 0;
+      transform: scaleX(-1);
+    }
+
+    &[data-grip='br'] {
+      transform: scale(-1);
+    }
+
+    &[data-grip='tr'],
+    &[data-grip='bl'] {
+      cursor: nesw-resize;
+    }
 
     &::before {
       content: '';
@@ -166,14 +225,6 @@ $z-assistant-dialog: 1200;
     padding: 10px 10px 10px 16px;
     border-bottom: 1px solid $border-light;
     background: $background-high;
-  }
-
-  &__logo {
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
-    margin-right: 6px;
-    color: $brand-surface-default-primary;
   }
 
   &__titles {
@@ -530,32 +581,19 @@ $z-assistant-dialog: 1200;
     font-weight: 600;
   }
 
+  // LEVO thinking (components/levo) while the answer is on its way
   &__working {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
     font-size: 14px;
     color: $neutral-text-caption;
+  }
 
-    i {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: $brand-surface-default-primary;
-      animation: assistant-dot 1.2s ease-in-out infinite;
-
-      &:nth-child(2) {
-        animation-delay: 0.15s;
-      }
-
-      &:nth-child(3) {
-        animation-delay: 0.3s;
-      }
-    }
-
-    span {
-      margin-left: 4px;
-    }
+  &__levo {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
   }
 
   &__note {
@@ -1478,9 +1516,7 @@ $z-assistant-dialog: 1200;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .launcher,
-  .launcher--busy::after,
-  .msg__working i,
+  .say,
   .tool--running i,
   .md[data-streaming] > :last-child::after,
   .sim__progress span,

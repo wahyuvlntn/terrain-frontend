@@ -158,11 +158,12 @@ const ANSWER: [string, unknown][] = [
 
 let queryClient: QueryClient;
 
-/** the router's current URL (path + query) and its navigate */
-const here = { url: '', navigate: (() => undefined) as NavigateFunction };
+/** the router's current URL (path + query), its history state and its navigate */
+const here = { url: '', state: null as unknown, navigate: (() => undefined) as NavigateFunction };
 const LocationProbe = () => {
   const location = useLocation();
   here.url = `${location.pathname}${location.search}`;
+  here.state = location.state;
   here.navigate = useNavigate();
   return null;
 };
@@ -196,15 +197,15 @@ const renderAssistant = async (permissions: string[], path = '/digital-twin') =>
 };
 
 const openPanel = () => {
-  fireEvent.click(screen.getByRole('button', { name: 'Open AI assistant' }));
-  return screen.getByRole('dialog', { name: 'AI assistant' });
+  fireEvent.click(screen.getByRole('button', { name: 'Open LEVO' }));
+  return screen.getByRole('dialog', { name: 'LEVO' });
 };
 
 /** let the promises started by an event (mocked requests, stream) settle */
 const settle = () => act(() => new Promise<void>((resolve) => setTimeout(resolve, 0)));
 
 const ask = async (text: string) => {
-  const input = screen.getByLabelText('Message to the AI assistant');
+  const input = screen.getByLabelText('Message to LEVO');
   fireEvent.change(input, { target: { value: text } });
   fireEvent.keyDown(input, { key: 'Enter' });
   await settle();
@@ -241,7 +242,7 @@ describe('AiAssistant', () => {
   it('opens, sends with Enter (not Shift+Enter) and closes with Esc', async () => {
     await renderAssistant(['aiassistant.read']);
     const panel = openPanel();
-    const input = screen.getByLabelText('Message to the AI assistant');
+    const input = screen.getByLabelText('Message to LEVO');
     expect(document.activeElement).toBe(input);
 
     fireEvent.change(input, { target: { value: 'line 1' } });
@@ -263,9 +264,25 @@ describe('AiAssistant', () => {
     expect(screen.getByText('Chiller check')).toBeInTheDocument();
 
     fireEvent.keyDown(panel, { key: 'Escape' });
-    expect(screen.queryByRole('dialog', { name: 'AI assistant' })).toBeNull();
-    const launcher = screen.getByRole('button', { name: /Open AI assistant/ });
+    expect(screen.queryByRole('dialog', { name: 'LEVO' })).toBeNull();
+    const launcher = screen.getByRole('button', { name: /Open LEVO/ });
     await waitFor(() => expect(document.activeElement).toBe(launcher));
+  });
+
+  it('opens as a bubble above LEVO, below it when LEVO is near the top; LEVO stays', async () => {
+    // jsdom's window is 1024 x 768; LEVO is 80 px, 20 px from the bottom right
+    await renderAssistant(['aiassistant.read']);
+    const panel = openPanel();
+    expect(panel).toHaveStyle({ left: '564px', top: '12px', width: '440px', height: '642px' });
+    expect(screen.getByRole('button', { name: 'Close LEVO' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    );
+    cleanup();
+
+    window.localStorage.setItem('aiAssistant.launcherPos', '{"right":20,"bottom":600}');
+    await renderAssistant(['aiassistant.read']);
+    expect(openPanel()).toHaveStyle({ top: '182px', height: '574px' });
   });
 
   it('approves a proposed simulation only after an inline confirmation', async () => {
@@ -290,7 +307,7 @@ describe('AiAssistant', () => {
     // Esc withdraws the confirmation, not the panel, and returns to Approve
     fireEvent.keyDown(confirm, { key: 'Escape' });
     expect(screen.queryByRole('alertdialog')).toBeNull();
-    expect(screen.getByRole('dialog', { name: 'AI assistant' })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'LEVO' })).toBeInTheDocument();
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Approve' }));
     expect(sim.approveJob).not.toHaveBeenCalled();
     expect(go).not.toBeInTheDocument();
@@ -383,7 +400,7 @@ describe('AiAssistant', () => {
 
     await act(async () => loaded({ id: 's-9', title: 'Pump trip', messages: [] }));
     await settle();
-    expect(document.activeElement).toBe(screen.getByLabelText('Message to the AI assistant'));
+    expect(document.activeElement).toBe(screen.getByLabelText('Message to LEVO'));
   });
 
   it('keeps the focus on the Send button while it turns into Stop and back', async () => {
@@ -393,7 +410,7 @@ describe('AiAssistant', () => {
     });
     await renderAssistant(['aiassistant.read']);
     openPanel();
-    fireEvent.change(screen.getByLabelText('Message to the AI assistant'), {
+    fireEvent.change(screen.getByLabelText('Message to LEVO'), {
       target: { value: 'How is CH_01?' },
     });
     const button = screen.getByRole('button', { name: 'Send' });
@@ -419,7 +436,7 @@ describe('AiAssistant', () => {
     await renderAssistant(['aiassistant.read']);
     openPanel();
     await ask('How is CH_01?');
-    const input = screen.getByLabelText('Message to the AI assistant');
+    const input = screen.getByLabelText('Message to LEVO');
     fireEvent.change(input, { target: { value: 'And CH_02?' } });
 
     const stop = screen.getByRole('button', { name: 'Stop the answer' });
@@ -444,7 +461,7 @@ describe('AiAssistant', () => {
     fireEvent.click(item);
     await settle();
     expect(screen.queryByRole('navigation', { name: 'Conversations' })).toBeNull();
-    expect(document.activeElement).toBe(screen.getByLabelText('Message to the AI assistant'));
+    expect(document.activeElement).toBe(screen.getByLabelText('Message to LEVO'));
   });
 
   it('opens where the agent navigates, offers to open it again, and No access', async () => {
@@ -474,8 +491,8 @@ describe('AiAssistant', () => {
     expect(here.url).toBe('/digital-twin?asset=CT_01&param=fan_speed&view=walk');
     // the panel stepped aside so the place is not hidden behind it; the answer waits behind the
     // launcher
-    expect(screen.queryByRole('dialog', { name: 'AI assistant' })).toBeNull();
-    fireEvent.click(await screen.findByRole('button', { name: 'Open AI assistant (new answer)' }));
+    expect(screen.queryByRole('dialog', { name: 'LEVO' })).toBeNull();
+    fireEvent.click(await screen.findByRole('button', { name: 'Open LEVO (new answer)' }));
 
     const card = screen.getByRole('group', {
       name: 'Opened in the app: CT-01 fan speed in the digital twin',
@@ -490,7 +507,33 @@ describe('AiAssistant', () => {
     expect(here.url).toBe('/alarm-report');
     fireEvent.click(within(card).getByRole('button', { name: /^Open / }));
     expect(here.url).toBe('/digital-twin?asset=CT_01&param=fan_speed&view=walk');
-    expect(screen.queryByRole('dialog', { name: 'AI assistant' })).toBeNull();
+    expect(screen.queryByRole('dialog', { name: 'LEVO' })).toBeNull();
+  });
+
+  it('remounts the page on show for a link with filters (a new nonce on each open)', async () => {
+    chat.events = [
+      [
+        'navigate',
+        { page: 'maintenance-order', label: 'Critical orders', filters: { severityIds: ['1'] } },
+      ],
+      ['message', { text: 'Here they are.', agent: 'maintenance_agent' }],
+      ['done', {}],
+    ];
+    await renderAssistant(['aiassistant.read', 'maintenanceorder.read'], '/maintenance-order');
+    openPanel();
+    await ask('Show the critical orders');
+    await screen.findByText('Here they are.');
+    expect(here.url).toBe('/maintenance-order?severityIds=1');
+    const first = (here.state as { assistantNav?: unknown } | null)?.assistantNav;
+    expect(typeof first).toBe('number');
+
+    // Open on the same page passes a new nonce, so the page reads its URL again
+    fireEvent.click(await screen.findByRole('button', { name: 'Open LEVO (new answer)' }));
+    const card = screen.getByRole('group', { name: 'Opened in the app: Critical orders' });
+    expect(card).toHaveTextContent('Maintenance orders · filtered');
+    fireEvent.click(within(card).getByRole('button', { name: /^Open / }));
+    expect(here.url).toBe('/maintenance-order?severityIds=1');
+    expect((here.state as { assistantNav: number }).assistantNav).toBeGreaterThan(first as number);
   });
 
   it('moves only a user who stayed where they asked', async () => {
@@ -524,7 +567,7 @@ describe('AiAssistant', () => {
       finish();
     });
     // (the answer is complete once the launcher shows it as new)
-    const launcher = await screen.findByRole('button', { name: 'Open AI assistant (new answer)' });
+    const launcher = await screen.findByRole('button', { name: 'Open LEVO (new answer)' });
     expect(here.url).toBe('/simulation?new=1');
     // the place waits on its card
     fireEvent.click(launcher);
@@ -572,6 +615,8 @@ describe('AiAssistant', () => {
             citations: [],
             simulations: [],
             toolCalls: [],
+            forms: [],
+            orders: [],
             navigations: [
               {
                 page: 'digital-twin',
@@ -585,6 +630,7 @@ describe('AiAssistant', () => {
                 view: 'walk',
                 panel: null,
                 section: null,
+                filters: null,
               },
             ],
             createdAt: null,
@@ -602,13 +648,13 @@ describe('AiAssistant', () => {
     await renderAssistant(['aiassistant.read']);
     const { assistantStore } = await import('./ai-assistant.store');
     act(() => assistantStore.setOpen(true));
-    const panel = screen.getByRole('dialog', { name: 'AI assistant' });
+    const panel = screen.getByRole('dialog', { name: 'LEVO' });
     expect(panel).toHaveAttribute('data-ai-assistant-panel');
-    expect(document.activeElement).toBe(screen.getByLabelText('Message to the AI assistant'));
+    expect(document.activeElement).toBe(screen.getByLabelText('Message to LEVO'));
 
     act(() => assistantStore.setOpen(false));
     act(() => assistantStore.setOpen(true));
-    expect(document.activeElement).toBe(screen.getByLabelText('Message to the AI assistant'));
+    expect(document.activeElement).toBe(screen.getByLabelText('Message to LEVO'));
 
     // already open, the focus went to the page (a click on the twin's 3D view): asking to open
     // again brings it back to the question box
@@ -619,7 +665,7 @@ describe('AiAssistant', () => {
       view.focus();
       expect(document.activeElement).toBe(view);
       act(() => assistantStore.setOpen(true));
-      expect(document.activeElement).toBe(screen.getByLabelText('Message to the AI assistant'));
+      expect(document.activeElement).toBe(screen.getByLabelText('Message to LEVO'));
     } finally {
       view.remove();
     }
