@@ -158,13 +158,13 @@ export const OverviewStrip = ({ data, isError, onOpen }: OverviewStripProps) => 
         <Tile
           title="AI budget today"
           value={`$${fmtNum(todayUsd, 2)}`}
-          unit={`of $${fmtNum(limitUsd, 2)}`}
+          unit={limitUsd ? `of $${fmtNum(limitUsd, 2)}` : 'no limit'}
           accent={budgetColor}
         />
         <span className={styles.kpi__info}>
           <InfoTooltip
             title="AI budget"
-            content="Gemini spend today (assistant and maintenance instructions) against the daily budget."
+            content={`Gemini spend today (assistant and maintenance instructions)${limitUsd ? ' against the daily budget' : '; no daily limit is set'}.`}
           />
         </span>
       </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import type {
   ApplyOutcome,
   ControlStatus,
+  DetectionStatus,
   DocStatus,
   DocType,
   RecommendationAction,
@@ -277,6 +278,12 @@ export const errorText = (err: unknown, fallback = 'The request failed') => {
 /** A request that failed with HTTP 404 (`statusCode` of the HttpError of jsRequest) */
 export const isNotFound = (err: unknown) =>
   typeof err === 'object' && err !== null && (err as { statusCode?: unknown }).statusCode === 404;
+
+/** Status choices of the faults and anomalies filters (none: all) */
+export const FAULT_STATUS_OPTIONS: { value: DetectionStatus; label: string }[] = [
+  { value: 'ACTIVE', label: 'Active' },
+  { value: 'CLEARED', label: 'Cleared' },
+];
 
 /** Window choices of the time filters (hours) */
 export const WINDOW_OPTIONS = [

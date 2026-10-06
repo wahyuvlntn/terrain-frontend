@@ -29,10 +29,9 @@ $gap: $spacingXL;
     flex: 0 0 auto;
   }
 
+  // layout only: the shared tab sets an inline width of 100%; its look stays the shared underline
   &__tab {
     width: auto !important;
-    padding: 8px 20px !important;
-    font-size: 16px;
     white-space: nowrap;
   }
 
@@ -170,7 +169,7 @@ $gap: $spacingXL;
   height: 100%;
   min-width: 0;
   padding: 10px 14px !important;
-  border-radius: 8px !important;
+  border-radius: var(--look-radius) !important;
   box-sizing: border-box;
 
   > div:first-child {
@@ -223,7 +222,7 @@ $gap: $spacingXL;
     position: relative;
     display: block;
     min-width: 0;
-    border-radius: 8px;
+    border-radius: var(--look-radius);
   }
 
   &__budget {
@@ -241,8 +240,9 @@ $gap: $spacingXL;
 button.kpi__button {
   cursor: pointer;
 
+  // flat hover (the Metric sets its background inline)
   &:hover .kpi {
-    filter: brightness(1.2);
+    background-color: $background-default !important;
   }
 
   &:focus-visible {
@@ -427,7 +427,7 @@ button.kpi__button {
   gap: 8px;
   padding: 10px 12px;
   border: 1px solid $condition-warning-primary;
-  border-radius: 8px;
+  border-radius: var(--look-radius);
   color: $condition-warning-secondary;
   font-size: 14px;
 
@@ -640,7 +640,7 @@ button.kpi__button {
     gap: 12px;
     min-width: 0;
     padding: 12px $gap;
-    border-radius: 8px;
+    border-radius: var(--look-radius);
     background: $background-lowest;
   }
 
@@ -650,7 +650,7 @@ button.kpi__button {
     align-items: center;
     gap: 12px;
     padding-top: 12px;
-    border-top: 1px solid $border-default;
+    border-top: 1px solid var(--look-line);
   }
 
   &__outcome {
@@ -914,7 +914,7 @@ button.kpi__button {
   gap: 8px 12px;
   padding: 10px 12px;
   border-left: 4px solid $border-light;
-  border-radius: 8px;
+  border-radius: var(--look-radius);
   background: $background-lowest;
   color: $neutral-text-title-heading;
   font-size: 14px;
@@ -973,7 +973,7 @@ button.kpi__button {
     align-items: flex-start;
     gap: 8px;
     padding: 10px 12px;
-    border-radius: 8px;
+    border-radius: var(--look-radius);
     background: $background-lowest;
   }
 
@@ -1065,7 +1065,7 @@ button.kpi__button {
   pre {
     overflow-x: auto;
     padding: 8px;
-    border-radius: 8px;
+    border-radius: var(--look-radius);
     background: $background-high;
 
     code {
