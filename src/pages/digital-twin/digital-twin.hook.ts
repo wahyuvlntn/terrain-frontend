@@ -8,8 +8,10 @@ import { useTwinLive } from './digital-twin.live';
 import {
   consumeTwinNav,
   findInstrument,
+  findLocationByName,
   locationSpawn,
   readTwinNav,
+  readTwinView,
   resolveAssetTarget,
   resolveTwinNav,
   TWIN_URL,
@@ -19,7 +21,9 @@ import {
   TwinWalkSpot,
   WALK_VIEW,
 } from './digital-twin.navigation';
-import { TWIN_SCENES } from './digital-twin.scenes';
+import { RENDER_NEAR_M } from './digital-twin.render';
+import { TWIN_SCENES, TWIN_SITE } from './digital-twin.scenes';
+import { REPLAY_PARAM } from './digital-twin.source';
 import {
   buildTwinTree,
   collectModels,
@@ -27,19 +31,24 @@ import {
   enclosingStructures,
   firstSceneLocation,
   flattenLocations,
+  SITE_ID,
+  scopeStructureList,
+  withSiteRoot,
 } from './digital-twin.tree';
 import { TwinLocation, TwinNode } from './digital-twin.types';
 import { TwinModelEntry, TwinViewer, WalkSpawn, WalkViewState } from './viewer/twin-viewer';
 
 const STATUS_TINT_KEY = 'digitalTwin.statusTint';
 const SEE_THROUGH_KEY = 'digitalTwin.seeThroughWalls';
+const LABELS_ON_HOVER_KEY = 'digitalTwin.labelsOnHover';
 
-/** A remembered on / off choice (default on); storage may be unavailable */
-const readFlag = (key: string) => {
+/** A remembered on / off choice (default on, or `fallback`); storage may be unavailable */
+const readFlag = (key: string, fallback = true) => {
   try {
-    return window.localStorage.getItem(key) !== 'false';
+    const v = window.localStorage.getItem(key);
+    return v === null ? fallback : v !== 'false';
   } catch {
-    return true;
+    return fallback;
   }
 };
 const writeFlag = (key: string, value: boolean) => {
@@ -59,7 +68,8 @@ const indexTree = (nodes: TwinNode[], out = new Map<string, TwinNode>()) => {
   return out;
 };
 
-const toEntry = (loc: TwinLocation): TwinModelEntry => ({
+/** `showWithin`: drawn only while the camera is that near (the site view's interiors, equipment) */
+const toEntry = (loc: TwinLocation, showWithin?: number): TwinModelEntry => ({
   key: loc.id,
   name: loc.name,
   url: loc.model?.url ?? '',
@@ -68,6 +78,7 @@ const toEntry = (loc: TwinLocation): TwinModelEntry => ({
   retag: loc.model?.retag,
   ...(loc.type === 'structure' ? { structure: true } : {}),
   ...(loc.model?.context ? { context: true } : {}),
+  ...(showWithin ? { showWithin } : {}),
 });
 
 const locationProps = (loc: TwinLocation) => ({
@@ -79,7 +90,7 @@ const locationProps = (loc: TwinLocation) => ({
 
 /** Walk mode (first person) as the viewer reports it */
 export type TwinWalkState = WalkViewState;
-export type TwinWalkKey = 'T' | 'G' | 'Escape' | 'Tab' | 'F';
+export type TwinWalkKey = 'T' | 'G' | 'Escape' | 'Tab' | 'F' | 'C' | 'Exit';
 
 const NOT_WALKING: TwinWalkState = { walking: false, locked: false, lookMode: 'pointer-lock' };
 
@@ -102,6 +113,8 @@ export const useDigitalTwin = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<TwinViewer | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
+  /** view options of the link that opened the page (read once; not remembered) */
+  const [linkView] = useState(() => readTwinView(searchParams));
   const onWalkKeyRef = useRef(onWalkKey);
   onWalkKeyRef.current = onWalkKey;
 
@@ -120,16 +133,36 @@ export const useDigitalTwin = ({
   });
 
   const locationTree = useMemo(
-    () => buildTwinTree(apiLocations ?? [], TWIN_SCENES),
+    () => withSiteRoot(buildTwinTree(apiLocations ?? [], TWIN_SCENES), TWIN_SITE.name),
     [apiLocations]
   );
   const locations = useMemo(() => flattenLocations(locationTree), [locationTree]);
   const locationsRef = useRef(locations);
   locationsRef.current = locations;
+  /** the building the default view frames (FAB1), when the user can see it */
+  const focusLocation = useMemo(() => findLocationByName(TWIN_SITE.focus, locations), [locations]);
+  const focusKeys = useMemo(
+    () => (focusLocation ? collectStructures(focusLocation).map((s) => s.id) : []),
+    [focusLocation]
+  );
+  /** its structures and equipment: the default view draws them at any distance (see the load) */
+  const focusIds = useMemo(
+    () =>
+      new Set([
+        ...focusKeys,
+        ...(focusLocation ? collectModels(focusLocation) : []).map((m) => m.id),
+      ]),
+    [focusKeys, focusLocation]
+  );
 
   /** Location (or equipment) whose models are rendered — kept in the URL for back/forward navigation */
   const nodeParam = searchParams.get(TWIN_URL.node);
-  const defaultScope = firstSceneLocation(locationTree) ?? locationTree[0]?.id ?? '';
+  // the campus (else FAB1 alone for a fab-only user), else the first scene as before
+  const defaultScope =
+    (focusLocation && (locations.has(SITE_ID) ? SITE_ID : focusLocation.id)) ??
+    firstSceneLocation(locationTree) ??
+    locationTree[0]?.id ??
+    '';
   /**
    * The scope rendered before the URL changed: a target link without `node` (the assistant's)
    * keeps it until the target is resolved, so "stay" and "already in view" refer to what the user
@@ -146,6 +179,19 @@ export const useDigitalTwin = ({
       : null;
   const scopeId = nodeParam && locations.has(nodeParam) ? nodeParam : (heldScope ?? defaultScope);
   if (!isLocationsLoading && scopeId) lastScope.current = scopeId;
+  /**
+   * The default view (no node, no target, no replay): framed on the focus building once loaded. A
+   * ref, so a later write of `node` does not re-run the scope load.
+   */
+  const showsDefault = useRef(false);
+  /** the scope's framing if it was loaded as the default view (its building drawn in full) */
+  const defaultFrame = useRef<string[] | null>(null);
+  showsDefault.current =
+    !nodeParam &&
+    !heldScope &&
+    !readTwinNav(searchParams) &&
+    !searchParams.has(REPLAY_PARAM) &&
+    scopeId === defaultScope;
   const scope = locations.get(scopeId)?.node;
   // stable while the API data is unchanged (react-query keeps structurally equal data by reference)
   const scopeModels = useMemo(() => (scope ? collectModels(scope) : []), [scope]);
@@ -153,13 +199,13 @@ export const useDigitalTwin = ({
   const scopeStructures = useMemo(
     () =>
       scope
-        ? [
+        ? scopeStructureList(scope, [
             ...collectStructures(scope),
             // the cleanroom around a bay: drawn as context, so the view frames the bay's own tools
             ...enclosingStructures(scopeId, locations).map((s) =>
               s.model ? { ...s, model: { ...s.model, context: true } } : s
             ),
-          ]
+          ])
         : [],
     [scope, scopeId, locations]
   );
@@ -181,10 +227,10 @@ export const useDigitalTwin = ({
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [isolate, setIsolate] = useState(true);
-  const [showTags, setShowTags] = useState(false);
+  const [isolate, setIsolate] = useState(linkView.isolate ?? true);
+  const [showTags, setShowTags] = useState(linkView.tags ?? false);
   /** tint equipment that isn't running (standby, trip, maintenance, offline); remembered per browser */
-  const [statusTint, setStatusTintState] = useState(readStatusTint);
+  const [statusTint, setStatusTintState] = useState(() => linkView.tint ?? readStatusTint());
   const setStatusTint = useCallback((next: boolean) => {
     setStatusTintState(next);
     writeFlag(STATUS_TINT_KEY, next);
@@ -193,12 +239,24 @@ export const useDigitalTwin = ({
    * See-through walls (translucent building structures) or solid ones; remembered per browser.
    * The ref hands the current choice to a viewer created later.
    */
-  const [seeThrough, setSeeThroughState] = useState(() => readFlag(SEE_THROUGH_KEY));
+  const [seeThrough, setSeeThroughState] = useState(
+    () => linkView.seeThrough ?? readFlag(SEE_THROUGH_KEY)
+  );
   const seeThroughRef = useRef(seeThrough);
   seeThroughRef.current = seeThrough;
   const setSeeThrough = useCallback((next: boolean) => {
     setSeeThroughState(next);
     writeFlag(SEE_THROUGH_KEY, next);
+  }, []);
+  /** orbit view: equipment names and statuses (badges) only on the hovered equipment; remembered */
+  const [labelsOnHover, setLabelsOnHoverState] = useState(
+    () => linkView.hover ?? readFlag(LABELS_ON_HOVER_KEY, false)
+  );
+  const labelsOnHoverRef = useRef(labelsOnHover);
+  labelsOnHoverRef.current = labelsOnHover;
+  const setLabelsOnHover = useCallback((next: boolean) => {
+    setLabelsOnHoverState(next);
+    writeFlag(LABELS_ON_HOVER_KEY, next);
   }, []);
   const pendingSelect = useRef<string | null>(null);
   /** counts explicit selections, so selecting the active node again is noticeable */
@@ -209,6 +267,10 @@ export const useDigitalTwin = ({
   /** walk mode and the node its crosshair points at */
   const [walk, setWalk] = useState<TwinWalkState>(NOT_WALKING);
   const [walkTargetId, setWalkTargetId] = useState<string | null>(null);
+  /** walking: Esc held to leave walk mode since this time (performance.now), else null */
+  const [exitHold, setExitHold] = useState<number | null>(null);
+  /** the equipment the viewer draws now (the site view hides far interiors), null: all of it */
+  const [nearby, setNearby] = useState<string[] | null>(null);
   /** short message over the view (a target without a 3D model, nowhere to land) */
   const [note, setNote] = useState<{ text: string; seq: number } | null>(null);
   const showNote = useCallback(
@@ -250,13 +312,18 @@ export const useDigitalTwin = ({
       onWalkChange: setWalk,
       onWalkTarget: setWalkTargetId,
       onWalkKey: (key) => onWalkKeyRef.current?.(key),
+      onWalkExitHold: setExitHold,
+      onNearbyChange: setNearby,
     });
     viewer.setSeeThrough(seeThroughRef.current);
+    viewer.setBadgesOnHover(labelsOnHoverRef.current);
+    viewer.setSite(TWIN_SITE.ground, TWIN_SITE.timeZone);
     viewerRef.current = viewer;
     return () => {
       viewer.dispose();
       viewerRef.current = null;
       setWalk(NOT_WALKING);
+      setExitHold(null);
     };
   }, [labelClassName, badgeClassName]);
 
@@ -265,7 +332,17 @@ export const useDigitalTwin = ({
     const viewer = viewerRef.current;
     if (!viewer || isLocationsLoading) return;
     let cancelled = false;
-    const entries = [...scopeModels, ...scopeStructures].map(toEntry);
+    // the site view (every building) draws interiors and equipment only near the camera
+    const near = scopeId === SITE_ID && RENDER_NEAR_M > 0 ? RENDER_NEAR_M : undefined;
+    const frame = showsDefault.current ? focusKeys : null;
+    defaultFrame.current = frame;
+    // the default view frames from past RENDER_NEAR_M: the framed building is drawn in full
+    // shortcut: also once the camera moves away; limit it to the framing if the site view lags
+    const nearOf = (id: string) => (frame && focusIds.has(id) ? undefined : near);
+    const entries = [
+      ...scopeModels.map((m) => toEntry(m, nearOf(m.id))),
+      ...scopeStructures.map((s) => toEntry(s, s.model?.interior ? nearOf(s.id) : undefined)),
+    ];
     const loading = scopeId;
     setIsLoading(entries.length > 0);
     setLoadedScope(null);
@@ -287,6 +364,8 @@ export const useDigitalTwin = ({
           viewer.select(pending);
           setSelectedId(pending);
         }
+        if (frame?.length && !pending && !pendingNav.current && !viewer.isWalking())
+          viewer.frameEntries(frame);
         // walking into another scope without a target: stay where the player stands when that
         // is inside one of its building parts (e.g. up a level), else enter at its entry point
         if (viewer.isWalking() && !pendingNav.current) {
@@ -306,11 +385,12 @@ export const useDigitalTwin = ({
     return () => {
       cancelled = true;
     };
-  }, [scopeModels, scopeStructures, isLocationsLoading, scopeId, scopeSpawn]);
+  }, [scopeModels, scopeStructures, isLocationsLoading, scopeId, scopeSpawn, focusKeys, focusIds]);
 
   useEffect(() => viewerRef.current?.setIsolate(isolate), [isolate]);
   useEffect(() => viewerRef.current?.setLabelsVisible(showTags), [showTags]);
   useEffect(() => viewerRef.current?.setSeeThrough(seeThrough), [seeThrough]);
+  useEffect(() => viewerRef.current?.setBadgesOnHover(labelsOnHover), [labelsOnHover]);
 
   /** API locations + the drill-down hierarchy of every loaded equipment */
   const tree = useMemo(() => {
@@ -395,7 +475,14 @@ export const useDigitalTwin = ({
     }
   }, [selectedId, scopeId, locations, setScopeId]);
 
-  const resetView = useCallback(() => viewerRef.current?.resetView(), []);
+  /** Frame button: the default view returns to the focus building's isometric framing */
+  const resetView = useCallback(() => {
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+    const frame = defaultFrame.current;
+    if (!selectedId && showsDefault.current && frame?.length) viewer.frameEntries(frame);
+    else viewer.resetView();
+  }, [selectedId]);
 
   const live = useTwinLive({
     viewerRef,
@@ -406,6 +493,7 @@ export const useDigitalTwin = ({
     selectNode,
     statusTint,
     transport,
+    nearby,
   });
 
   // ---------------------------------------------------------------- navigation targets
@@ -415,6 +503,7 @@ export const useDigitalTwin = ({
     nodeOfAsset: TWIN_NODE_OF_ASSET,
     assets: live.assets,
     scopeId,
+    isDefault: !nodeParam && scopeId === defaultScope,
     walking: walk.walking,
   });
 
@@ -509,6 +598,8 @@ export const useDigitalTwin = ({
   const searchKey = searchParams.toString();
   const assetsLoaded = !!live.assets;
   const viewSyncedFor = useRef<string | null>(null);
+  /** the pin below wrote the default scope as `node`: leaving walk mode takes it out again */
+  const pinnedDefault = useRef(false);
   const navContextRef = useRef(navContext);
   navContextRef.current = navContext;
   const requestNavRef = useRef(requestNav);
@@ -527,6 +618,7 @@ export const useDigitalTwin = ({
     }
     // a walk / orbit link without `node` keeps the scope on screen: pin it in the URL first
     if (heldScope) {
+      pinnedDefault.current = heldScope === defaultScope;
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev);
@@ -557,12 +649,16 @@ export const useDigitalTwin = ({
     if (wasWalking.current === walk.walking) return;
     wasWalking.current = walk.walking;
     if (!walk.walking) setWalkTargetId(null);
+    // the default view's URL stays clean (no `node`) once walk mode ends
+    const unpin = !walk.walking && pinnedDefault.current;
+    if (!walk.walking) pinnedDefault.current = false;
     if ((searchParams.get(TWIN_URL.view) === WALK_VIEW) === walk.walking) return;
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev);
         if (walk.walking) next.set(TWIN_URL.view, WALK_VIEW);
         else next.delete(TWIN_URL.view);
+        if (unpin && next.get(TWIN_URL.node) === defaultScope) next.delete(TWIN_URL.node);
         return next;
       },
       { replace: true }
@@ -641,8 +737,8 @@ export const useDigitalTwin = ({
     } else if (target.kind === 'location') {
       navigate({ locationId: target.locationId, keepScope: true, walk: true, select: false });
     } else {
-      // a live event: go there and show its dashboard
-      navigate({ asset: target.alias, walk: true });
+      // a live event: go there and show its dashboard (the site view keeps it, as the menu's)
+      navigate({ asset: target.alias, walk: true, keepScope: true });
     }
   };
 
@@ -705,6 +801,8 @@ export const useDigitalTwin = ({
     setStatusTint,
     seeThrough,
     setSeeThrough,
+    labelsOnHover,
+    setLabelsOnHover,
     selectNode,
     goUp,
     resetView,
@@ -713,6 +811,7 @@ export const useDigitalTwin = ({
     note,
     showNote,
     walk,
+    exitHold: walk.walking ? exitHold : null,
     walkTarget: walkTargetId ? index.get(walkTargetId) : undefined,
     toggleWalk,
     previewWalk,
