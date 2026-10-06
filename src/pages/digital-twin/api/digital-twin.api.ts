@@ -2,6 +2,8 @@ import { ConditionEnum, StatusEnum } from '@digital-twin/components';
 import { jsRequest } from '@digital-twin/utils';
 import { z } from 'zod';
 
+import { amhsClock } from '../digital-twin.motion';
+
 const nullableNumber = z.number().nullable();
 const limitsSchema = z.object({ lower: nullableNumber, upper: nullableNumber });
 
@@ -172,11 +174,21 @@ const twinLiveAssetSchema = z.object({
 });
 export type TwinLiveAsset = z.infer<typeof twinLiveAssetSchema>;
 
+/** aliases per getliveoverview call (the backend's twinLiveOverviewMax) */
+const LIVE_OVERVIEW_MAX = 60;
+
 /**
  * Live state and displayed parameter values of several equipment in one call (BMS plant
- * overview). Unknown aliases and equipment outside the user's scope are left out.
+ * overview, equipment screens), in calls of at most LIVE_OVERVIEW_MAX aliases. Unknown aliases
+ * and equipment outside the user's scope are left out.
  */
-export const getTwinLiveOverview = async (aliases: readonly string[]) => {
+export const getTwinLiveOverview = async (aliases: readonly string[]): Promise<TwinLiveAsset[]> => {
+  if (aliases.length > LIVE_OVERVIEW_MAX) {
+    const parts: string[][] = [];
+    for (let i = 0; i < aliases.length; i += LIVE_OVERVIEW_MAX)
+      parts.push(aliases.slice(i, i + LIVE_OVERVIEW_MAX));
+    return (await Promise.all(parts.map(getTwinLiveOverview))).flat();
+  }
   const data = await jsRequest({
     url: '/digital_twin/getliveoverview',
     data: { aliases: aliases.join(',') },
@@ -288,7 +300,8 @@ const amhsStateSchema = z.object({
  */
 export const getTwinAmhs = async () => {
   const data = await jsRequest({ url: '/digital_twin/getamhs' });
-  const receivedAt = Date.now();
+  // on the clock the transport is shown on (not Date.now(), which can drift away from it)
+  const receivedAt = amhsClock();
   const res = z
     .object({ served_at: time, updated_at: time.optional(), state: amhsStateSchema.nullable() })
     .parse(data);
@@ -296,6 +309,84 @@ export const getTwinAmhs = async () => {
   return { servedAt: res.served_at, updatedAt: res.updated_at ?? null, receivedAt, state };
 };
 export type TwinAmhs = Awaited<ReturnType<typeof getTwinAmhs>>;
+
+// ----------------------------------------------------------------- tool activity (FAB1 tools)
+/** snake_case keys of an API row as camelCase */
+const camelKeys = (o: Record<string, unknown>) =>
+  Object.fromEntries(
+    Object.entries(o).map(([k, v]) => [
+      k.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase()),
+      v,
+    ])
+  );
+const lotFields = {
+  /** null without the production "read" permission */
+  lotCode: z.string().nullable(),
+  productCode: z.string().nullable(),
+  seq: z.number(),
+  stepCode: z.string(),
+  operation: z.string(),
+  recipe: z.string(),
+  /** chambers in use of a multi-chamber tool, comma separated */
+  chambers: z.string().nullable(),
+  /** a furnace batch (several lots in one run) */
+  batchId: z.string().nullable(),
+  startedAt: z.string().nullable(),
+  isRework: z.boolean(),
+};
+const toolRunNowSchema = z.object({
+  ...lotFields,
+  routeSteps: z.number(),
+  area: z.string().nullable(),
+  wafers: z.number(),
+  /** wafers the run works through (metrology: the sampled ones) */
+  wafersProcessed: z.number(),
+  queuedAt: z.string(),
+  /** how long the run should take (the tool's typical time for the step), null when unknown */
+  expectedS: z.number().nullable(),
+});
+const toolRunSchema = z.object({
+  ...lotFields,
+  wafersIn: z.number(),
+  wafersOut: z.number().nullable(),
+  scrapped: z.number(),
+  reworked: z.number(),
+  endedAt: z.string(),
+  theoreticalS: z.number().nullable(),
+  outcome: z.string().nullable(),
+});
+export type TwinToolRunNow = z.infer<typeof toolRunNowSchema>;
+export type TwinToolRun = z.infer<typeof toolRunSchema>;
+
+/**
+ * What a FAB1 process tool is doing: the runs in process and the runs that ended in the last
+ * `hours` (newest first). `tool` is false for equipment that runs no lots.
+ */
+export const getTwinToolActivity = async (assetId: number) => {
+  const data = await jsRequest({
+    url: '/digital_twin/gettoolactivity',
+    data: { asset_id: assetId },
+  });
+  const res = z
+    .object({
+      now: z.string(),
+      tool: z.boolean(),
+      lots_visible: z.boolean(),
+      hours: z.number(),
+      current: z.array(z.record(z.unknown())),
+      recent: z.array(z.record(z.unknown())),
+    })
+    .parse(data);
+  return {
+    now: res.now,
+    tool: res.tool,
+    lotsVisible: res.lots_visible,
+    hours: res.hours,
+    current: z.array(toolRunNowSchema).parse(res.current.map(camelKeys)),
+    recent: z.array(toolRunSchema).parse(res.recent.map(camelKeys)),
+  };
+};
+export type TwinToolActivity = Awaited<ReturnType<typeof getTwinToolActivity>>;
 
 // ----------------------------------------------------------------- trend
 const trendPointSchema = z.object({
