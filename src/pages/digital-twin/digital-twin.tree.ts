@@ -61,6 +61,8 @@ export const buildTwinTree = (rows: LocationType[], scenes: TwinScene[]): TwinLo
           retag: m.retag,
           ...(m.structure && m.context ? { context: true } : {}),
           ...(m.structure && m.enclosing ? { enclosing: true } : {}),
+          ...(m.structure && m.context && m.represents ? { represents: m.represents } : {}),
+          ...(m.structure && m.interior ? { interior: true } : {}),
         },
         ...(m.structure
           ? {}
@@ -117,6 +119,52 @@ export const buildTwinTree = (rows: LocationType[], scenes: TwinScene[]): TwinLo
   return roots;
 };
 
+export const SITE_ID = 'site';
+
+/**
+ * The buildings with 3D scenes under one site root (not a backend location), so one view renders
+ * them all in their shared frame. Only when there is more than one; "Unassigned 3D scenes" stays
+ * a root of its own.
+ */
+export const withSiteRoot = (roots: TwinLocation[], name: string): TwinLocation[] => {
+  const hasScene = (n: TwinLocation): boolean =>
+    !!n.structures?.length || !!n.model || (n.children ?? []).some(hasScene);
+  const buildings = roots.filter((r) => r.id !== UNASSIGNED_ID && hasScene(r));
+  if (buildings.length < 2) return roots;
+  const site: TwinLocation = {
+    id: SITE_ID,
+    name,
+    type: 'location',
+    description: 'All buildings of the site in one view, in their places.',
+    children: buildings,
+  };
+  return [site, ...roots.filter((r) => !buildings.includes(r))];
+};
+
+/**
+ * The structures a scope draws: a context massing that stands in for a location the scope draws
+ * itself is left out, and the same model at the same place (the pipe bridge both buildings show as
+ * context) is drawn once
+ */
+export const scopeStructureList = (scope: TwinLocation, structures: TwinLocation[]) => {
+  const names = new Set<string>();
+  const addNames = (n: TwinLocation) => {
+    names.add(n.name.trim().toLowerCase());
+    (n.children ?? []).forEach(addNames);
+  };
+  addNames(scope);
+  const seen = new Set<string>();
+  return structures.filter((s) => {
+    const m = s.model;
+    if (!m) return false;
+    if (m.represents && names.has(m.represents.trim().toLowerCase())) return false;
+    const key = `${m.url}|${(m.position ?? [0, 0, 0]).join(',')}|${m.rotationY ?? 0}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
 export const flattenLocations = (
   nodes: TwinLocation[],
   parentId?: string,
@@ -156,7 +204,7 @@ export const enclosingStructures = (
   return out;
 };
 
-/** First node (depth-first) that directly contains equipment — the default view */
+/** First node (depth-first) that directly contains equipment — the default view without FAB1 */
 export const firstSceneLocation = (nodes: TwinLocation[]): string | undefined => {
   for (const n of nodes) {
     if (n.children?.some((c) => c.type === 'equipment')) return n.id;

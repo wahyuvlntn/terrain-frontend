@@ -19,7 +19,10 @@ import {
   collectStructures,
   enclosingStructures,
   flattenLocations,
+  SITE_ID,
+  scopeStructureList,
   UNASSIGNED_ID,
+  withSiteRoot,
 } from './digital-twin.tree';
 import type { TwinNode } from './digital-twin.types';
 import { fab1ScreenDefinitions } from './viewer/twin-screens';
@@ -360,5 +363,62 @@ describe('CUB to FAB1 utility link', () => {
     ).toBe(true);
     // the building's own structures are not context
     expect(collectStructures(building).some((m) => m.model?.context)).toBe(false);
+  });
+});
+
+describe('Site view of both buildings', () => {
+  const both = buildTwinTree(
+    [
+      ...rows,
+      { ...rows[0], locationId: 120, locationName: 'CUB Central Utility Building', parentId: null },
+    ],
+    TWIN_SCENES
+  );
+  const roots = withSiteRoot(both, 'Fab 1 campus');
+  const site = roots[0];
+  const files = (list: { model?: { url: string } }[]) =>
+    list.map((s) => s.model?.url.split('/').pop());
+
+  it('puts both buildings under one site root; a single building stays a root', () => {
+    expect(site.id).toBe(SITE_ID);
+    expect(site.children?.map((c) => c.name).sort()).toEqual([
+      'CUB Central Utility Building',
+      'FAB1 Wafer Fab',
+    ]);
+    expect(withSiteRoot(tree, 'Fab 1 campus')).toBe(tree);
+  });
+
+  it('draws the buildings, not their stand-ins, and the shared pipe bridge once', () => {
+    const drawn = files(scopeStructureList(site, collectStructures(site)));
+    expect(drawn).not.toContain('fab1-site-cub-massing.glb');
+    expect(drawn).not.toContain('fab1-site-fab1-massing.glb');
+    expect(drawn.filter((f) => f === 'fab1-site-utility-bridge.glb')).toHaveLength(1);
+    // a building's own view keeps the other building as context
+    const cub = flattenLocations(roots).get('loc-120')!.node;
+    expect(files(scopeStructureList(cub, collectStructures(cub)))).toContain(
+      'fab1-site-fab1-massing.glb'
+    );
+  });
+});
+
+describe('CUB equipment bindings (exterior-only GLBs)', () => {
+  const cub = TWIN_SCENES.flatMap((s) => s.models).filter((m) =>
+    /\/(chiller-wsc|pump-(chwp|cwp|pcw)|cooling-tower-s3e|compressor-zr315)\.glb$/.test(m.url)
+  );
+
+  it('binds only tags the GLB exports, and spins only models with a motion binding', () => {
+    expect(new Set(cub.map((m) => m.url)).size).toBe(6);
+    for (const model of cub) {
+      const nodes = glbNodes(model.url);
+      const tags = new Set(nodes.map((n) => n.extras?.dt_tag));
+      const [[source, instance]] = Object.entries(model.retag!);
+      for (const tag of Object.keys(model.params!))
+        expect(tags.has(tag.replace(instance, source)), `${model.url} ${tag}`).toBe(true);
+      // the chiller's impeller is inside its closed volute: only fans and couplings turn
+      expect(
+        nodes.some((n) => n.extras?.dt_spin),
+        model.url
+      ).toBe(!!model.motion);
+    }
   });
 });

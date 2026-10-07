@@ -34,6 +34,7 @@ import {
   Fab1Unit,
 } from './digital-twin.fab1-layout';
 import { TwinScene, TwinSceneModel, TwinSpawn } from './digital-twin.types';
+import type { TwinSiteGround } from './viewer/twin-sky';
 
 const MODEL_BASE = '/models/digital-twin';
 
@@ -192,11 +193,13 @@ const siteContext = (
   key: string,
   name: string,
   file: string,
-  locationName: string
+  locationName: string,
+  represents?: string
 ): TwinSceneModel => ({
   ...structure(key, name, file),
   bind: { locationName },
   context: true,
+  ...(represents ? { represents } : {}),
 });
 
 /** Building shell of a location (walls, floor slab, roof): context geometry, not equipment */
@@ -206,6 +209,15 @@ const structure = (key: string, name: string, file: string): TwinSceneModel => (
   url: `${MODEL_BASE}/${file}`,
   position: [0, 0, 0],
   structure: true,
+});
+
+/**
+ * The inside of a building (a floor, a room shell inside the envelope, its services): the site
+ * view draws it only while the camera is near (RENDER_NEAR_M), the envelope always
+ */
+const interior = (key: string, name: string, file: string): TwinSceneModel => ({
+  ...structure(key, name, file),
+  interior: true,
 });
 
 /** Six live MAUs, facing the service aisle on the north and south sides of L4. */
@@ -342,6 +354,36 @@ const bayScenes = (): TwinScene[] =>
  * on a free floor spot just inside the room's door, facing in. A location without one uses the
  * spawn of a sub-location (see locationSpawn in digital-twin.navigation.ts).
  */
+/**
+ * The campus around both buildings (three.js metres in the CUB plant frame; FAB1 stands 65 m east):
+ * the site road south of the buildings, the drives to the CUB roller shutter (x 0) and to the FAB1
+ * entrance, the service road between the buildings (ending short of the pipe bridge), and the two
+ * forecourts. The sky shows the time of day in the plant's time zone (core.sites SGF1).
+ */
+export const TWIN_SITE: {
+  name: string;
+  timeZone: string;
+  ground: TwinSiteGround;
+  focus: string;
+} = {
+  name: 'Fab 1 campus',
+  /** the building (backend location name) the default view frames */
+  focus: 'FAB1 Wafer Fab',
+  timeZone: 'Asia/Singapore',
+  ground: {
+    roads: [
+      { x: [-80, 160], z: [28, 35] },
+      { x: [-4, 4], z: [4.6, 28] },
+      { x: [58, 66], z: [19.2, 28] },
+      { x: [27.5, 33.5], z: [-11, 28] },
+    ],
+    aprons: [
+      { x: [-14, 24], z: [4.6, 14] },
+      { x: [34, 90], z: [19.2, 25] },
+    ],
+  },
+};
+
 export const TWIN_SCENES: TwinScene[] = [
   {
     id: 'central-plant',
@@ -478,7 +520,7 @@ export const TWIN_SCENES: TwinScene[] = [
     models: [
       structure('building', 'FAB1 building, support annex and stair core', 'fab1-building.glb'),
       {
-        ...structure('plenum', 'L3 FFU deck and utility plenum', 'fab1-plenum-l3.glb'),
+        ...interior('plenum', 'L3 FFU deck and utility plenum', 'fab1-plenum-l3.glb'),
         position: [0, FAB1_L3_Z, 0],
       },
     ],
@@ -492,7 +534,7 @@ export const TWIN_SCENES: TwinScene[] = [
       'L1 process support floor: the east-west access corridor between Sub-Fab North and South, open to the annex hall and the stair core.',
     bind: { locationName: 'FAB1 L1 Sub-Fab' },
     origin: [FAB1_X, 0, 0],
-    models: [structure('corridor', 'L1 sub-fab access corridor', 'fab1-corridor-l1.glb')],
+    models: [interior('corridor', 'L1 sub-fab access corridor', 'fab1-corridor-l1.glb')],
     spawn: spawnAt(-15, 0, 90),
   },
   {
@@ -504,8 +546,8 @@ export const TWIN_SCENES: TwinScene[] = [
     origin: [FAB1_X, 0, 0],
     models: [
       ...subFabUnits('Sub-Fab North'),
-      structure('room', 'Sub-Fab North', 'fab1-room-subfab-north.glb'),
-      structure('services', 'Sub-fab north process support services', 'fab1-services-north.glb'),
+      interior('room', 'Sub-Fab North', 'fab1-room-subfab-north.glb'),
+      interior('services', 'Sub-fab north process support services', 'fab1-services-north.glb'),
     ],
     // inside the corridor door, between the etch and CVD pump rows, looking north at the gas cabinets
     spawn: spawnAt(0, 2.6, 0),
@@ -519,8 +561,8 @@ export const TWIN_SCENES: TwinScene[] = [
     origin: [FAB1_X, 0, 0],
     models: [
       ...subFabUnits('Sub-Fab South'),
-      structure('room', 'Sub-Fab South', 'fab1-room-subfab-south.glb'),
-      structure('services', 'Sub-fab south process support services', 'fab1-services-south.glb'),
+      interior('room', 'Sub-Fab South', 'fab1-room-subfab-south.glb'),
+      interior('services', 'Sub-fab south process support services', 'fab1-services-south.glb'),
     ],
     spawn: spawnAt(-2, -2.4, 180),
   },
@@ -533,7 +575,7 @@ export const TWIN_SCENES: TwinScene[] = [
     origin: [FAB1_X, FAB1_L2_Z, 0],
     models: [
       {
-        ...structure('cleanroom', 'L2 cleanroom', 'fab1-cleanroom-l2.glb'),
+        ...interior('cleanroom', 'L2 cleanroom', 'fab1-cleanroom-l2.glb'),
         // the shell, ceiling and wafer transport also frame each bay's own view
         enclosing: true,
       },
@@ -549,7 +591,7 @@ export const TWIN_SCENES: TwinScene[] = [
       'L4 cleanroom make-up air floor: the north and south MAU rooms with filter, coil, fan and supply-air distribution.',
     bind: { locationName: 'FAB1 L4 Mechanical Deck' },
     origin: [FAB1_X, FAB1_DECK_Z, 0],
-    models: [structure('corridor', 'L4 mechanical deck access corridor', 'fab1-corridor-l4.glb')],
+    models: [interior('corridor', 'L4 mechanical deck access corridor', 'fab1-corridor-l4.glb')],
     spawn: spawnAt(0, 0, 0),
   },
   {
@@ -561,8 +603,8 @@ export const TWIN_SCENES: TwinScene[] = [
     origin: [FAB1_X, FAB1_DECK_Z, 0],
     models: [
       ...mauUnits('north'),
-      structure('room', 'North MAU plant room', 'fab1-room-mau-north.glb'),
-      structure('hvac', 'North make-up air distribution', 'fab1-hvac-north.glb'),
+      interior('room', 'North MAU plant room', 'fab1-room-mau-north.glb'),
+      interior('hvac', 'North make-up air distribution', 'fab1-hvac-north.glb'),
     ],
     spawn: spawnAt(-11, 2.5, 0),
   },
@@ -575,8 +617,8 @@ export const TWIN_SCENES: TwinScene[] = [
     origin: [FAB1_X, FAB1_DECK_Z, 0],
     models: [
       ...mauUnits('south'),
-      structure('room', 'South MAU plant room', 'fab1-room-mau-south.glb'),
-      structure('hvac', 'South make-up air distribution', 'fab1-hvac-south.glb'),
+      interior('room', 'South MAU plant room', 'fab1-room-mau-south.glb'),
+      interior('hvac', 'South make-up air distribution', 'fab1-hvac-south.glb'),
     ],
     spawn: spawnAt(-11, -2.5, 180),
   },
@@ -597,7 +639,8 @@ export const TWIN_SCENES: TwinScene[] = [
         'fab1-context',
         'FAB1 Wafer Fab (context)',
         'fab1-site-fab1-massing.glb',
-        'CUB Central Utility Building'
+        'CUB Central Utility Building',
+        'FAB1 Wafer Fab'
       ),
       siteContext(
         'bridge-fab1',
@@ -609,7 +652,8 @@ export const TWIN_SCENES: TwinScene[] = [
         'cub-context',
         'Central utility building (context)',
         'fab1-site-cub-massing.glb',
-        'FAB1 Wafer Fab'
+        'FAB1 Wafer Fab',
+        'CUB Central Utility Building'
       ),
     ],
   },
