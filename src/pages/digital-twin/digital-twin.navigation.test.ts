@@ -16,7 +16,7 @@ import {
   twinLocationsWithScene,
 } from './digital-twin.navigation';
 import { TWIN_SCENES } from './digital-twin.scenes';
-import { buildTwinTree, flattenLocations } from './digital-twin.tree';
+import { buildTwinTree, flattenLocations, SITE_ID, withSiteRoot } from './digital-twin.tree';
 import type { TwinNode } from './digital-twin.types';
 
 // the shared barrels load a UI library whose CSS vitest can't import
@@ -302,6 +302,44 @@ describe('resolveTwinNav', () => {
     expect(
       plan(resolveTwinNav({ locationId: 'loc-14', keepScope: true, walk: true }, ctx())).scopeId
     ).toBe('loc-14');
+  });
+
+  it('the site view opens the room of a target; only a teleport (keepScope) stays', () => {
+    const site = ctx({
+      locations: flattenLocations(withSiteRoot(tree, 'Fab 1 campus')),
+      scopeId: SITE_ID,
+    });
+    expect(plan(resolveTwinNav({ asset: 'CH_02' }, site))).toMatchObject({
+      scopeId: 'loc-10',
+      select: 'central-plant/ch-02',
+    });
+    expect(plan(resolveTwinNav({ asset: 'PCWF_01' }, site)).scopeId).toBe('loc-11');
+    expect(plan(resolveTwinNav({ location: 'Cooling Tower Yard' }, site)).scopeId).toBe('loc-14');
+    expect(
+      plan(resolveTwinNav({ locationId: 'loc-14', keepScope: true, walk: true }, site))
+    ).toMatchObject({ scopeId: SITE_ID, spot: { kind: 'location', locationId: 'loc-14' } });
+    // a live event's walk teleport stays too
+    expect(
+      plan(resolveTwinNav({ asset: 'CH_02', walk: true, keepScope: true }, site))
+    ).toMatchObject({ scopeId: SITE_ID, select: 'central-plant/ch-02' });
+  });
+
+  it('the default view (no node) opens the room of a target too; an explicit scope keeps it', () => {
+    // a fab-only user's default: the whole FAB1 building
+    expect(
+      plan(resolveTwinNav({ asset: 'MAU_01' }, ctx({ scopeId: 'loc-1', isDefault: true })))
+    ).toMatchObject({ scopeId: 'loc-6', select: 'fab1-mau-north/mau-01' });
+    expect(plan(resolveTwinNav({ asset: 'MAU_01' }, ctx({ scopeId: 'loc-1' }))).scopeId).toBe(
+      'loc-1'
+    );
+    expect(
+      plan(
+        resolveTwinNav(
+          { asset: 'MAU_01', walk: true, keepScope: true },
+          ctx({ scopeId: 'loc-1', isDefault: true })
+        )
+      ).scopeId
+    ).toBe('loc-1');
   });
 
   it('walk: view=walk enters at the scope, no view leaves only while walking; panel opens the overview', () => {

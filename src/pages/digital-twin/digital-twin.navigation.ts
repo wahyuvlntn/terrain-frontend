@@ -4,7 +4,7 @@
  * events), resolved against the twin location tree into a plan the page applies once the target
  * scope is loaded. Pure logic, no React and no three.js.
  */
-import { collectModels, collectStructures } from './digital-twin.tree';
+import { collectModels, collectStructures, SITE_ID } from './digital-twin.tree';
 import { TwinLocation, TwinNode, TwinSpawn } from './digital-twin.types';
 
 /** URL parameters of the twin page */
@@ -25,6 +25,56 @@ export const PLANT_OVERVIEW_PANEL = 'plant-overview';
 /** target parameters: removed from the URL once applied (`node` and `view` stay) */
 const CONSUMED = [TWIN_URL.asset, TWIN_URL.param, TWIN_URL.location, TWIN_URL.panel];
 
+/**
+ * View options a link can set, as 1 / 0 (`?isolate=0&hover=1`). The page reads them when it opens
+ * (they don't change the choices remembered per browser) and drops them with the target.
+ */
+export const TWIN_VIEW_URL = {
+  isolate: 'isolate',
+  tags: 'tags',
+  /** names & status on hover only */
+  hover: 'hover',
+  tint: 'tint',
+  seeThrough: 'seethrough',
+} as const;
+export type TwinViewOptions = Partial<Record<keyof typeof TWIN_VIEW_URL, boolean>>;
+
+/** The view options a URL sets (absent or invalid values: not set) */
+export const readTwinView = (params: URLSearchParams): TwinViewOptions => {
+  const out: TwinViewOptions = {};
+  for (const [key, name] of Object.entries(TWIN_VIEW_URL) as [keyof TwinViewOptions, string][]) {
+    const v = params.get(name);
+    if (v === '1' || v === 'true') out[key] = true;
+    else if (v === '0' || v === 'false') out[key] = false;
+  }
+  return out;
+};
+
+/** A link into the twin: scope (backend location id), equipment to select, walk mode, view options */
+export const twinUrl = ({
+  locationId,
+  asset,
+  walk,
+  view,
+}: {
+  locationId?: number | null;
+  asset?: string | null;
+  walk?: boolean;
+  view?: TwinViewOptions;
+}) => {
+  const p = new URLSearchParams();
+  if (locationId !== null && locationId !== undefined) p.set(TWIN_URL.node, `loc-${locationId}`);
+  if (asset) p.set(TWIN_URL.asset, asset);
+  if (walk) p.set(TWIN_URL.view, WALK_VIEW);
+  for (const [key, on] of Object.entries(view ?? {}) as [
+    keyof TwinViewOptions,
+    boolean | undefined,
+  ][]) {
+    if (on !== undefined) p.set(TWIN_VIEW_URL[key], on ? '1' : '0');
+  }
+  return `/digital-twin?${p.toString()}`;
+};
+
 export type TwinLocations = Map<string, { node: TwinLocation; parentId?: string }>;
 
 export type TwinNavRequest = {
@@ -36,7 +86,10 @@ export type TwinNavRequest = {
   location?: string;
   /** location node id of the twin tree (teleport menu); wins over `location` */
   locationId?: string;
-  /** a location inside the rendered scope keeps the scope (teleport), else it becomes the scope */
+  /**
+   * a target inside the rendered scope keeps the scope (teleport); without it a location, or any
+   * target of the site view or the default view, becomes the scope
+   */
   keepScope?: boolean;
   /** select the equipment (default true) */
   select?: boolean;
@@ -84,6 +137,8 @@ export type TwinNavContext = {
   assets: readonly { alias: string; locationId: number }[] | undefined;
   /** rendered scope */
   scopeId: string;
+  /** the scope is the default view's (no `node`): like the site view, it keeps only teleports */
+  isDefault?: boolean;
   walking: boolean;
 };
 
@@ -106,6 +161,7 @@ export const readTwinNav = (params: URLSearchParams): TwinNavRequest | null => {
 export const consumeTwinNav = (params: URLSearchParams, scopeId: string) => {
   const next = new URLSearchParams(params);
   CONSUMED.forEach((k) => next.delete(k));
+  Object.values(TWIN_VIEW_URL).forEach((k) => next.delete(k));
   if (scopeId) next.set(TWIN_URL.node, scopeId);
   return next;
 };
@@ -180,9 +236,11 @@ export const leadsInto3D = (target: TwinAssetTarget | 'wait') =>
 /**
  * Plan for a target: the scope to render, what to select, the walk-mode change and where to
  * stand. Equipment inside the rendered scope keeps the scope, else its scene's location becomes
- * the scope (CT_01 -> Cooling Tower Yard). An equipment without a 3D model goes to its location
- * when that has a scene, else the scope stays (and a walking player stays put); both with a
- * note. 'wait' while the backend equipment list is needed but not loaded yet.
+ * the scope (CT_01 -> Cooling Tower Yard). The site view and the default view hold every target:
+ * they keep one only for a teleport (`keepScope`), else the target's room opens. An equipment
+ * without a 3D model goes to its location when that has a scene, else the scope stays (and a
+ * walking player stays put); both with a note. 'wait' while the backend equipment list is needed
+ * but not loaded yet.
  */
 export const resolveTwinNav = (req: TwinNavRequest, ctx: TwinNavContext): TwinNavPlan | 'wait' => {
   const { locations, scopeId: current } = ctx;
@@ -197,7 +255,9 @@ export const resolveTwinNav = (req: TwinNavRequest, ctx: TwinNavContext): TwinNa
     note: null,
   };
   const scopeOf = (id: string, fallback: string) =>
-    inScope(id, current, locations) ? current : fallback;
+    ((current !== SITE_ID && !ctx.isDefault) || req.keepScope) && inScope(id, current, locations)
+      ? current
+      : fallback;
 
   if (req.asset) {
     const target = resolveAssetTarget(req.asset, ctx);
