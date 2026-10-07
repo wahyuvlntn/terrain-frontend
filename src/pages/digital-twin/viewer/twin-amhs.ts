@@ -1,5 +1,13 @@
 import { Box3, InstancedMesh, Matrix4, Mesh, Object3D, Quaternion, Vector3 } from 'three';
 import { FAB1_AMHS, type Fab1AmhsPort } from '../digital-twin.fab1-layout';
+import {
+  AMHS_GLIDE_MAX_M,
+  AMHS_GLIDE_S,
+  AMHS_MOTION,
+  type AmhsMotion,
+  amhsClock,
+} from '../digital-twin.motion';
+import { loopState } from './twin-amhs-loop';
 
 /**
  * Overhead hoist transport (OHT) driven by the simulator: every vehicle of the cleanroom GLB
@@ -47,6 +55,10 @@ export const AMHS_DELAY_MS = 15_000;
 export const AMHS_SLEW = 0.05;
 /** ... unless it is this far off (the first estimate) */
 const SNAP_MS = 2_000;
+/** A snapshot holds the segments that end after this long before it was taken (cmd/simulator snapshot) */
+const SNAPSHOT_BACK_MS = 30_000;
+/** Segments and port windows of earlier snapshots are kept this long */
+const KEEP_MS = 120_000;
 
 type TrackGeo = {
   id: string;
@@ -65,6 +77,7 @@ export type AmhsNetwork = {
   tracks: Map<string, TrackGeo>;
   ports: Record<string, Fab1AmhsPort>;
   speed: number;
+  hoistS: number;
   fleet: number;
 };
 
@@ -95,7 +108,7 @@ export const amhsNetwork = (src: typeof FAB1_AMHS = FAB1_AMHS): AmhsNetwork => {
       cum,
     });
   });
-  return { tracks, ports: src.ports, speed: src.speed, fleet: src.fleet };
+  return { tracks, ports: src.ports, speed: src.speed, hoistS: src.hoistS, fleet: src.fleet };
 };
 
 const mod = (v: number, m: number) => ((v % m) + m) % m;
@@ -187,6 +200,36 @@ export const vehiclePose = (
   return idle(v.after, t, speed, true);
 };
 
+/**
+ * A new snapshot over the ones before: it decides from where it starts on (a changed plan replaces
+ * the old one), and the segments and port windows that ended before it reaches back are kept a
+ * while, so a scene whose clock lags further behind than one snapshot reaches still has the plan.
+ */
+export const mergeAmhs = (prev: AmhsState | null, next: AmhsState, net: AmhsNetwork): AmhsState => {
+  if (!prev) return next;
+  const keep = next.now - KEEP_MS;
+  const back = next.now - SNAPSHOT_BACK_MS;
+  const old = new Map(prev.vehicles.map((v) => [v.id, v]));
+  const vehicles = next.vehicles.map((v) => {
+    const o = old.get(v.id);
+    const cut = Math.min(v.segs[0]?.t0 ?? back, back);
+    const kept = o?.segs.filter((g) => g.t1 > keep && g.t1 <= cut) ?? [];
+    if (!o || !kept.length) return v;
+    const g = kept[0];
+    const before =
+      g === o.segs[0]
+        ? o.before
+        : { t: g.t0, s: g.track === 'IB' ? g.s0 : (net.tracks.get(g.track)?.sIn ?? 0) };
+    return { ...v, before, segs: [...kept, ...v.segs] };
+  });
+  const key = (p: AmhsPortLot) => `${p.port}|${p.lot}|${p.until}`;
+  const fresh = new Set(next.ports.map(key));
+  const ports = prev.ports.filter(
+    (p) => p.until !== undefined && p.until > keep && p.until <= back && !fresh.has(key(p))
+  );
+  return { ...next, vehicles, ports: [...ports, ...next.ports] };
+};
+
 /** The FOUPs on load ports at `t` */
 export const portLotsAt = (lots: AmhsPortLot[], t: number) =>
   lots.filter(
@@ -194,7 +237,19 @@ export const portLotsAt = (lots: AmhsPortLot[], t: number) =>
   );
 
 type HoistPart = { object: Object3D; base: number; drop: number; belt: number; foup: boolean };
-type Driven = { id: string; object: Object3D; height: number; parts: HoistPart[] };
+/** where a vehicle was put last (x, y, heading), its target then, and the correction it glides off */
+type Glide = {
+  on: boolean;
+  sx: number;
+  sy: number;
+  sh: number;
+  tx: number;
+  ty: number;
+  cx: number;
+  cy: number;
+  ch: number;
+};
+type Driven = { id: string; object: Object3D; height: number; parts: HoistPart[]; glide: Glide };
 type PortFoups = {
   parent: Object3D;
   meshes: { mesh: InstancedMesh; local: Matrix4 }[];
@@ -221,10 +276,23 @@ const _p = new Vector3();
 const _s = new Vector3(1, 1, 1);
 const _up = new Vector3(0, 1, 0);
 
+/** A vehicle off its previous target by more than it can run in a frame, plus this, was corrected (m) */
+const JUMP_M = 0.25;
+/** Frames further apart than this (a hidden tab, a reset clock) show the plan as it is, without gliding */
+const GLIDE_GAP_MS = 500;
+/** The loop animation's plans are made for this long either side of the shown time ... */
+const LOOP_SPAN_MS = 120_000;
+/** ... and made again when the shown time comes this close to an end */
+const LOOP_MARGIN_MS = 30_000;
+
+const wrapAngle = (a: number) => mod(a + Math.PI, Math.PI * 2) - Math.PI;
+
 /**
  * Drives the dt_vehicle objects of a scope and draws the FOUPs on the load ports (one instanced
- * mesh per FOUP mesh, next to the vehicles). Without a transport state the vehicles stand evenly
- * spaced on the interbay loop with their hoists up and no FOUPs show.
+ * mesh per FOUP mesh, next to the vehicles). In 'parametric' motion they follow the simulator's
+ * transport state; without one the vehicles stand evenly spaced on the interbay loop with their
+ * hoists up and no FOUPs show. In 'loop' motion they follow the self-contained loop schedule
+ * (twin-amhs-loop) and the simulator's state is not used.
  */
 export class AmhsDriver {
   private readonly vehicles: Driven[] = [];
@@ -235,10 +303,18 @@ export class AmhsDriver {
   private applied: number | null = null;
   private lastClient = 0;
   private lastShown = Number.NEGATIVE_INFINITY;
+  private lastStep = Number.NaN;
+  /** the span the loop animation's plans cover */
+  private loopFrom = Number.NaN;
+  private loopTo = Number.NaN;
+  private shown = Number.NaN;
+  private jumps = 0;
+  private lastJumpM = 0;
 
   constructor(
     root: Object3D,
-    private readonly net: AmhsNetwork = amhsNetwork()
+    private readonly net: AmhsNetwork = amhsNetwork(),
+    readonly mode: AmhsMotion = AMHS_MOTION
   ) {
     const parents = new Map<Object3D, Driven>();
     root.traverse((o) => {
@@ -257,7 +333,8 @@ export class AmhsDriver {
           foup: c.userData?.dt_hoist_foup === true,
         });
       });
-      const v: Driven = { id, object: o, height: o.position.y, parts };
+      const glide = { on: false, sx: 0, sy: 0, sh: 0, tx: 0, ty: 0, cx: 0, cy: 0, ch: 0 };
+      const v: Driven = { id, object: o, height: o.position.y, parts, glide };
       this.vehicles.push(v);
       if (o.parent && !parents.has(o.parent)) parents.set(o.parent, v);
       // a moving vehicle casts no shadow: the shadow map isn't redrawn while it moves
@@ -291,17 +368,98 @@ export class AmhsDriver {
       });
       this.foups.push({ parent, meshes, height });
     });
-    this.step(Date.now());
+    this.step(amhsClock());
   }
 
   get size() {
     return this.vehicles.length;
   }
 
-  /** The simulator's transport state, and the server clock minus the client clock (ms) */
+  /**
+   * What the transport shows, for a look from the browser console (window.__twinAmhs): the clock
+   * offset applied, how far ahead of the shown time the latest snapshot reaches (it should stay
+   * well above zero, else plans arrive after they show), and the corrections glided over.
+   */
+  get stats() {
+    return {
+      mode: this.mode,
+      offsetMs: this.applied,
+      snapshotLeadMs: this.state && this.mode === 'parametric' ? this.state.now - this.shown : null,
+      jumps: this.jumps,
+      lastJumpM: Math.round(this.lastJumpM * 100) / 100,
+    };
+  }
+
+  /**
+   * The simulator's transport state (merged over the earlier ones), and the server clock minus the
+   * client clock (ms, on amhsClock). Not used in 'loop' motion.
+   */
   setState(state: AmhsState | null, offsetMs = 0) {
-    this.state = state;
+    if (this.mode === 'loop') return;
+    this.state = state ? mergeAmhs(this.state, state, this.net) : null;
     this.target = offsetMs;
+  }
+
+  /** The loop animation runs on the client clock; its plans are made again as the time runs on */
+  private loopTime(clientNow: number) {
+    if (
+      !(clientNow >= this.loopFrom + LOOP_MARGIN_MS && clientNow <= this.loopTo - LOOP_MARGIN_MS)
+    ) {
+      this.loopFrom = clientNow - LOOP_SPAN_MS;
+      this.loopTo = clientNow + LOOP_SPAN_MS;
+      const ids = this.vehicles.map((d) => d.id);
+      this.state = loopState(this.net, ids, this.loopFrom, this.loopTo);
+    }
+    return clientNow;
+  }
+
+  /**
+   * Puts a vehicle at its target (x, y, heading). A target that jumped (a plan corrected after the
+   * vehicle showed it, a changed clock offset) is reached by gliding off the correction with time
+   * constant AMHS_GLIDE_S instead of teleporting; past AMHS_GLIDE_MAX_M it is taken at once.
+   */
+  private place(
+    d: Driven,
+    x: number,
+    y: number,
+    h: number,
+    glide: boolean,
+    dtMs: number,
+    speed: number
+  ) {
+    const g = d.glide;
+    if (!glide || !g.on) {
+      g.cx = 0;
+      g.cy = 0;
+      g.ch = 0;
+    } else {
+      const jump = Math.hypot(x - g.tx, y - g.ty);
+      if (jump > JUMP_M + (speed * dtMs * 2) / 1000) {
+        g.cx = g.sx - x;
+        g.cy = g.sy - y;
+        g.ch = wrapAngle(g.sh - h);
+        this.jumps++;
+        this.lastJumpM = jump;
+        if (Math.hypot(g.cx, g.cy) > AMHS_GLIDE_MAX_M) {
+          g.cx = 0;
+          g.cy = 0;
+          g.ch = 0;
+        }
+      } else {
+        const k = Math.exp(-dtMs / 1000 / AMHS_GLIDE_S);
+        g.cx *= k;
+        g.cy *= k;
+        g.ch *= k;
+      }
+    }
+    g.on = glide;
+    g.tx = x;
+    g.ty = y;
+    g.sx = x + g.cx;
+    g.sy = y + g.cy;
+    g.sh = h + g.ch;
+    d.object.position.set(g.sx, d.height, -g.sy);
+    d.object.rotation.set(0, g.sh, 0);
   }
 
   /**
@@ -326,15 +484,21 @@ export class AmhsDriver {
     return this.lastShown;
   }
 
+  /** Shows the transport at client time `clientNow` (epoch ms on amhsClock) */
   step(clientNow: number) {
+    const dtMs = clientNow - this.lastStep;
+    this.lastStep = clientNow;
+    const t = this.mode === 'loop' ? this.loopTime(clientNow) : this.displayTime(clientNow);
+    this.shown = t;
     const st = this.state;
-    const t = this.displayTime(clientNow);
+    const speed = st?.speed ?? this.net.speed;
+    const glide = dtMs > 0 && dtMs < GLIDE_GAP_MS;
     const plans = new Map(st?.vehicles.map((v) => [v.id, v]) ?? []);
     const ib = this.net.tracks.get('IB');
     this.vehicles.forEach((d, i) => {
       const plan = plans.get(d.id);
       const pose: VehiclePose = plan
-        ? vehiclePose(plan, t, this.net, st?.speed ?? this.net.speed)
+        ? vehiclePose(plan, t, this.net, speed)
         : {
             track: 'IB',
             s: ((ib?.len ?? 0) * i) / Math.max(1, this.vehicles.length),
@@ -342,8 +506,7 @@ export class AmhsDriver {
             carry: null,
           };
       const p = trackPoint(this.net, pose.track, pose.s);
-      d.object.position.set(p.x, d.height, -p.y);
-      d.object.rotation.set(0, p.heading, 0);
+      this.place(d, p.x, p.y, p.heading, glide && plan !== undefined, dtMs, speed);
       let down = 0;
       d.parts.forEach((h) => {
         if (h.belt) return;

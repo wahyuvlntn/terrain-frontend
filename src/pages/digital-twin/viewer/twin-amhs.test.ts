@@ -18,10 +18,12 @@ import {
   type AmhsVehicle,
   amhsNetwork,
   hoistDown,
+  mergeAmhs,
   portLotsAt,
   trackPoint,
   vehiclePose,
 } from './twin-amhs';
+import { loopState } from './twin-amhs-loop';
 
 /** a 10 x 4 m loop "IB" (anticlockwise from the origin) and a spur "A" off its north rail: from (8, 4) up to (8, 8) and back to (6, 4) */
 const NET = amhsNetwork({
@@ -273,5 +275,93 @@ describe('AmhsDriver clock', () => {
     }
     // after ~8 s it has taken the estimate up
     expect(prev).toBeCloseTo(t0 + 300 * 33 - 400 - AMHS_DELAY_MS, 0);
+  });
+});
+
+describe('snapshots merged over time', () => {
+  it('keeps the segments and port windows from before a newer snapshot reaches back', () => {
+    const a = { ...state([plan], [{ port: 'TOOL_01:1', lot: 'M1', until: at(8) }]), now: at(20) };
+    // 50 s on, the simulator's snapshot holds the segments that end after 20 s
+    const recent = plan.segs.filter((g) => g.t1 > at(20));
+    const b = { ...state([{ ...plan, before: { t: at(17), s: 18 }, segs: recent }]), now: at(50) };
+    const m = mergeAmhs(a, b, NET);
+    expect(m.vehicles[0].segs).toEqual(plan.segs);
+    expect(m.vehicles[0].before).toEqual(plan.before);
+    expect(vehiclePose(m.vehicles[0], at(8), NET)).toEqual(vehiclePose(plan, at(8), NET));
+    expect(portLotsAt(m.ports, at(5)).map((l) => l.lot)).toEqual(['M1']);
+  });
+
+  it('replaces the plan a newer snapshot changed, and forgets what is long past', () => {
+    const a = { ...state([plan]), now: at(20) };
+    const run = { t0: at(17), t1: at(40), track: 'IB', s0: 18, s1: 64 };
+    const changed = { ...plan, before: { t: at(17), s: 18 }, segs: [run] };
+    const m = mergeAmhs(a, { ...state([changed]), now: at(50) }, NET);
+    expect(m.vehicles[0].segs).toEqual([...plan.segs.slice(0, 4), run]);
+    const later = mergeAmhs(m, { ...state([{ ...changed, segs: [] }]), now: at(300) }, NET);
+    expect(later.vehicles[0].segs).toEqual([]);
+  });
+});
+
+describe('AmhsDriver motion', () => {
+  /** a run along the test loop from s0, 2 m/s */
+  const run = (s0: number): AmhsVehicle => ({
+    id: 'V01',
+    before: { t: at(0), s: s0 },
+    after: { t: at(100), s: s0 + 200 },
+    segs: [{ t0: at(0), t1: at(100), track: 'IB', s0, s1: s0 + 200 }],
+  });
+  const client = (sec: number) => at(sec) + AMHS_DELAY_MS;
+
+  it('glides over a corrected plan instead of jumping, without ever running backwards', () => {
+    const { root, v } = vehicleModel();
+    const d = new AmhsDriver(root, NET, 'parametric');
+    d.setState(state([run(0)]), 0);
+    d.step(client(1));
+    d.step(client(1.033));
+    expect(v.position.x).toBeCloseTo(2.066);
+    // the plan moves 2 m on: the vehicle carries on from where it shows
+    d.setState(state([run(2)]), 0);
+    d.step(client(1.066));
+    expect(v.position.x).toBeCloseTo(2.066, 1);
+    let prev = v.position.x;
+    for (let k = 3; k <= 63; k++) {
+      d.step(client(1 + k * 0.033));
+      expect(v.position.x).toBeGreaterThan(prev);
+      prev = v.position.x;
+    }
+    // two seconds on (five time constants) it is within a few centimetres of the plan
+    expect(v.position.x).toBeCloseTo(2 + 2 * (1 + 63 * 0.033), 1);
+    expect(d.stats.jumps).toBe(1);
+  });
+
+  it('takes a correction farther than AMHS_GLIDE_MAX_M at once', () => {
+    const { root, v } = vehicleModel();
+    const d = new AmhsDriver(root, NET, 'parametric');
+    d.setState(state([run(0)]), 0);
+    d.step(client(1));
+    d.step(client(1.033));
+    d.setState(state([run(12)]), 0);
+    d.step(client(1.066));
+    // 14.132 m along the loop: on its north rail
+    expect(v.position.x).toBeCloseTo(9.868);
+    expect(v.position.z).toBeCloseTo(-4);
+  });
+
+  it("runs the loop schedule in 'loop' motion and leaves the simulator's state aside", () => {
+    const fab = amhsNetwork();
+    const { root, v } = vehicleModel();
+    const d = new AmhsDriver(root, fab, 'loop');
+    d.setState(state([plan]), 0);
+    const t = Date.UTC(2026, 9, 14, 8, 0, 0);
+    const expected = loopState(fab, ['V01'], t - 60_000, t + 60_000).vehicles[0];
+    for (let k = 0; k < 90; k++) {
+      const now = t + k * 333;
+      d.step(now);
+      const pose = vehiclePose(expected, now, fab);
+      const p = trackPoint(fab, pose.track, pose.s);
+      expect(v.position.x).toBeCloseTo(p.x, 6);
+      expect(v.position.z).toBeCloseTo(-p.y, 6);
+    }
+    expect(d.stats).toMatchObject({ mode: 'loop', jumps: 0 });
   });
 });
