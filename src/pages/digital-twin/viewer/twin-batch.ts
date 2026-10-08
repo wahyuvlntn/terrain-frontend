@@ -2,6 +2,7 @@ import {
   Box3,
   BufferAttribute,
   BufferGeometry,
+  Group,
   Material,
   Matrix3,
   Matrix4,
@@ -133,4 +134,114 @@ const mergeInto = (meshes: Mesh[], toRoot: Matrix4) => {
   merged.computeBoundingBox();
   merged.computeBoundingSphere();
   return merged;
+};
+
+/**
+ * A batch of equipment meshes drawn as one merged mesh (`proxy`) while they all look alike: one
+ * material, the same shadow and draw order, all shown. The meshes stay in the scene for picking
+ * (on `layer`, which the camera doesn't draw but the raycaster tests) and take over whenever they
+ * differ - a hovered or selected part, a lamp, a hidden piece.
+ */
+export type MeshBatch = { proxy: Mesh; meshes: Mesh[]; holder: Object3D };
+
+/** the vertex attributes a merged mesh carries (meshes with others are drawn on their own) */
+const MERGED_ATTRIBUTES = new Set(['position', 'normal', 'uv']);
+
+/**
+ * Render batching of an equipment model: its static opaque meshes (`eligible`) are merged, one
+ * mesh per material, into proxies in a group that stands where `holder` does (add it to the
+ * holder's parent). The parts keep their identity: picking, tinting and hiding work on them as
+ * before, and syncBatch decides each frame which of the two is drawn. Merged geometries are
+ * shared through `cache` (equal for every copy of the same model).
+ */
+export const batchEquipment = (
+  holder: Object3D,
+  eligible: (m: Mesh) => boolean,
+  cache: Map<string, BufferGeometry>
+) => {
+  holder.updateMatrixWorld(true);
+  const toHolder = new Matrix4().copy(holder.matrixWorld).invert();
+  const buckets = new Map<string, Mesh[]>();
+  holder.traverse((o) => {
+    if (!isMesh(o) || Array.isArray(o.material) || !eligible(o)) return;
+    const m = o as Mesh & { isInstancedMesh?: boolean; isSkinnedMesh?: boolean };
+    const material = o.material as Material;
+    if (m.isInstancedMesh || m.isSkinnedMesh || material.transparent) return;
+    const g = m.geometry;
+    const names = Object.keys(g.attributes);
+    if (!g.getAttribute('position') || Object.keys(g.morphAttributes).length) return;
+    if (names.some((n) => !MERGED_ATTRIBUTES.has(n))) return;
+    const key = `${material.uuid}|${names.sort().join('+')}`;
+    buckets.set(key, [...(buckets.get(key) ?? []), m]);
+  });
+  const group = new Group();
+  group.name = `${holder.name}:batched`;
+  holder.updateMatrix();
+  holder.matrix.decompose(group.position, group.quaternion, group.scale);
+  const batches: MeshBatch[] = [];
+  const local = new Matrix4();
+  buckets.forEach((meshes, bucket) => {
+    if (meshes.length < 2) return;
+    const key = `${bucket}|${meshes
+      .map((m) => {
+        local.multiplyMatrices(toHolder, m.matrixWorld);
+        return `${m.geometry.uuid}@${local.elements.map((e) => e.toFixed(4)).join(',')}`;
+      })
+      .join(';')}`;
+    let geometry = cache.get(key);
+    if (!geometry) {
+      geometry = mergeInto(meshes, toHolder);
+      cache.set(key, geometry);
+    }
+    const first = meshes[0];
+    const proxy = new Mesh(geometry, first.material);
+    proxy.name = `${holder.name}:${(first.material as Material).name || 'material'}`;
+    proxy.userData = { dt_batched: meshes.length };
+    proxy.raycast = () => {
+      // never picked: the parts are
+    };
+    proxy.visible = false;
+    proxy.receiveShadow = first.receiveShadow;
+    group.add(proxy);
+    batches.push({ proxy, meshes, holder });
+  });
+  return { group, batches };
+};
+
+/** `o` and its ancestors up to `holder` (inclusive) are visible */
+const shownIn = (o: Object3D, holder: Object3D) => {
+  for (let p: Object3D | null = o; p; p = p.parent) {
+    if (!p.visible) return false;
+    if (p === holder) return true;
+  }
+  return true;
+};
+
+/**
+ * Draws a batch merged while its meshes look alike, else the meshes themselves (moved off / back
+ * onto layer 0, the one the camera and the shadow pass draw). Call before every render.
+ */
+export const syncBatch = (b: MeshBatch, layer: number) => {
+  const first = b.meshes[0];
+  const material = first.material;
+  let merged = true;
+  for (const m of b.meshes) {
+    if (
+      m.material !== material ||
+      m.castShadow !== first.castShadow ||
+      m.renderOrder !== first.renderOrder ||
+      !shownIn(m, b.holder)
+    ) {
+      merged = false;
+      break;
+    }
+  }
+  if (merged) {
+    b.proxy.material = material;
+    b.proxy.castShadow = first.castShadow;
+    b.proxy.renderOrder = first.renderOrder;
+  }
+  if (merged === b.proxy.visible) return;
+  b.proxy.visible = merged;
+  b.meshes.forEach((m) => m.layers.set(merged ? layer : 0));
 };

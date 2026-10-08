@@ -1,7 +1,7 @@
 import { Box3, BoxGeometry, Group, Mesh, MeshStandardMaterial, Object3D, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import { batchStructure } from './twin-batch';
+import { batchEquipment, batchStructure, syncBatch } from './twin-batch';
 
 const wall = new MeshStandardMaterial({ name: 'Bldg_Wall', transparent: true, opacity: 0.18 });
 const steel = new MeshStandardMaterial({ name: 'FAB_Steel' });
@@ -77,5 +77,79 @@ describe('batchStructure', () => {
     expect(leaf.parent).not.toBeNull();
     expect(fan.parent).not.toBeNull();
     expect(meshes(vehicle)).toHaveLength(2);
+  });
+});
+
+describe('batchEquipment', () => {
+  const paint = new MeshStandardMaterial({ name: 'EQ_Paint' });
+  /** an equipment: three painted parts and a steel one under a subsystem group, at x = 10 */
+  const equipment = () => {
+    const parts = [boxAt(0, 0, 0, paint), boxAt(2, 0, 0, paint), boxAt(4, 1, 0, paint)];
+    const bolt = boxAt(0, 2, 0, steel, 0.2);
+    const holder = new Group();
+    holder.name = 'TOOL_01';
+    holder.position.x = 10;
+    holder.add(groupOf('frame', ...parts, bolt));
+    const root = new Group();
+    root.add(holder);
+    return { root, holder, parts, bolt };
+  };
+
+  it('merges the parts sharing a material into one mesh standing where the equipment does', () => {
+    const { root, holder, parts } = equipment();
+    const cache = new Map();
+    const { group, batches } = batchEquipment(holder, () => true, cache);
+    root.add(group);
+    // the lone steel part is not worth a batch
+    expect(batches).toHaveLength(1);
+    expect(batches[0].meshes).toEqual(parts);
+    expect(batches[0].proxy.material).toBe(paint);
+    expect(bounds(group).min.toArray()).toEqual(bounds(holder.children[0]).min.toArray());
+    // the parts stay where they are, for picking and tinting
+    expect(meshes(holder)).toHaveLength(4);
+    // a copy of the model (as each scope entry is) shares the merged geometry
+    const copy = holder.clone(true);
+    new Group().add(copy);
+    const shared = batchEquipment(copy, () => true, cache).batches[0].proxy.geometry;
+    expect(shared).toBe(batches[0].proxy.geometry);
+  });
+
+  it('draws the merged mesh while the parts look alike, else the parts', () => {
+    const { holder, parts } = equipment();
+    const [batch] = batchEquipment(holder, () => true, new Map()).batches;
+    const drawn = () =>
+      batch.proxy.visible ? 'merged' : parts.map((p) => p.layers.mask).join(',');
+    syncBatch(batch, 1);
+    expect(drawn()).toBe('merged');
+    expect(parts.every((p) => p.layers.mask === 2)).toBe(true);
+    // a hovered part: drawn on its own (and all its batch with it)
+    const hover = new MeshStandardMaterial({ name: 'hover' });
+    parts[1].material = hover;
+    syncBatch(batch, 1);
+    expect(drawn()).toBe('1,1,1');
+    // the whole equipment tinted alike: merged again, with the tint
+    parts.forEach((p) => {
+      p.material = hover;
+    });
+    syncBatch(batch, 1);
+    expect(drawn()).toBe('merged');
+    expect(batch.proxy.material).toBe(hover);
+    // a hidden part, or the equipment hidden
+    parts[2].visible = false;
+    syncBatch(batch, 1);
+    expect(drawn()).toBe('1,1,1');
+    parts[2].visible = true;
+    holder.visible = false;
+    syncBatch(batch, 1);
+    expect(batch.proxy.visible).toBe(false);
+  });
+
+  it('leaves out what is not eligible, translucent or not mergeable', () => {
+    const { holder, parts } = equipment();
+    const glass = new MeshStandardMaterial({ transparent: true, opacity: 0.3 });
+    holder.add(boxAt(0, 5, 0, glass), boxAt(1, 5, 0, glass));
+    const { batches } = batchEquipment(holder, (m) => m !== parts[0], new Map());
+    expect(batches).toHaveLength(1);
+    expect(batches[0].meshes).toEqual(parts.slice(1));
   });
 });
