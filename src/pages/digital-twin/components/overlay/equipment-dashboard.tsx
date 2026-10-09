@@ -4,6 +4,7 @@ import {
   CONDITION_COLOR,
   CONDITION_ICON,
   ConditionEnum,
+  Dropdown,
   STATUS_COLOR,
   STATUS_ICON,
   StatusEnum,
@@ -16,12 +17,13 @@ import { ReactNode, useState } from 'react';
 import { TwinAsset, TwinAssetSummary } from '../../api/digital-twin.api';
 import { PLANT_SYSTEM_TYPE } from '../../digital-twin.bms';
 import { formatParamValue } from '../../digital-twin.live';
-import { useTwinParameters, useTwinSummary } from '../../digital-twin.queries';
+import { useTwinParameters, useTwinSummary, useTwinToolActivity } from '../../digital-twin.queries';
 import { useTwinNow, useTwinSource } from '../../digital-twin.source';
 import { CardTabPanel, CardTabs } from './card-tabs';
 import { ControlPanel } from './control-panel';
 import styles from './overlay.module.scss';
 import { formatElapsed, timeAgo, titleCase } from './overlay-utils';
+import { PROCESS_WINDOWS, ToolProcess } from './tool-process';
 import { Empty, SectionTitle, stateBadgeColor, TwinMetric } from './twin-ui';
 
 const HOURS = 24;
@@ -109,7 +111,12 @@ export const EquipmentDashboard = ({
   const now = useTwinNow(1000);
   const { data: summary, isLoading } = useTwinSummary(asset, HOURS);
   const { data: params } = useTwinParameters(asset.id);
-  const [tab, setTab] = useState('overview');
+  /** a FAB1 process tool: what it runs now and lately (live only) */
+  const activity = useTwinToolActivity(asset.id);
+  const tool = activity?.tool ? activity : undefined;
+  /** the tab picked; a tool opens on its process, other equipment on the overview */
+  const [tab, setTab] = useState<string | null>(null);
+  const [processHours, setProcessHours] = useState(PROCESS_WINDOWS[0]);
 
   // the asset list is polled more often than the summary: prefer its live status
   const status = asset.status ?? summary?.status ?? null;
@@ -122,13 +129,14 @@ export const EquipmentDashboard = ({
   );
   const hasControls = (params ?? []).some((p) => p.control);
   const tabs = [
+    ...(tool ? [{ value: 'process', label: 'Process' }] : []),
     { value: 'overview', label: 'Overview' },
     ...(hasControls ? [{ value: 'controls', label: 'Controls' }] : []),
     { value: 'parameters', label: 'Parameters' },
     { value: 'activity', label: 'Activity' },
   ];
   // the controls tab of an equipment that has none (yet) shows the overview
-  const shownTab = tabs.some((t) => t.value === tab) ? tab : 'overview';
+  const shownTab = tab && tabs.some((t) => t.value === tab) ? tab : tool ? 'process' : 'overview';
 
   // a replay at the start of its run has no window yet
   const uptime = (u: TwinAssetSummary['uptimeWindow'] | undefined) =>
@@ -183,7 +191,29 @@ export const EquipmentDashboard = ({
         />
       </div>
 
-      <CardTabs tabs={tabs} value={shownTab} onChange={setTab}>
+      <CardTabs
+        tabs={tabs}
+        value={shownTab}
+        onChange={setTab}
+        extra={
+          shownTab === 'process' ? (
+            <Dropdown
+              value={String(processHours)}
+              options={PROCESS_WINDOWS.map((h) => ({ value: String(h), label: `Last ${h} h` }))}
+              onChange={(v) => setProcessHours(Number(v))}
+              variant="small"
+              background="dark"
+              wrapperStyles={{ width: 124 }}
+            />
+          ) : null
+        }
+      >
+        {tool ? (
+          <CardTabPanel value="process">
+            <ToolProcess activity={tool} now={now} hours={processHours} />
+          </CardTabPanel>
+        ) : null}
+
         <CardTabPanel value="overview">
           <div className={styles.kpis}>
             <TwinMetric

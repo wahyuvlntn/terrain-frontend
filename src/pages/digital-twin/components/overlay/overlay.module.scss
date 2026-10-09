@@ -295,7 +295,7 @@
   color: $neutral-text-caption;
 }
 
-// ------------------------------------------------------------------ tabs (folder style)
+// ------------------------------------------------------------------ tabs (the shared underline look)
 .tabs {
   flex: 0 1 auto;
   min-height: 0;
@@ -310,31 +310,14 @@
   &__list {
     flex: 1;
     min-width: 0;
-
-    > div {
-      border-bottom: none !important;
-      gap: 4px !important;
-    }
   }
 
+  // layout only: tabs as wide as their label, a compact row for a floating card (8px sides keep
+  // four 16px tabs inside the narrowest, 400px card without the list's scroll arrows)
   &__tab {
     width: auto !important;
     height: 36px;
-    padding: 0 12px !important;
-    border-radius: 8px 8px 0 0;
-    background: transparent !important;
-    color: $neutral-text-label !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
-
-    &[aria-selected='true'] {
-      background: $background-default !important;
-      color: $neutral-text-title-heading !important;
-    }
-
-    &:hover:not([aria-selected='true']) {
-      color: $neutral-text-title-heading !important;
-    }
+    padding: 0 8px !important;
   }
 
   &__extra {
@@ -344,15 +327,14 @@
     padding-bottom: 4px;
   }
 
-  // the card's only scroll region
+  // the card's only scroll region; transparent, on the card's own background (the side and
+  // bottom padding keep focus rings clear of the scroll clip)
   &__panel {
     flex: 0 1 auto;
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: 12px !important;
-    border-radius: 0 8px 8px 8px;
-    background: $background-default;
+    padding: 12px 4px 4px !important;
   }
 }
 
@@ -409,7 +391,7 @@
     padding: 8px 10px;
     border: 1px solid transparent;
     border-radius: 8px;
-    background: $background-low;
+    background: $background-default;
     color: inherit;
     font: inherit;
     text-align: left;
@@ -519,6 +501,62 @@
   }
 }
 
+// ------------------------------------------------------------------ a tool's run in process
+.process {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border-left: 4px solid $status-running-primary;
+  background: $background-default;
+
+  & + & {
+    margin-top: 8px;
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    strong {
+      font-weight: 600;
+      color: $neutral-text-title-heading;
+    }
+  }
+
+  &__meta {
+    color: $neutral-text-caption;
+    overflow-wrap: anywhere;
+  }
+
+  &__bar {
+    height: 6px;
+    margin: 6px 0 2px;
+    border-radius: 3px;
+    background: $border-light;
+    overflow: hidden;
+
+    span {
+      display: block;
+      height: 100%;
+      background: $brand-surface-default-primary;
+      transition: width 0.4s ease;
+    }
+  }
+
+  &__foot {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+    color: $neutral-text-body-neutral;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
 // ------------------------------------------------------------------ instrument reading
 .reading {
   display: flex;
@@ -600,7 +638,7 @@
 
 .chart {
   border-radius: 8px;
-  background: $background-low;
+  background: $background-default;
   padding: 4px 4px 0;
 }
 
@@ -616,7 +654,7 @@
     gap: 10px;
     padding: 12px;
     border-radius: 8px;
-    background: $background-low;
+    background: $background-default;
   }
 
   &__row {
