@@ -1,12 +1,14 @@
 import { DEFAULT_COLOR, STATUS_COLOR, StatusEnum } from '@digital-twin/components';
 import {
   Box3,
+  BufferGeometry,
   CanvasTexture,
   CircleGeometry,
   Color,
   CylinderGeometry,
   DirectionalLight,
   DoubleSide,
+  Fog,
   GridHelper,
   Group,
   HemisphereLight,
@@ -40,11 +42,25 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-
+import { amhsClock } from '../digital-twin.motion';
+import { RENDER_ANIM_COST_FACTOR, RENDER_BATCH_EQUIPMENT } from '../digital-twin.render';
 import { TwinNode, TwinNodeKind } from '../digital-twin.types';
 import { AmhsDriver, type AmhsState } from './twin-amhs';
-import { batchStructure } from './twin-batch';
+import { batchEquipment, batchStructure, type MeshBatch, syncBatch } from './twin-batch';
+import { materialKey, plainMaterial } from './twin-materials';
 import { drawScreen, fab1ScreenDefinitions, ScreenRow } from './twin-screens';
+import {
+  createSiteGround,
+  createSky,
+  disposeSiteGround,
+  hourIn,
+  paintSky,
+  sizeSiteGround,
+  skyDirection,
+  skyLook,
+  sunAt,
+  type TwinSiteGround,
+} from './twin-sky';
 import {
   isEscapeForWidget,
   isKeyForControl,
@@ -89,6 +105,12 @@ export type TwinModelEntry = {
    * rendered but left out of the framing, the ground and the zoom range
    */
   context?: boolean;
+  /**
+   * Drawn only while the camera (orbit or walking) is within this many metres of the model's
+   * bounds: a large scope's building interiors and equipment appear as you approach. Hidden, it is
+   * neither drawn, shadowed, picked nor badged; walk mode still collides with it.
+   */
+  showWithin?: number;
 };
 
 export type TwinViewerOptions = {
@@ -108,12 +130,36 @@ export type TwinViewerOptions = {
   /**
    * While walking, keys the page acts on: T (assistant) and Tab (teleport menu) after the viewer
    * released the pointer; G (teleport to the newest event); F (full screen; called in the key
-   * event, so the page can request full screen); Escape only while the pointer is free (the Esc
-   * that releases the lock is the browser's) — the page exits walk mode on it. Their default
-   * action is prevented, so no character reaches a field the key moves the focus to.
+   * event, so the page can request full screen); C (controls help); Escape, a press while the
+   * pointer is free (the Esc that releases the lock is the browser's) — the page closes one thing
+   * on it; Exit, Esc held WALK_EXIT_HOLD_MS — the page leaves walk mode. Their default action is
+   * prevented, so no character reaches a field the key moves the focus to.
    */
-  onWalkKey?: (key: 'T' | 'G' | 'Escape' | 'Tab' | 'F') => void;
+  onWalkKey?: (key: 'T' | 'G' | 'Escape' | 'Tab' | 'F' | 'C' | 'Exit') => void;
+  /** While walking: Esc is held to leave walk mode since this time (performance.now), or null */
+  onWalkExitHold?: (since: number | null) => void;
+  /**
+   * The scope's equipment drawn now (some have `showWithin` and are too far), or null when every
+   * model is drawn; called when it changes
+   */
+  onNearbyChange?: (ids: string[] | null) => void;
 };
+
+/** holding Esc this long leaves walk mode (a press closes the dashboard or a notification) */
+export const WALK_EXIT_HOLD_MS = 3000;
+/** a held key repeats: without a repeat (or its release) for this long, the hold is over */
+const HOLD_LOST_MS = 2500;
+/** a model shown by `showWithin` hides again only this much further out (no flicker at the edge) */
+const NEAR_HYSTERESIS = 1.15;
+/** how often (ms) the models with `showWithin` are checked against the camera */
+const NEAR_MS = 150;
+
+/**
+ * Whether a model with `showWithin` is drawn with the camera at `eye`: within that distance of its
+ * bounds, or, when it is shown already, within NEAR_HYSTERESIS times it (no flicker at the edge)
+ */
+export const nearbyShown = (box: Box3, eye: Vector3, showWithin: number, shown: boolean) =>
+  box.distanceToPoint(eye) <= showWithin * (shown ? NEAR_HYSTERESIS : 1);
 
 /**
  * How mouse look works in walk mode: `pointer-lock` (a click on the view captures the mouse; a
@@ -224,6 +270,19 @@ const AUTO_LAYOUT_GAP = 1.5;
 const ANIM_FRAME_MS = 33;
 /** a frame this much early still counts (rAF timestamps jitter: 2 x 16.7 ms must not miss 33 ms) */
 const ANIM_FRAME_SLACK_MS = 6;
+/** a frame's drawing time counts for animation pacing up to this (ms) */
+const ANIM_COST_CAP_MS = 100;
+/** the layer batched equipment parts move to while their merged mesh is drawn (picked, not drawn) */
+const BATCHED_LAYER = 1;
+/** how often the sky and the daylight follow the time of day */
+const SKY_MS = 60_000;
+/** the site ground shows around scopes standing on it: their floor is below this height (m) */
+const SITE_GROUND_MAX_Y = 1;
+/** daylight comes from at least / at most this high (degrees): no extreme or missing shadows */
+const SUN_LIGHT_ELEVATION: [number, number] = [25, 65];
+/** with the sun this far below the horizon, the moon (fixed in the sky) lights the site */
+const MOON_BELOW = -6;
+const MOON_DIR = skyDirection(210, 55);
 /** Blender axis of dt_spin -> glTF / three.js local axis (the exporter converts Z-up to Y-up) */
 const SPIN_AXES: Record<string, Vector3> = {
   x: new Vector3(1, 0, 0),
@@ -232,7 +291,15 @@ const SPIN_AXES: Record<string, Vector3> = {
 };
 
 type Spinner = { object: Object3D; axis: Vector3; rps: number };
-type ScopeEntry = { key: string; holder: Group; structure: boolean; context: boolean };
+type ScopeEntry = {
+  key: string;
+  holder: Group;
+  structure: boolean;
+  context: boolean;
+  /** drawn only within this distance of `box` (its world bounds) */
+  showWithin?: number;
+  box?: Box3;
+};
 type WalkState = {
   controller: WalkController;
   /** KeyboardEvent.code of the held movement keys */
@@ -249,6 +316,8 @@ type WalkState = {
   /** when the badges and tag labels were last checked, and the next one to check */
   markersAt: number;
   markerCursor: number;
+  /** Esc held to leave walk mode: since when, and its last key event (performance.now) */
+  escHold: { since: number; seen: number } | null;
 };
 /** a status badge or tag label checked in walk mode; `skip` = colliders that don't hide it */
 type WalkMarker = { object: CSS2DObject; skip: (collider: WalkCollider) => boolean };
@@ -387,10 +456,27 @@ export class TwinViewer {
   private readonly ground: Mesh;
   private readonly grid: GridHelper;
   private readonly sun: DirectionalLight;
+  private readonly hemisphere: HemisphereLight;
+  private readonly sky = createSky();
+  /** roads, forecourts and grass around the buildings (setSite) */
+  private siteGround: Group | null = null;
+  private siteShown = false;
+  /** the plant's time zone: the sky and the daylight follow its time of day */
+  private timeZone: string | undefined;
+  private skyAt = Number.NEGATIVE_INFINITY;
+  /** where the daylight comes from (unit vector), and the scope it lights */
+  private readonly lightDir = new Vector3(-1.2, 2.4, 1.6).normalize();
+  private readonly stageCenter = new Vector3();
+  private stageRadius = 10;
 
   private readonly gltfCache = new Map<string, Promise<GLTF>>();
   /** structure models with their static meshes batched (twin-batch), cloned per scope load */
   private readonly batchedScenes = new Map<string, Object3D>();
+  /** equipment parts drawn merged (RENDER_BATCH_EQUIPMENT), and the merged geometries by model */
+  private batches: MeshBatch[] = [];
+  private readonly batchGeometries = new Map<string, BufferGeometry>();
+  /** the models' materials by materialKey: one instance for equal materials across the models */
+  private readonly sharedMaterials = new Map<string, Material>();
   /** OHT vehicles (dt_vehicle) driven by the simulated transport, per model of the scope */
   private amhs: AmhsDriver[] = [];
   private amhsState: AmhsState | null = null;
@@ -413,7 +499,7 @@ export class TwinViewer {
   ) as Record<TwinUnitState, Color>;
   private readonly screens = new Map<
     string,
-    { canvas: HTMLCanvasElement; texture: CanvasTexture; title: string }
+    { canvas: HTMLCanvasElement; texture: CanvasTexture; title: string; shown?: string }
   >();
   private readonly labels: CSS2DObject[] = [];
   private readonly badges = new Map<
@@ -459,10 +545,14 @@ export class TwinViewer {
   private hoverId: string | null = null;
   private isolate = true;
   private labelsVisible = false;
+  /** orbit view: a status badge shows only while its equipment is hovered */
+  private badgesOnHover = false;
   private loadToken = 0;
   private frame = 0;
   private lastTick = 0;
   private lastRender = 0;
+  /** how long drawing a frame takes (ms, smoothed): paces the animation (RENDER_ANIM_COST_FACTOR) */
+  private renderCost = 0;
   private needsRender = true;
   private disposed = false;
   private pointerDown: { x: number; y: number; t: number } | null = null;
@@ -502,6 +592,9 @@ export class TwinViewer {
   /** the selection and camera the faded set was computed for, and when */
   private occluderKey = '';
   private occluderAt = 0;
+  /** when the models with `showWithin` were last checked, and the shown equipment reported last */
+  private nearAt = 0;
+  private nearKey = '';
 
   constructor(container: HTMLElement, opts: TwinViewerOptions = {}) {
     this.container = container;
@@ -542,7 +635,10 @@ export class TwinViewer {
     this.scene.environment = this.envTexture;
     this.scene.environmentIntensity = 0.75;
 
-    this.scene.add(new HemisphereLight('#ffffff', '#3d4450', 0.9));
+    this.hemisphere = new HemisphereLight('#ffffff', '#3d4450', 0.9);
+    this.scene.add(this.hemisphere, this.sky);
+    // distant ground fades into the horizon (the sky's colour, set with the time of day)
+    this.scene.fog = new Fog('#cfe3f3', 120, 255);
     this.sun = new DirectionalLight('#ffffff', 2.4);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(2048, 2048);
@@ -561,6 +657,8 @@ export class TwinViewer {
     this.scene.add(this.ground, this.grid, this.modelRoot);
 
     this.loader.setMeshoptDecoder(MeshoptDecoder);
+    // batched equipment parts are not drawn but still picked
+    this.raycaster.layers.enable(BATCHED_LAYER);
 
     this.camera.position.copy(DEFAULT_VIEW_DIR).multiplyScalar(8);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -640,6 +738,7 @@ export class TwinViewer {
         holder,
         structure: !!entry.structure,
         context: !!(entry.structure && entry.context),
+        ...(entry.showWithin ? { showWithin: entry.showWithin } : {}),
       });
       // structures stay out of nodes / objects / originals: nothing picks, tints or ghosts them
       if (!entry.structure) equipment.push(this.registerEquipment(entry, holder));
@@ -649,9 +748,11 @@ export class TwinViewer {
       const driver = new AmhsDriver(holder);
       if (!driver.size) return driver.dispose();
       driver.setState(this.amhsState, this.amhsOffset);
-      driver.step(Date.now());
+      driver.step(amhsClock());
       this.amhs.push(driver);
     });
+    // for a look from the browser console: window.__twinAmhs[0].stats
+    (window as Window & { __twinAmhs?: AmhsDriver[] }).__twinAmhs = this.amhs;
     this.entries.forEach(({ holder, structure }) => {
       if (!structure) return;
       holder.traverse((o) => {
@@ -664,6 +765,7 @@ export class TwinViewer {
       });
     });
     this.applySignals();
+    if (RENDER_BATCH_EQUIPMENT) this.batchScopeEquipment();
     this.entries.forEach(({ holder, structure }) => {
       if (!structure) return;
       holder.traverse((o) => {
@@ -676,8 +778,12 @@ export class TwinViewer {
 
     this.fitStage();
     this.applyVisualState();
+    this.entries.forEach((e) => {
+      if (e.showWithin) e.box = new Box3().setFromObject(e.holder);
+    });
     if (this.walk) this.rebuildWalk();
     else this.focus(null, false);
+    this.updateNearby(true);
     this.opts.onProgress?.(1);
     return equipment;
   }
@@ -699,6 +805,8 @@ export class TwinViewer {
     this.selectedId = next;
     this.applyVisualState();
     if (opts.focus ?? true) this.focus(next);
+    // a selection far away is drawn at once (its dashboard points at it)
+    this.updateNearby(true);
   }
 
   /** Parent of the current selection inside the model hierarchy (null = scope root) */
@@ -727,6 +835,27 @@ export class TwinViewer {
   }
 
   /**
+   * Orbit view: equipment names and statuses (the badges) always (false) or only on the hovered
+   * equipment (true). Walk mode shows the ones in range and in sight either way.
+   */
+  setBadgesOnHover(onHover: boolean) {
+    this.badgesOnHover = onHover;
+    this.applyBadgeVisibility();
+  }
+
+  private applyBadgeVisibility() {
+    if (this.walk) return;
+    const hovered = this.hoverId ? this.objects.get(this.hoverId) : undefined;
+    const equipment = hovered ? this.chainOf(hovered)[0] : null;
+    this.badges.forEach(({ object }, id) => {
+      object.visible = !this.badgesOnHover || id === equipment;
+      // a badge under the pointer would end the hover that shows it
+      object.element.style.pointerEvents = this.badgesOnHover ? 'none' : 'auto';
+    });
+    this.requestRender();
+  }
+
+  /**
    * See-through walls on (the default: walls, slabs, roofs, trims and doors are translucent) or off
    * (they are drawn solid; glass stays transparent). Off, solid structures block picking, the
    * walk-mode crosshair and landing preview, and in the orbit view the structures between the
@@ -747,6 +876,23 @@ export class TwinViewer {
     return this.seeThrough;
   }
 
+  /**
+   * The site around the buildings (roads, forecourts, grass to the horizon) and the plant's time
+   * zone, whose time of day the sky and the daylight follow (night, dawn / dusk, day). The ground
+   * shows around scopes standing on it, not under a roof or an upper floor shown on its own.
+   */
+  setSite(ground: TwinSiteGround | null, timeZone?: string) {
+    if (this.siteGround) {
+      disposeSiteGround(this.siteGround);
+      this.siteGround.removeFromParent();
+    }
+    this.siteGround = ground ? createSiteGround(ground) : null;
+    if (this.siteGround) this.scene.add(this.siteGround);
+    this.timeZone = timeZone;
+    this.fitSite();
+    this.updateSky(true);
+  }
+
   /** Redraw one of the equipment's screens (HMI_Screen, VFD_Display) — hook for live data */
   setScreenRows(
     equipmentKey: string,
@@ -757,6 +903,10 @@ export class TwinViewer {
   ) {
     const screen = this.screens.get(`${equipmentKey}/${screenName}`);
     if (!screen) return;
+    // unchanged content: no canvas redraw and texture upload
+    const shown = JSON.stringify([rows, status, statusColor]);
+    if (screen.shown === shown) return;
+    screen.shown = shown;
     drawScreen(screen.canvas, screen.title, rows, status, statusColor);
     screen.texture.needsUpdate = true;
     this.requestRender();
@@ -953,7 +1103,7 @@ export class TwinViewer {
       this.walkMarkerList = null;
       this.updateWalkMarkers(performance.now(), true);
     }
-    this.requestRender();
+    this.applyBadgeVisibility();
   }
 
   // ------------------------------------------------------------------ walk mode (first person)
@@ -988,6 +1138,7 @@ export class TwinViewer {
         lockRequest: null,
         markersAt: 0,
         markerCursor: 0,
+        escHold: null,
       };
       this.fly = null;
       this.controls.enabled = false;
@@ -1036,6 +1187,7 @@ export class TwinViewer {
     this.unlockPointer();
     this.removeWalkListeners();
     this.walk = null;
+    if (walk.escHold) this.opts.onWalkExitHold?.(null);
     const eye = walk.controller.eye;
     // level or slightly down, so the orbit's polar limit doesn't swing the camera up
     const pitch = Math.min(walk.controller.pitch, -0.035);
@@ -1057,7 +1209,7 @@ export class TwinViewer {
     this.clearSpawnPreview();
     // badges (back above their equipment) and tag labels as in the orbit view
     this.restoreBadgeAnchors();
-    this.badges.forEach((b) => (b.object.visible = true));
+    this.applyBadgeVisibility();
     this.labels.forEach((l) => (l.visible = this.labelsVisible));
     this.applyVisualState();
     // a selection made while walking may be behind or below the eye: bring it into view
@@ -1250,12 +1402,18 @@ export class TwinViewer {
       })
     );
     this.batchedScenes.clear();
+    this.batchGeometries.forEach((g) => g.dispose());
+    this.batchGeometries.clear();
+    this.sharedMaterials.clear();
     [this.solidCache, this.fadeCache].forEach((cache) => {
       cache.forEach((m) => m.dispose());
       cache.clear();
     });
     this.ground.geometry.dispose();
     (this.ground.material as Material).dispose();
+    this.sky.geometry.dispose();
+    (this.sky.material as Material).dispose();
+    if (this.siteGround) disposeSiteGround(this.siteGround);
     this.grid.dispose();
     this.envTexture.dispose();
     this.pmrem.dispose();
@@ -1297,8 +1455,23 @@ export class TwinViewer {
     return cached;
   }
 
-  /** One-off material fixes for real-time: no transmission pass, blended surfaces don't write depth. */
+  /**
+   * One-off material fixes for real-time: no transmission pass, blended surfaces don't write depth;
+   * physical materials without physical features become standard ones, and materials equal to one
+   * of an earlier model are replaced by it (twin-materials).
+   */
   private prepareMaterials(gltf: GLTF) {
+    const replaced = new Map<Material, Material>();
+    const shared = (m: Material) => {
+      let out = replaced.get(m);
+      if (out) return out;
+      const plain = plainMaterial(m);
+      const key = materialKey(plain);
+      out = this.sharedMaterials.get(key) ?? plain;
+      this.sharedMaterials.set(key, out);
+      replaced.set(m, out);
+      return out;
+    };
     gltf.scene.traverse((o) => {
       if (!isMesh(o)) return;
       let transparent = false;
@@ -1314,6 +1487,7 @@ export class TwinViewer {
           transparent = true;
         }
       });
+      o.material = Array.isArray(o.material) ? o.material.map(shared) : shared(o.material);
       o.castShadow = !transparent;
       o.receiveShadow = true;
     });
@@ -1494,8 +1668,33 @@ export class TwinViewer {
     });
   }
 
+  /**
+   * Merges each equipment's static opaque parts per material (twin-batch batchEquipment). Rotating
+   * parts, signal lamps, translucent parts and everything outside the equipment stay as they are.
+   */
+  private batchScopeEquipment() {
+    const lamps = new Set<Mesh>();
+    this.signalLamps.forEach((byColor) =>
+      Object.values(byColor).forEach((meshes) => meshes?.forEach((m) => lamps.add(m)))
+    );
+    const eligible = (m: Mesh) =>
+      this.originals.has(m) &&
+      !this.spinMeshes.has(m) &&
+      !this.transparentMeshes.has(m) &&
+      !lamps.has(m);
+    this.entries.forEach(({ holder, structure }) => {
+      if (structure) return;
+      const { group, batches } = batchEquipment(holder, eligible, this.batchGeometries);
+      if (!batches.length) return;
+      this.modelRoot.add(group);
+      this.batches.push(...batches);
+    });
+  }
+
   private clearScope() {
     this.fly = null;
+    this.batches = [];
+    this.renderCost = 0;
     this.labels.splice(0).forEach((l) => {
       l.element.remove();
       l.removeFromParent();
@@ -1575,20 +1774,114 @@ export class TwinViewer {
     const radius = box.getBoundingSphere(new Sphere()).radius;
     // a whole building (~33 x 18 m) must fit when zooming out, a single pump must not drift away
     this.controls.maxDistance = Math.max(MIN_MAX_DISTANCE, radius * MAX_DISTANCE_RADII);
-    this.sun.position.set(
-      center.x - radius * 1.2,
-      center.y + radius * 2.4,
-      center.z + radius * 1.6
-    );
+    this.stageCenter.copy(center);
+    this.stageRadius = radius;
+    this.camera.far = Math.max(300, radius * 20);
+    this.camera.updateProjectionMatrix();
+    this.fitSite();
+    this.updateSky(true);
+    this.placeSun();
+  }
+
+  /**
+   * The daylight on the scope from `lightDir`; its shadow box covers the scope (and, on the site
+   * ground, the longer shadows a lower sun throws around it)
+   */
+  private placeSun() {
+    const center = this.stageCenter;
+    const radius = this.stageRadius;
+    this.sun.position.copy(center).addScaledVector(this.lightDir, radius * 3.12);
     this.sun.target.position.copy(center);
     const cam = this.sun.shadow.camera;
-    cam.left = cam.bottom = -radius * 1.3;
-    cam.right = cam.top = radius * 1.3;
+    const half = radius * (this.siteShown ? 2 : 1.3);
+    cam.left = cam.bottom = -half;
+    cam.right = cam.top = half;
     cam.near = 0.1;
     cam.far = radius * 6;
     cam.updateProjectionMatrix();
-    this.camera.far = Math.max(300, radius * 20);
-    this.camera.updateProjectionMatrix();
+    this.updateShadows();
+  }
+
+  /** The site ground around a scope at ground level, the plain shadow floor and grid elsewhere */
+  private fitSite() {
+    const groundY = this.ground.position.y;
+    const shown = !!this.siteGround && this.entries.length > 0 && groundY < SITE_GROUND_MAX_Y;
+    this.siteShown = shown;
+    if (this.siteGround) {
+      this.siteGround.visible = shown;
+      this.siteGround.position.y = groundY;
+      // past the fog and the far plane in every direction the camera can look from
+      const c = this.stageCenter;
+      sizeSiteGround(this.siteGround, c.x, c.z, this.camera.far * 6);
+    }
+    // the grass takes the shadows
+    this.ground.visible = !shown;
+    this.grid.visible = !shown;
+    const fog = this.scene.fog as Fog;
+    fog.near = this.camera.far * 0.4;
+    fog.far = this.camera.far * 0.85;
+    this.requestRender();
+  }
+
+  /**
+   * Sky, daylight and fog for the plant's time of day now (at most every SKY_MS unless `force`):
+   * the sun's disc where it stands, its light from no lower than 25°; at night the moon's
+   */
+  private updateSky(force = false) {
+    const now = performance.now();
+    if (!force && now - this.skyAt < SKY_MS) return;
+    this.skyAt = now;
+    const { elevation, bearing } = sunAt(hourIn(new Date(), this.timeZone));
+    const look = skyLook(elevation);
+    const moon = elevation < MOON_BELOW;
+    const [low, high] = SUN_LIGHT_ELEVATION;
+    paintSky(this.sky, look, moon ? MOON_DIR : skyDirection(bearing, elevation));
+    this.sun.intensity = look.sun;
+    this.sun.color.copy(look.sunColor);
+    this.hemisphere.intensity = look.hemisphere;
+    this.scene.environmentIntensity = look.environment;
+    (this.scene.fog as Fog).color.copy(look.horizon);
+    const dir = moon ? MOON_DIR : skyDirection(bearing, Math.min(high, Math.max(low, elevation)));
+    // the shadows follow the sun (a shadow map pass); a few minutes of its path move them little
+    if (dir.angleTo(this.lightDir) > 0.01) {
+      this.lightDir.copy(dir);
+      this.placeSun();
+    }
+    this.requestRender();
+  }
+
+  /**
+   * Models with `showWithin` are drawn while the camera is that near their bounds (shown ones hide
+   * again a little further out); the selection's equipment always is. Checked every NEAR_MS (now
+   * with `force`); a change redraws the shadows and reports the drawn equipment.
+   */
+  private updateNearby(force = false) {
+    const now = performance.now();
+    if (!force && now - this.nearAt < NEAR_MS) return false;
+    this.nearAt = now;
+    const eye = this.camera.position;
+    const selected = this.selectedId ? this.objects.get(this.selectedId) : undefined;
+    const keep = selected ? this.chainOf(selected)[0] : null;
+    let limited = false;
+    let changed = false;
+    for (const e of this.entries) {
+      if (!e.showWithin || !e.box) continue;
+      limited = true;
+      const show = e.key === keep || nearbyShown(e.box, eye, e.showWithin, e.holder.visible);
+      if (show === e.holder.visible) continue;
+      e.holder.visible = show;
+      changed = true;
+    }
+    if (changed) this.updateShadows();
+    const ids = limited
+      ? this.entries.filter((e) => !e.structure && e.holder.visible).map((e) => e.key)
+      : null;
+    const key = ids ? ids.join('|') : '*';
+    if (key !== this.nearKey) {
+      this.nearKey = key;
+      this.opts.onNearbyChange?.(ids);
+    }
+    return changed;
   }
 
   /** Re-render the shadow map with the next frame; it is not updated every frame. */
@@ -1652,7 +1945,8 @@ export class TwinViewer {
     // equipment only: structures (translucent walls, roof) never catch or block a pick
     const equipmentRoots = this.equipmentIds.flatMap((id) => {
       const obj = this.objects.get(id);
-      return obj ? [obj] : [];
+      // equipment too far to be drawn (showWithin) is not picked either
+      return obj?.visible ? [obj] : [];
     });
     const hit = (focusObj && hitIn([focusObj])) || hitIn(equipmentRoots);
     // solid walls (orbit view): what they hide can't be picked (walk mode checks its own world)
@@ -1701,7 +1995,17 @@ export class TwinViewer {
       let c = cache.get(m);
       if (!c) {
         c = m.clone();
-        if (solid) Object.assign(c, { transparent: false, opacity: 1, depthWrite: true });
+        // a solid floor or wall now writes depth: pushed back a little, the markings, joints and
+        // labels laid a few mm over it (drawn over the translucent one) don't z-fight with it
+        if (solid)
+          Object.assign(c, {
+            transparent: false,
+            opacity: 1,
+            depthWrite: true,
+            polygonOffset: true,
+            polygonOffsetFactor: 1,
+            polygonOffsetUnits: 4,
+          });
         else Object.assign(c, { transparent: true, opacity: 0.16, depthWrite: false });
         cache.set(m, c);
       }
@@ -1905,13 +2209,34 @@ export class TwinViewer {
     const obj = (id && this.objects.get(id)) || this.modelRoot;
     const box = obj === this.modelRoot ? this.scopeBox() : new Box3().setFromObject(obj);
     if (box.isEmpty()) return;
+    const dir = this.camera.position.clone().sub(this.controls.target);
+    if (dir.lengthSq() < 1e-6 || obj === this.modelRoot) dir.copy(DEFAULT_VIEW_DIR);
+    this.frameBox(box, dir.normalize(), animate);
+  }
+
+  /**
+   * Orbit view: frame the scope entries `keys` (context left out) at once, from `dir` (default:
+   * isometric from the south-west, 35.26 deg up)
+   */
+  frameEntries(keys: readonly string[], dir: readonly [number, number, number] = [-1, 1, 1]) {
+    if (this.walk) return;
+    const box = new Box3();
+    this.entries.forEach((e) => {
+      if (!e.context && keys.includes(e.key)) box.expandByObject(e.holder);
+    });
+    if (box.isEmpty()) return;
+    this.fly = null;
+    this.frameBox(box, new Vector3(...dir).normalize(), false);
+    // the site's proximity drawing follows the new eye even while rAF is paused
+    this.updateNearby(true);
+  }
+
+  /** Camera on `box` from the unit direction `dir`: a jump, or a fly (`animate`) */
+  private frameBox(box: Box3, dir: Vector3, animate: boolean) {
     const sphere = box.getBoundingSphere(new Sphere());
     const vFov = (this.camera.fov * Math.PI) / 180;
     const hFov = 2 * Math.atan(Math.tan(vFov / 2) * this.camera.aspect);
     const dist = (sphere.radius / Math.sin(Math.min(vFov, hFov) / 2)) * 1.05;
-    const dir = this.camera.position.clone().sub(this.controls.target);
-    if (dir.lengthSq() < 1e-6 || obj === this.modelRoot) dir.copy(DEFAULT_VIEW_DIR);
-    dir.normalize();
     if (dir.y < 0.15) dir.setY(0.15).normalize();
     const toTarget = sphere.center.clone();
     const toPos = sphere.center
@@ -1943,10 +2268,14 @@ export class TwinViewer {
     this.modelRoot.updateMatrixWorld(true);
     // the scope's ground (fitStage) is the infinite floor
     const floorY = this.ground.position.y;
+    // the walker collides with the whole scope, also with what is too far to be drawn now
+    const far = this.entries.filter((e) => !e.holder.visible);
+    far.forEach((e) => (e.holder.visible = true));
     this.walkWorld = new WalkWorld(
       this.entries.map((e) => ({ key: e.key, root: e.holder, structure: e.structure })),
       { floorY, killY: floorY - WALK.respawnDepth, isTransparent: this.isLookThrough }
     );
+    far.forEach((e) => (e.holder.visible = false));
     return this.walkWorld;
   }
 
@@ -1993,6 +2322,7 @@ export class TwinViewer {
 
   /** Whether a point lies over the drawn ground square of the scope */
   private onGround(p: Vector3) {
+    if (this.siteShown) return true;
     const { position, scale } = this.ground;
     return Math.abs(p.x - position.x) <= scale.x / 2 && Math.abs(p.z - position.z) <= scale.y / 2;
   }
@@ -2066,6 +2396,18 @@ export class TwinViewer {
     this.applyWalkCamera();
     this.updateWalkTarget(now);
     this.updateWalkMarkers(now);
+    const hold = walk.escHold;
+    const lost = !!hold && now - hold.seen > HOLD_LOST_MS;
+    if (hold && (lost || now - hold.since >= WALK_EXIT_HOLD_MS)) {
+      this.endEscHold();
+      if (!lost) this.opts.onWalkKey?.('Exit');
+    }
+  }
+
+  private endEscHold() {
+    if (!this.walk?.escHold) return;
+    this.walk.escHold = null;
+    this.opts.onWalkExitHold?.(null);
   }
 
   /**
@@ -2284,17 +2626,32 @@ export class TwinViewer {
         e.preventDefault();
         if (!e.repeat) this.opts.onWalkKey?.('F');
         break;
-      case 'Escape':
-        // while locked the browser takes Esc to free the pointer; that key press is not an exit,
-        // nor is the Esc that closes an open drop-down of a dashboard
-        if (!walk.locked && performance.now() - lastUnlockAt > 250 && !this.escapeForWidget)
-          this.opts.onWalkKey?.('Escape');
+      case 'KeyC':
+        e.preventDefault();
+        if (!e.repeat) this.opts.onWalkKey?.('C');
         break;
+      case 'Escape': {
+        // the Esc that closes an open drop-down of a dashboard belongs to it
+        if (this.escapeForWidget) break;
+        const now = performance.now();
+        if (walk.escHold) walk.escHold.seen = now;
+        else {
+          // a repeat without its press: the press freed the pointer (the browser's), and the
+          // hold started then
+          const since = e.repeat && now - lastUnlockAt < HOLD_LOST_MS ? lastUnlockAt : now;
+          walk.escHold = { since, seen: now };
+          this.opts.onWalkExitHold?.(since);
+        }
+        // a press closes one thing; while locked the browser takes it to free the pointer
+        if (!e.repeat && !walk.locked && now - lastUnlockAt > 250) this.opts.onWalkKey?.('Escape');
+        break;
+      }
     }
   };
 
   private handleWalkKeyUp = (e: KeyboardEvent) => {
     this.walk?.keys.delete(e.code);
+    if (e.code === 'Escape') this.endEscHold();
   };
 
   private handleWalkMouseMove = (e: MouseEvent) => {
@@ -2355,6 +2712,7 @@ export class TwinViewer {
     const walk = this.walk;
     if (!walk) return;
     walk.keys.clear();
+    this.endEscHold();
     // the button's release goes to another window: the drag ends here
     this.endWalkPress();
   };
@@ -2393,13 +2751,11 @@ export class TwinViewer {
     this.lastTick = now;
     const spinning = this.spin(dt);
     if (this.stepFlash(now)) this.needsRender = true;
+    this.updateSky();
+    if (this.updateNearby()) this.needsRender = true;
     const tracking = this.amhs.length > 0;
-    const animFrame = now - this.lastRender >= ANIM_FRAME_MS - ANIM_FRAME_SLACK_MS;
-    if (tracking && animFrame) {
-      // the frame's own timestamp on the wall clock: evenly spaced, unlike Date.now() here
-      const clock = performance.timeOrigin + now;
-      this.amhs.forEach((d) => d.step(clock));
-    }
+    const animMs = Math.max(ANIM_FRAME_MS, this.renderCost * RENDER_ANIM_COST_FACTOR);
+    const animFrame = now - this.lastRender >= animMs - ANIM_FRAME_SLACK_MS;
     const walk = this.walk;
     if (walk) this.stepWalk(walk, dt, now);
     // doors open around the player and close once nobody walks
@@ -2427,8 +2783,21 @@ export class TwinViewer {
     ) {
       this.needsRender = false;
       this.lastRender = now;
+      // every drawn frame shows the transport at its own time: a moving camera renders every frame,
+      // so stepping only on animation frames froze the vehicles until the camera stopped
+      if (tracking) {
+        // the frame's own timestamp on the wall clock: evenly spaced, unlike Date.now() here
+        const clock = performance.timeOrigin + now;
+        this.amhs.forEach((d) => d.step(clock));
+      }
+      const started = performance.now();
+      this.sky.position.copy(this.camera.position);
+      for (const b of this.batches) syncBatch(b, BATCHED_LAYER);
       this.renderer.render(this.scene, this.camera);
       this.labelRenderer.render(this.scene, this.camera);
+      // (a frame that compiles shaders or uploads a new scope takes far longer: capped)
+      const cost = Math.min(performance.now() - started, ANIM_COST_CAP_MS);
+      this.renderCost = this.renderCost ? this.renderCost * 0.8 + cost * 0.2 : cost;
       this.renderListeners.forEach((listener) => listener());
     }
   };
@@ -2519,6 +2888,7 @@ export class TwinViewer {
     if (id === this.hoverId) return;
     this.hoverId = id;
     this.applyVisualState();
+    if (this.badgesOnHover) this.applyBadgeVisibility();
     this.opts.onHover?.(id);
   };
 
@@ -2526,6 +2896,7 @@ export class TwinViewer {
     if (this.walk || !this.hoverId) return;
     this.hoverId = null;
     this.applyVisualState();
+    if (this.badgesOnHover) this.applyBadgeVisibility();
     this.opts.onHover?.(null);
   };
 
