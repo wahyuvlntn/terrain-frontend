@@ -3,7 +3,16 @@ import { Alarm, AlertAlarm, AnomalyCircle, Close, Navigate, Power } from '@digit
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { format } from 'date-fns';
-import { ComponentType, ReactNode, SVGProps, useEffect, useRef, useState } from 'react';
+import {
+  ComponentType,
+  ReactNode,
+  Ref,
+  SVGProps,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 
 import { getTwinLiveEvents, TwinEventKind, TwinLiveEvent } from '../../api/digital-twin.api';
 import { leadsInto3D, TwinAssetTarget } from '../../digital-twin.navigation';
@@ -97,7 +106,7 @@ export const useTwinLiveEvents = (enabled: boolean): TwinLiveEventFeed => {
   /** the current outage was reported */
   const failing = useRef(false);
   const [feed, setFeed] = useState(NO_FEED);
-  const { data, dataUpdatedAt, isError } = useQuery({
+  const { data, isError } = useQuery({
     queryKey: ['DIGITAL_TWIN_LIVE_EVENTS'] as const,
     queryFn: async (): Promise<LiveEventsAnswer> => {
       const gen = session.current;
@@ -140,14 +149,16 @@ export const useTwinLiveEvents = (enabled: boolean): TwinLiveEventFeed => {
     setFeed((f) => (f.events.length || f.fresh.length ? { ...NO_FEED, seq: f.seq + 1 } : f));
   }, [enabled]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: one merge per answer (dataUpdatedAt), not per render
+  // one merge per answer: keyed on the answer itself, since two answers can land in the same
+  // millisecond (dataUpdatedAt), e.g. the first answer of a new walk right after a late one
+  // biome-ignore lint/correctness/useExhaustiveDependencies: not per render or enabled flip
   useEffect(() => {
     if (!data || !enabled || data.failed || data.gen !== session.current) return;
     setFeed((prev) => {
       const { events, fresh } = mergeEvents(prev.events, data.events);
       return { events, fresh: data.first ? [] : fresh, seq: prev.seq + 1 };
     });
-  }, [dataUpdatedAt]);
+  }, [data]);
 
   const quietFailure = !!data?.failed && data.gen === session.current;
   return { ...feed, isError: enabled && (isError || quietFailure) };
@@ -314,11 +325,19 @@ export const addToasts = (
   return next.slice(0, MAX_TOASTS);
 };
 
+/** What the page can do with the toasts: Esc dismisses the newest (false when there is none) */
+export type WalkToastsHandle = { dismissNewest: () => boolean };
+
 /**
  * Toast for every event that came in while walking (newest on top, at most 3, repeats counted on
  * one toast), auto-dismissed
  */
-export const WalkEventToasts = ({ feed, targetOf, onTeleport }: EventsProps) => {
+export const WalkEventToasts = ({
+  feed,
+  targetOf,
+  onTeleport,
+  handleRef,
+}: EventsProps & { handleRef?: Ref<WalkToastsHandle> }) => {
   const now = useNow(5000);
   const [toasts, setToasts] = useState<WalkToastItem[]>([]);
 
@@ -329,6 +348,18 @@ export const WalkEventToasts = ({ feed, targetOf, onTeleport }: EventsProps) => 
   }, [feed.seq]);
 
   const dismiss = (key: string) => setToasts((prev) => prev.filter((t) => t.key !== key));
+  useImperativeHandle(
+    handleRef,
+    () => ({
+      dismissNewest: () => {
+        if (!toasts.length) return false;
+        // the newest is on top
+        setToasts((prev) => prev.slice(1));
+        return true;
+      },
+    }),
+    [toasts]
+  );
   const goId = eventToVisit(feed.events, targetOf)?.id;
 
   return (

@@ -10,13 +10,23 @@ import {
   UserMan,
 } from '@digital-twin/icons';
 import clsx from 'clsx';
-import { KeyboardEvent, SVGProps, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  CSSProperties,
+  KeyboardEvent,
+  Ref,
+  SVGProps,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { TwinAssetTarget } from '../../digital-twin.navigation';
 import { TwinNode } from '../../digital-twin.types';
-import { WalkLookMode } from '../../viewer/twin-viewer';
+import { WALK_EXIT_HOLD_MS, WalkLookMode } from '../../viewer/twin-viewer';
 import { TeleportEquipment, TeleportLocation, TeleportMenu } from './teleport-menu';
 import styles from './walk.module.scss';
-import { TwinLiveEventFeed, WalkEventList, WalkEventToasts } from './walk-events';
+import { TwinLiveEventFeed, WalkEventList, WalkEventToasts, WalkToastsHandle } from './walk-events';
 
 const HELP_KEY = 'digitalTwin.walkHelpOpen';
 /** without a stored choice the controls help starts open on a view at least this wide (px) */
@@ -68,12 +78,22 @@ const controlsFor = (lookMode: WalkLookMode): [string, string][] => [
   lookMode === 'drag'
     ? ['E / click', 'Select what the crosshair / the cursor points at']
     : ['E / click', 'Select what the crosshair points at'],
-  ['T', 'Ask the AI assistant'],
+  ['T', 'Ask LEVO'],
   ['G', 'Go to the newest live event'],
   ['Tab', 'Teleport menu'],
   ['F', 'Full screen on / off'],
-  ['Esc', lookMode === 'drag' ? 'Leave walk mode' : 'Free the mouse; again to leave walk mode'],
+  ['C', 'Show / hide these controls'],
+  [
+    'Esc',
+    lookMode === 'drag'
+      ? 'Close the dashboard, then the newest notification'
+      : 'Free the mouse; then close the dashboard, then the newest notification',
+  ],
+  ['Hold Esc', `Leave walk mode (${WALK_EXIT_HOLD_MS / 1000} s)`],
 ];
+
+/** a hold shorter than this is a press: the exit progress shows only after it */
+const HOLD_SHOW_MS = 250;
 
 /** Material "fullscreen exit" glyph (the icon set has no exit variant of Fullscreen) */
 const FullscreenExit = (props: SVGProps<SVGSVGElement>) => (
@@ -85,75 +105,104 @@ const FullscreenExit = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** Crosshair in the view centre with the name and tag of what it points at */
-const Crosshair = ({
-  target,
-  locked,
-  lookMode,
-}: {
-  target?: TwinNode;
-  locked: boolean;
-  lookMode: WalkLookMode;
-}) => {
-  const tag = target?.props.dt_tag ? String(target.props.dt_tag) : '';
+/**
+ * Esc held to leave walk mode: a bar filling up to the exit (`since` on performance.now), shown
+ * once the key is held longer than a press
+ */
+const ExitHold = ({ since }: { since: number }) => {
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(
+      () => setShown(true),
+      Math.max(0, HOLD_SHOW_MS - (performance.now() - since))
+    );
+    return () => clearTimeout(timer);
+  }, [since]);
+  if (!shown) return null;
+  const style = {
+    '--hold-ms': `${WALK_EXIT_HOLD_MS}ms`,
+    // the bar starts as far along as the hold is
+    '--hold-delay': `${-Math.min(WALK_EXIT_HOLD_MS, performance.now() - since)}ms`,
+  } as CSSProperties;
   return (
-    <div className={styles['walk-aim']} aria-hidden={!target}>
-      <div className={clsx(styles['walk-aim__cross'], target && styles['walk-aim__cross--on'])} />
-      {target ? (
-        <div className={styles['walk-aim__target']} role="status">
-          <strong>{target.name}</strong>
-          {tag && tag !== target.name ? <em>{tag}</em> : null}
-          <span>
-            <kbd className={styles['walk-key']}>E</kbd> select
-          </span>
-        </div>
-      ) : null}
-      {!locked ? (
-        <div className={styles['walk-aim__hint']}>
-          {lookMode === 'drag'
-            ? 'Drag to look around · click to select'
-            : 'Click the view to look around'}{' '}
-          · <kbd className={styles['walk-key']}>Esc</kbd> leaves walk mode
-        </div>
-      ) : null}
+    <div className={styles['walk-exit']} role="status" style={style}>
+      <span>
+        Keep holding <kbd className={styles['walk-key']}>Esc</kbd> to leave walk mode
+      </span>
+      <i aria-hidden="true" />
     </div>
   );
 };
 
 /**
- * Controls help: a key list that folds to a single chip. The choice is remembered per browser;
- * before there is one, it starts open unless the view is narrow (it would cover much of it).
+ * Crosshair in the view centre. What it points at (name, tag) shows at the bottom of the view, not
+ * under the crosshair where it would cover the view, with the hints and the Esc hold below it.
  */
-const WalkHelp = ({ lookMode }: { lookMode: WalkLookMode }) => {
-  const ref = useRef<HTMLElement>(null);
-  const [open, setOpen] = useState(() => readHelpOpen() ?? true);
-  useLayoutEffect(() => {
-    const width = ref.current?.parentElement?.clientWidth ?? 0;
-    if (readHelpOpen() === null && width && width < HELP_OPEN_MIN_WIDTH) setOpen(false);
-  }, []);
-  const toggle = () =>
-    setOpen((o) => {
-      try {
-        window.localStorage.setItem(HELP_KEY, String(!o));
-      } catch {
-        // storage unavailable: the choice just isn't remembered
-      }
-      return !o;
-    });
+const Crosshair = ({
+  target,
+  locked,
+  lookMode,
+  exitHold,
+}: {
+  target?: TwinNode;
+  locked: boolean;
+  lookMode: WalkLookMode;
+  exitHold: number | null;
+}) => {
+  const tag = target?.props.dt_tag ? String(target.props.dt_tag) : '';
   return (
-    <section
-      ref={ref}
-      className={clsx(styles['walk-panel'], styles['walk-help'])}
-      aria-label="Walk controls"
-    >
+    <div className={styles['walk-aim']}>
+      <div
+        className={clsx(styles['walk-aim__cross'], target && styles['walk-aim__cross--on'])}
+        aria-hidden="true"
+      />
+      <div className={styles['walk-aim__bottom']}>
+        {target ? (
+          <div className={styles['walk-aim__target']} role="status">
+            <strong>{target.name}</strong>
+            {tag && tag !== target.name ? <em>{tag}</em> : null}
+            <span>
+              <kbd className={styles['walk-key']}>E</kbd> select
+            </span>
+          </div>
+        ) : null}
+        {exitHold !== null ? <ExitHold since={exitHold} /> : null}
+        {!locked ? (
+          <div className={styles['walk-aim__hint']}>
+            {lookMode === 'drag'
+              ? 'Drag to look around · click to select'
+              : 'Click the view to look around'}{' '}
+            · hold <kbd className={styles['walk-key']}>Esc</kbd> to leave walk mode
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+};
+
+/** Controls help: a key list that folds to a single chip (C toggles it, see WalkHud) */
+const WalkHelp = ({
+  lookMode,
+  open,
+  onToggle,
+}: {
+  lookMode: WalkLookMode;
+  open: boolean;
+  onToggle: () => void;
+}) => {
+  return (
+    <section className={clsx(styles['walk-panel'], styles['walk-help'])} aria-label="Walk controls">
       <button
         type="button"
         className={styles['walk-help__toggle']}
         aria-expanded={open}
-        onClick={toggle}
+        aria-keyshortcuts="C"
+        onClick={onToggle}
       >
         <Keypad aria-hidden="true" />
-        <span>Controls</span>
+        <span>
+          Controls <kbd className={styles['walk-key']}>C</kbd>
+        </span>
         {open ? <ChevronDown aria-hidden="true" /> : <ChevronUp aria-hidden="true" />}
       </button>
       {open ? (
@@ -170,9 +219,19 @@ const WalkHelp = ({ lookMode }: { lookMode: WalkLookMode }) => {
   );
 };
 
+/** What the page can do with the HUD from walk-mode keys: C, and an Esc with nothing else open */
+export type WalkHudHandle = {
+  toggleHelp: () => void;
+  /** dismiss the newest live event toast; false when there is none */
+  dismissToast: () => boolean;
+};
+
 type WalkHudProps = {
   /** mouse look is on (pointer locked) */
   locked: boolean;
+  /** Esc held to leave walk mode since this time (performance.now), else null */
+  exitHold: number | null;
+  handleRef?: Ref<WalkHudHandle>;
   /** pointer lock, or drag-look when the browser refuses pointer lock */
   lookMode: WalkLookMode;
   /** full screen (F): on / off and the toggle (runs in the click, a user gesture) */
@@ -208,6 +267,8 @@ type WalkHudProps = {
  */
 export const WalkHud = ({
   locked,
+  exitHold,
+  handleRef,
   lookMode,
   fullscreen,
   target,
@@ -248,6 +309,28 @@ export const WalkHud = ({
       host.style.removeProperty(INSET_TOP_VAR);
     };
   }, []);
+
+  // the controls help: remembered per browser; before there is a choice it starts open unless
+  // the view is narrow (it would cover much of it)
+  const [helpOpen, setHelpOpen] = useState(() => readHelpOpen() ?? true);
+  useLayoutEffect(() => {
+    const width = rootRef.current?.clientWidth ?? 0;
+    if (readHelpOpen() === null && width && width < HELP_OPEN_MIN_WIDTH) setHelpOpen(false);
+  }, []);
+  const toggleHelp = () =>
+    setHelpOpen((o) => {
+      try {
+        window.localStorage.setItem(HELP_KEY, String(!o));
+      } catch {
+        // storage unavailable: the choice just isn't remembered
+      }
+      return !o;
+    });
+  const toastsRef = useRef<WalkToastsHandle>(null);
+  useImperativeHandle(handleRef, () => ({
+    toggleHelp,
+    dismissToast: () => toastsRef.current?.dismissNewest() ?? false,
+  }));
 
   const count = events.feed.events.length;
   return (
@@ -328,13 +411,14 @@ export const WalkHud = ({
           </section>
         ) : null}
       </div>
-      <Crosshair target={target} locked={locked} lookMode={lookMode} />
-      <WalkHelp lookMode={lookMode} />
+      <Crosshair target={target} locked={locked} lookMode={lookMode} exitHold={exitHold} />
+      <WalkHelp lookMode={lookMode} open={helpOpen} onToggle={toggleHelp} />
       {events.available ? (
         <WalkEventToasts
           feed={events.feed}
           targetOf={events.targetOf}
           onTeleport={events.onTeleport}
+          handleRef={toastsRef}
         />
       ) : null}
     </div>
