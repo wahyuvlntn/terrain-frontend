@@ -2,21 +2,18 @@ import { TooltipContent } from '@digital-twin/components';
 import {
   ArrowUp,
   ChartMonitoring,
+  Checkbox,
+  CheckboxFill,
+  DisplaySettings,
+  DisplaySettingsFill,
   Flowsheet,
   FlowsheetFill,
-  HideEye,
   Home,
-  Layers,
-  LayersFill,
-  Palette,
-  ShowEyeFill,
-  Tags,
-  TagsFill,
   UserMan,
   UserManFill,
 } from '@digital-twin/icons';
 import clsx from 'clsx';
-import { PointerEvent, ReactNode, useRef, useState } from 'react';
+import { PointerEvent, ReactNode, useEffect, useId, useRef, useState } from 'react';
 
 import styles from '../digital-twin.module.scss';
 
@@ -194,11 +191,98 @@ const WalkButton = ({ walking, disabled, onToggle, onDrag, onDrop, onCancel }: W
   );
 };
 
+type ViewOption = {
+  label: string;
+  /** what on / off means, for the accessible name and the tooltip */
+  title: string;
+  on: boolean;
+  onToggle: () => void;
+};
+
+/**
+ * The view's on / off choices (isolate, tags, labels, tint, walls) folded into one toolbar button:
+ * a menu to its left. Esc or a press outside closes it.
+ */
+const ViewOptions = ({ options }: { options: ViewOption[] }) => {
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const outside = (e: globalThis.PointerEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', outside);
+    return () => document.removeEventListener('pointerdown', outside);
+  }, [open]);
+  return (
+    <div
+      ref={rootRef}
+      className={styles['twin-toolbar__item']}
+      onKeyDown={(e) => {
+        if (e.key !== 'Escape' || !open) return;
+        // the menu's Esc goes no further (up one level, walk mode)
+        e.stopPropagation();
+        setOpen(false);
+        buttonRef.current?.focus();
+      }}
+    >
+      <button
+        ref={buttonRef}
+        type="button"
+        aria-label="View options"
+        aria-expanded={open}
+        aria-controls={id}
+        className={clsx(
+          styles['twin-toolbar__button'],
+          open && styles['twin-toolbar__button--active']
+        )}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {open ? <DisplaySettingsFill /> : <DisplaySettings />}
+      </button>
+      {open ? (
+        <div
+          id={id}
+          role="group"
+          aria-label="View options"
+          className={styles['twin-toolbar__menu']}
+        >
+          {options.map((o) => (
+            <button
+              key={o.label}
+              type="button"
+              aria-pressed={o.on}
+              aria-label={o.title}
+              title={o.title}
+              className={styles['twin-toolbar__option']}
+              onClick={o.onToggle}
+            >
+              {o.on ? <CheckboxFill aria-hidden="true" /> : <Checkbox aria-hidden="true" />}
+              <span>{o.label}</span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <TooltipContent
+          position="right"
+          content="View options"
+          className={styles['twin-toolbar__tip']}
+          contentStyle={{ fontSize: 14, lineHeight: '20px' }}
+        />
+      )}
+    </div>
+  );
+};
+
 type TwinToolbarProps = {
   /** walk mode (first person): on / off and its drag-to-land handlers */
   walk: WalkDragHandlers & { walking: boolean; disabled?: boolean; onToggle: () => void };
   isolate: boolean;
   showTags: boolean;
+  /** orbit view: equipment names and statuses only on the hovered equipment */
+  labelsOnHover: boolean;
   /** 3D equipment tinted by its live status (standby, trip, maintenance, offline) */
   statusTint: boolean;
   /** building walls, slabs and roofs translucent (true) or solid (false) */
@@ -211,6 +295,7 @@ type TwinToolbarProps = {
   onReset: () => void;
   onToggleIsolate: () => void;
   onToggleTags: () => void;
+  onToggleLabelsOnHover: () => void;
   onToggleStatusTint: () => void;
   onToggleSeeThrough: () => void;
   onToggleDashboard: () => void;
@@ -221,6 +306,7 @@ export const TwinToolbar = ({
   walk,
   isolate,
   showTags,
+  labelsOnHover,
   statusTint,
   seeThrough,
   dashboard,
@@ -229,6 +315,7 @@ export const TwinToolbar = ({
   onReset,
   onToggleIsolate,
   onToggleTags,
+  onToggleLabelsOnHover,
   onToggleStatusTint,
   onToggleSeeThrough,
   onToggleDashboard,
@@ -245,30 +332,6 @@ export const TwinToolbar = ({
       onClick={onReset}
     >
       <Home />
-    </ToolbarButton>
-    <ToolbarButton title="Isolate selection" active={isolate} onClick={onToggleIsolate}>
-      {isolate ? <LayersFill /> : <Layers />}
-    </ToolbarButton>
-    <ToolbarButton title="Show instrument tags" active={showTags} onClick={onToggleTags}>
-      {showTags ? <TagsFill /> : <Tags />}
-    </ToolbarButton>
-    <ToolbarButton
-      title="Status tint (standby, trip, maintenance, offline)"
-      active={statusTint}
-      onClick={onToggleStatusTint}
-    >
-      <Palette />
-    </ToolbarButton>
-    <ToolbarButton
-      title={
-        seeThrough
-          ? 'See-through walls: on (click for solid walls)'
-          : 'See-through walls: off, walls are solid (click to see through them)'
-      }
-      active={seeThrough}
-      onClick={onToggleSeeThrough}
-    >
-      {seeThrough ? <ShowEyeFill /> : <HideEye />}
     </ToolbarButton>
     <ToolbarButton
       title={
@@ -298,5 +361,43 @@ export const TwinToolbar = ({
     >
       {overview ? <FlowsheetFill /> : <Flowsheet />}
     </ToolbarButton>
+    <ViewOptions
+      options={[
+        {
+          label: 'Isolate selection',
+          title: 'Isolate selection',
+          on: isolate,
+          onToggle: onToggleIsolate,
+        },
+        {
+          label: 'Instrument tags',
+          title: 'Show instrument tags',
+          on: showTags,
+          onToggle: onToggleTags,
+        },
+        {
+          label: 'Names & status on hover only',
+          title: labelsOnHover
+            ? 'Equipment names and status (orbit view): on hover only (click to always show them)'
+            : 'Equipment names and status (orbit view): always shown (click to show them on hover only)',
+          on: labelsOnHover,
+          onToggle: onToggleLabelsOnHover,
+        },
+        {
+          label: 'Status tint',
+          title: 'Status tint (standby, trip, maintenance, offline)',
+          on: statusTint,
+          onToggle: onToggleStatusTint,
+        },
+        {
+          label: 'See-through walls',
+          title: seeThrough
+            ? 'See-through walls: on (click for solid walls)'
+            : 'See-through walls: off, walls are solid (click to see through them)',
+          on: seeThrough,
+          onToggle: onToggleSeeThrough,
+        },
+      ]}
+    />
   </div>
 );

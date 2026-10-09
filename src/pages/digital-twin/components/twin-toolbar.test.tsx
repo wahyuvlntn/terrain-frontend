@@ -47,12 +47,14 @@ const setup = () => {
       walk={walk}
       isolate={false}
       showTags={false}
+      labelsOnHover={false}
       statusTint={false}
       seeThrough
       onUp={vi.fn()}
       onReset={vi.fn()}
       onToggleIsolate={vi.fn()}
       onToggleTags={vi.fn()}
+      onToggleLabelsOnHover={vi.fn()}
       onToggleStatusTint={vi.fn()}
       onToggleSeeThrough={vi.fn()}
       onToggleDashboard={vi.fn()}
@@ -90,18 +92,22 @@ describe('See-through walls button', () => {
         }}
         isolate={false}
         showTags={false}
+        labelsOnHover={false}
         statusTint={false}
         seeThrough={seeThrough}
         onUp={vi.fn()}
         onReset={vi.fn()}
         onToggleIsolate={vi.fn()}
         onToggleTags={vi.fn()}
+        onToggleLabelsOnHover={vi.fn()}
         onToggleStatusTint={vi.fn()}
         onToggleSeeThrough={onToggleSeeThrough}
         onToggleDashboard={vi.fn()}
         onToggleOverview={vi.fn()}
       />
     );
+    // the view's on / off choices are in the View options menu
+    fireEvent.click(screen.getByRole('button', { name: 'View options' }));
     return {
       onToggleSeeThrough,
       button: screen.getByRole('button', { name: /^See-through walls/ }),
@@ -120,6 +126,28 @@ describe('See-through walls button', () => {
     const { button } = renderWith(false);
     expect(button.getAttribute('aria-pressed')).toBe('false');
     expect(button.getAttribute('aria-label')).toMatch(/walls are solid/);
+  });
+});
+
+describe('View options menu', () => {
+  it('opens beside the toolbar and closes on Esc without the key going further', () => {
+    setup();
+    const opener = screen.getByRole('button', { name: 'View options' });
+    expect(screen.queryByRole('group', { name: 'View options' })).toBeNull();
+    fireEvent.click(opener);
+    expect(opener.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByRole('button', { name: /^Equipment names and status/ })).toBeTruthy();
+    const outer = vi.fn();
+    document.addEventListener('keydown', outer);
+    try {
+      fireEvent.keyDown(screen.getByRole('button', { name: /^Isolate selection/ }), {
+        key: 'Escape',
+      });
+    } finally {
+      document.removeEventListener('keydown', outer);
+    }
+    expect(outer).not.toHaveBeenCalled();
+    expect(screen.queryByRole('group', { name: 'View options' })).toBeNull();
   });
 });
 
