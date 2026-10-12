@@ -17,6 +17,10 @@ export type TwinModelRef = {
   context?: boolean;
   /** Also drawn in the views of the location's sub-locations (the cleanroom shell around a bay) */
   enclosing?: boolean;
+  /** With `context`: a stand-in (massing) for this location, left out where it is drawn itself */
+  represents?: string;
+  /** A building's inside (not its envelope): the site view draws it only near the camera */
+  interior?: boolean;
 };
 
 /** A parameter shown on a display face, with its label */
@@ -108,6 +112,16 @@ export type TwinSceneModel = {
    * cleanroom shell, ceiling and wafer transport around each of its bays).
    */
   enclosing?: boolean;
+  /**
+   * With `context`: the massing stands in for this location (by name), so a view that draws that
+   * location itself (the site with both buildings) leaves it out
+   */
+  represents?: string;
+  /**
+   * With `structure`: inside a building (a floor, a room shell inside the envelope, its services),
+   * so the site view draws it only while the camera is near (equipment too); the envelope always
+   */
+  interior?: boolean;
 };
 
 /** A set of models sharing one coordinate frame (e.g. a chiller plant and its condenser water loop) */

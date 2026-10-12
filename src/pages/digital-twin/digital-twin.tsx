@@ -14,6 +14,7 @@ import {
   keepControlKeys,
   useTwinLiveEvents,
   WalkHud,
+  WalkHudHandle,
   WalkPanel,
 } from './components/walk';
 import { hasPlant, TWIN_NODE_OF_ASSET } from './digital-twin.bms';
@@ -172,6 +173,8 @@ const DigitalTwinView = () => {
     setStatusTint,
     seeThrough,
     setSeeThrough,
+    labelsOnHover,
+    setLabelsOnHover,
     selectNode,
     goUp,
     resetView,
@@ -180,6 +183,7 @@ const DigitalTwinView = () => {
     note,
     showNote,
     walk,
+    exitHold,
     walkTarget,
     toggleWalk,
     previewWalk,
@@ -235,6 +239,7 @@ const DigitalTwinView = () => {
    */
   const plantAvailable = useMemo(() => hasPlant(tree), [tree]);
   const overviewShown = overviewOpen && plantAvailable;
+  const dashboardShown = !!overlay && dashboardOpen && !overviewShown && !isLoading;
   const closeOverview = useCallback(() => setOverviewOpen(false), [setOverviewOpen]);
   /** a unit clicked in the overview: select its 3D equipment so its dashboard shows */
   const showUnit = useCallback(
@@ -254,6 +259,8 @@ const DigitalTwinView = () => {
   const feed = useTwinLiveEvents(walking && !replay);
   /** the HUD's drop-down: teleport menu or the recent events */
   const [walkPanel, setWalkPanel] = useState<WalkPanel>(null);
+  /** the HUD's controls help (C) and event toasts (Esc) */
+  const hudRef = useRef<WalkHudHandle>(null);
   useEffect(() => {
     if (!walking) setWalkPanel(null);
   }, [walking]);
@@ -302,10 +309,19 @@ const DigitalTwinView = () => {
       case 'Tab':
         setWalkPanel((p) => (p === 'teleport' ? null : 'teleport'));
         break;
+      case 'C':
+        hudRef.current?.toggleHelp();
+        break;
       case 'Escape':
-        // Esc closes the HUD's drop-down, then the plant overview (its own handler), then leaves
+        // a press closes one thing: the HUD's drop-down, the plant overview (its own handler),
+        // the dashboard, else the newest live event notification. Holding Esc leaves (Exit).
         if (walkPanel) setWalkPanel(null);
-        else if (!overviewShown) exitWalk();
+        else if (overviewShown) break;
+        else if (dashboardShown) setDismissedKey(selectionKey);
+        else hudRef.current?.dismissToast();
+        break;
+      case 'Exit':
+        exitWalk();
         break;
     }
   };
@@ -372,7 +388,7 @@ const DigitalTwinView = () => {
               Drag: orbit · Right-drag: pan · Wheel: zoom
               <br />
               Walk button (person): walk through the plant in first person; drag it onto the view to
-              choose where to land. F while walking: full screen
+              choose where to land. F while walking: full screen, C: controls, hold Esc: leave
             </>
           }
         />
@@ -423,7 +439,9 @@ const DigitalTwinView = () => {
           />
           {walking ? (
             <WalkHud
+              handleRef={hudRef}
               locked={walk.locked}
+              exitHold={exitHold}
               lookMode={walk.lookMode}
               fullscreen={{ on: fullscreen.immersive, onToggle: toggleFullscreen }}
               target={walkTarget}
@@ -461,12 +479,14 @@ const DigitalTwinView = () => {
             }}
             isolate={isolate}
             showTags={showTags}
+            labelsOnHover={labelsOnHover}
             statusTint={statusTint}
             seeThrough={seeThrough}
             onUp={goUp}
             onReset={resetView}
             onToggleIsolate={() => setIsolate((v) => !v)}
             onToggleTags={() => setShowTags((v) => !v)}
+            onToggleLabelsOnHover={() => setLabelsOnHover(!labelsOnHover)}
             onToggleStatusTint={() => setStatusTint(!statusTint)}
             onToggleSeeThrough={() => setSeeThrough(!seeThrough)}
             dashboard={overlay ? dashboardOpen && !overviewShown : undefined}
@@ -480,7 +500,7 @@ const DigitalTwinView = () => {
             overview={plantAvailable ? overviewOpen : undefined}
             onToggleOverview={() => setOverviewOpen((v) => !v)}
           />
-          {overlay && dashboardOpen && !overviewShown && !isLoading ? (
+          {overlay && dashboardShown ? (
             <TwinOverlay
               viewerRef={viewerRef}
               nodeId={overlay.nodeId}

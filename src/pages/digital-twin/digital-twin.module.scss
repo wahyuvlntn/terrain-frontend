@@ -94,7 +94,7 @@
   flex-direction: column;
   min-height: 0;
   background: $background-low;
-  border: 1px solid $border-light;
+  // border: 1px solid $border-light;
   border-radius: 8px;
   overflow: hidden;
 
@@ -403,6 +403,55 @@
     }
   }
 
+  // the view options menu, left of the toolbar
+  &__menu {
+    position: absolute;
+    top: -4px;
+    right: calc(100% + 10px);
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: max-content;
+    padding: 4px;
+    border-radius: 8px;
+    background: $background-highest;
+    border: 1px solid $border-light;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: $neutral-text-title-heading;
+    font: inherit;
+    font-size: 14px;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+
+    svg {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      color: $neutral-text-label;
+    }
+
+    &[aria-pressed='true'] svg {
+      color: $brand-surface-default-primary;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: $background-high;
+    }
+  }
+
   // person following the pointer while the walk button is dragged (green / red over a valid /
   // invalid landing spot)
   &__ghost {
@@ -440,6 +489,11 @@
 // walk mode: the canvas owns the pointer (mouse look) and the hover tag is the crosshair's
 .viewport--walk {
   border-color: $brand-surface-default-primary;
+
+  // the crosshair's target, the hints and the Esc hold take the bottom centre
+  .viewport__notice {
+    bottom: calc(var(--twin-inset-bottom, 12px) + 96px);
+  }
 }
 
 .twin-badge {
@@ -511,16 +565,24 @@
     overflow: auto;
     color: $neutral-text-body-neutral;
 
+    // left padding keeps the selection bar clear of the expand chevron
     :global(.MuiTreeItem-content) {
-      padding: 3px 4px;
-      border-radius: 6px;
+      padding: 3px 4px 3px 8px;
     }
 
+    // hover and keyboard focus in the theme's colors, not MUI's default grey overlays
+    :global(.MuiTreeItem-content:hover),
+    :global(.MuiTreeItem-content.Mui-focused) {
+      background: $background-default;
+    }
+
+    // selected like a Table row: raised background and the brand bar on the left
     :global(.MuiTreeItem-content.Mui-selected),
     :global(.MuiTreeItem-content.Mui-selected:hover),
     :global(.MuiTreeItem-content.Mui-selected.Mui-focused) {
-      background: $brand-surface-light-primary;
-      color: $brand-surface-default-primary;
+      background: $background-high;
+      box-shadow: inset 4px 0 0 $brand-surface-default-primary;
+      color: $neutral-text-title-heading;
     }
 
     :global(.MuiTreeItem-iconContainer) svg {
@@ -677,7 +739,7 @@
       }
 
       &:hover {
-        background: $background-high;
+        background: $background-default;
       }
     }
   }

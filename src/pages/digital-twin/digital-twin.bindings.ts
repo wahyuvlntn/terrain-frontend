@@ -31,6 +31,7 @@ export const CHILLER_PARAMS: TwinParamMap = {
   'COND-01': 'cond_approach',
   'EVAP-01': 'evap_approach',
   'IGV-01': 'load_pct',
+  // exterior-only model: the impeller tag sits on the inlet casing over it
   'CMP-01-IMP': 'vibration',
 };
 
@@ -103,13 +104,11 @@ export const PCW_LOOP_PARAMS: TwinParamMap = branchFlows(11, 'PCWP', 4);
 
 /**
  * CDA compressor GLB (compressor-zr315.glb, shared by CDA-01 / CDA-02) -> Atlas Copco ZR compressor
- * model parameters. The 13xx package instruments are local to every unit; `prefix` is the re-tagged
- * unit tag (CDA-0n) of the motor, VSD, controller, elements, intercooler and dryer.
+ * model parameters. The model is exterior only: the motor, element, intercooler and dryer tags sit on
+ * the canopy panels over them. The 13xx package instruments (outside the canopy) are local to every
+ * unit; `prefix` is the re-tagged unit tag (CDA-0n).
  */
 export const compressorParams = (prefix: string): TwinParamMap => ({
-  'TT-1301': 'lp_elem_temp',
-  'TT-1302': 'intercooler_temp',
-  'TT-1303': 'hp_elem_temp',
   'TT-1304': 'cooling_water_temp',
   'PT-1301': 'discharge_press',
   'MT-1301': 'dew_point',
@@ -170,10 +169,7 @@ export const COMPRESSOR_SCREENS: TwinScreenConfig = {
   vfd: { alias: 'motor_current', label: 'Motor' },
 };
 
-/**
- * The compressor's screw rotors, dryer drum and canopy fan turn with the VSD load (the GLB's
- * dt_spin_rps is the rate at 100 %)
- */
+/** The compressor's canopy fan turns with the VSD load (the GLB's dt_spin_rps is the rate at 100 %) */
 export const COMPRESSOR_MOTION: TwinMotion = { param: 'load_pct', full: 100 };
 
 /** FAB1 make-up air unit: unit-prefixed tags are re-tagged when the shared model is placed. */
