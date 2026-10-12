@@ -1,6 +1,7 @@
 import { format, parseISO } from 'date-fns';
 
-import type { LotStatus, ProductionLosses, ToolType } from './api/production.api';
+import { TwinViewOptions, twinUrl } from '../digital-twin/digital-twin.navigation';
+import type { Lot, LotFilter, LotStatus, ProductionLosses, ToolType } from './api/production.api';
 
 /** Time windows of the page (hours) */
 export const WINDOWS = [
@@ -10,6 +11,89 @@ export const WINDOWS = [
   { value: '720', label: 'Last 30 days' },
 ] as const;
 export const DEFAULT_WINDOW = 24;
+
+/** Lot filters of the lots tab */
+export const LOT_FILTERS: { value: LotFilter; label: string }[] = [
+  { value: 'wip', label: 'In the fab' },
+  { value: 'hold', label: 'On hold' },
+  { value: 'done', label: 'Completed' },
+  { value: 'all', label: 'All lots' },
+];
+
+/** Windows of the quality tab (hours) */
+export const QUALITY_WINDOWS = [
+  { value: '24', label: '24 h' },
+  { value: '168', label: '7 days' },
+  { value: '720', label: '30 days' },
+];
+
+/** Windows of the tool timeline (hours) */
+export const TIMELINE_WINDOWS = [
+  { value: '12', label: '12 h' },
+  { value: '24', label: '24 h' },
+  { value: '72', label: '3 days' },
+  { value: '168', label: '7 days' },
+];
+
+export const oneOf = <T extends string>(
+  raw: string | null,
+  values: readonly T[],
+  fallback: T
+): T => ((values as readonly string[]).includes(raw ?? '') ? (raw as T) : fallback);
+
+/** A text parameter, trimmed; '' when longer than `max` */
+const textParam = (raw: string | null, max: number) => {
+  const v = (raw ?? '').trim();
+  return v.length <= max ? v : '';
+};
+
+// The tabs' filters live in the URL (assistant links, reload): `?tab=lots&lot-status=hold`
+
+/** The lots tab's filters in the URL, else the defaults */
+export const lotsFilters = (p: URLSearchParams) => ({
+  filter: oneOf(
+    p.get('lot-status'),
+    LOT_FILTERS.map((f) => f.value),
+    'wip'
+  ),
+  search: textParam(p.get('lot-search'), 40),
+  selected: textParam(p.get('lot'), 40) || null,
+});
+
+/** The quality tab's filters in the URL, else the defaults */
+export const qualityFilters = (p: URLSearchParams) => {
+  const tool = p.get('quality-tool') ?? '';
+  return {
+    charKey: textParam(p.get('char'), 40),
+    hours: oneOf(
+      p.get('quality-window'),
+      QUALITY_WINDOWS.map((w) => w.value),
+      '168'
+    ),
+    toolId: /^\d+$/.test(tool) ? tool : '',
+  };
+};
+
+/** The tool timeline's window in the URL, else 24 h */
+export const timelineWindow = (p: URLSearchParams) =>
+  oneOf(
+    p.get('timeline-window'),
+    TIMELINE_WINDOWS.map((w) => w.value),
+    '24'
+  );
+
+/**
+ * The URL params with a tab's own filters (`[key, value, default]`) written in, a default left
+ * out; null when the URL has them already
+ */
+export const withFilters = (params: URLSearchParams, filters: [string, string, string][]) => {
+  const next = new URLSearchParams(params);
+  for (const [key, value, fallback] of filters) {
+    if (value && value !== fallback) next.set(key, value);
+    else next.delete(key);
+  }
+  return next.toString() === params.toString() ? null : next;
+};
 
 /** Days of the daily trend for a window: two weeks, or the window when longer */
 export const trendDays = (hours: number) => Math.max(14, Math.ceil(hours / 24));
@@ -181,5 +265,29 @@ export const fmtDays = (d: number | null | undefined) =>
 /** Equipment alias shown as its tag (ETCH_01 -> ETCH-01) */
 export const toolTag = (alias: string | null | undefined) => (alias ?? '').replace(/_/g, '-');
 
-/** Digital twin focused on an equipment */
-export const twinLink = (alias: string) => `/digital-twin?asset=${encodeURIComponent(alias)}`;
+/** The fab whose scope production links open in the twin (resolved by name: ids come from the database) */
+export const FAB_LOCATION_NAME = 'FAB1 Wafer Fab';
+
+/** How production opens the twin: the whole fab stays visible, plain labels on hover */
+export const PRODUCTION_TWIN_VIEW: TwinViewOptions = {
+  isolate: false,
+  tags: false,
+  hover: true,
+  tint: true,
+  seeThrough: false,
+};
+
+/** Digital twin: walking in the fab scope (when known, else the tool's bay) next to the equipment */
+export const twinLink = (alias: string, fabLocationId?: number | null) =>
+  twinUrl({ locationId: fabLocationId, asset: alias, walk: true, view: PRODUCTION_TWIN_VIEW });
+
+/**
+ * Where a lot's FOUP is in 3D: the tool of the load port it sits on (`TOOL:n`) or the batch tool it
+ * is inside; in a stocker (not selectable) the lot's tool. Null for lots that left the fab.
+ */
+export const lotTwinAsset = (lot: Pick<Lot, 'status' | 'location' | 'equipmentAlias'>) => {
+  if (lot.status === 'DONE' || lot.status === 'SCRAPPED') return null;
+  const loc = lot.location;
+  if (loc && !loc.startsWith('STK-')) return /^(.+):\d+$/.exec(loc)?.[1] ?? loc;
+  return lot.equipmentAlias ?? null;
+};
