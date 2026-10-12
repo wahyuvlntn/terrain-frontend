@@ -2,13 +2,8 @@ import { STATUS_COLOR, StatusEnum } from '@digital-twin/components';
 import { MutableRefObject, useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { TwinAsset, TwinParameter } from './api/digital-twin.api';
-import {
-  LIVE_MS,
-  useTwinAmhs,
-  useTwinAssets,
-  useTwinOverview,
-  useTwinParameterSets,
-} from './digital-twin.queries';
+import { AMHS_MOTION } from './digital-twin.motion';
+import { LIVE_MS, useTwinAmhs, useTwinAssets, useTwinOverview } from './digital-twin.queries';
 import { signalOf } from './digital-twin.signal';
 import { useTwinSource } from './digital-twin.source';
 import { TwinLocation, TwinNode, TwinScreenRow } from './digital-twin.types';
@@ -63,6 +58,8 @@ type LiveArgs = {
   statusTint: boolean;
   /** the rendered scope has OHT vehicles (FAB1 cleanroom) */
   transport?: boolean;
+  /** the equipment the viewer draws now (the site view leaves far interiors out), null: all */
+  nearby?: readonly string[] | null;
 };
 
 /** a transport state saved longer ago than this is stale (simulator stopped): the vehicles park */
@@ -81,11 +78,13 @@ export const useTwinLive = ({
   selectNode,
   statusTint,
   transport = false,
+  nearby = null,
 }: LiveArgs) => {
   const replay = useTwinSource().replay;
 
-  // simulated overhead transport: the vehicles and FOUPs follow the simulator's plans
-  const amhs = useTwinAmhs(transport);
+  // simulated overhead transport: the vehicles and FOUPs follow the simulator's plans (in 'loop'
+  // motion they run a schedule of their own and nothing is fetched)
+  const amhs = useTwinAmhs(transport && AMHS_MOTION === 'parametric');
   /** server minus client clock: the median of the recent estimates (the viewer eases into changes) */
   const offsets = useRef<number[]>([]);
   useEffect(() => {
@@ -150,7 +149,7 @@ export const useTwinLive = ({
   /** a paused replay is a still frame: nothing turns */
   const frozen = !!replay && !replay.playing;
 
-  // moving parts (pump couplings, compressor impellers, tower fans) turn while their equipment
+  // moving parts (pump couplings, compressor canopy fans, tower fans) turn while their equipment
   // runs: at full speed, or at the live speed of equipment with a motion parameter
   useEffect(() => {
     const live = new Map((motionData ?? []).map((a) => [a.alias, a]));
@@ -197,29 +196,33 @@ export const useTwinLive = ({
     );
   }, [viewerRef, equipment, assetOf, statusTint]);
 
-  // live values on the HMI / VFD display faces of every bound equipment that has them
+  // live values on the HMI / VFD display faces of every bound equipment that has them (and is
+  // drawn: the site view leaves far equipment out, so its screens aren't polled)
+  const near = useMemo(() => (nearby ? new Set(nearby) : null), [nearby]);
   const screenEquipment = useMemo(
     () =>
       equipment.flatMap((eq) => {
         const screens = locations.get(eq.id)?.node.screens;
-        const asset = screens ? assetOf(eq.id) : undefined;
+        const asset = screens && (!near || near.has(eq.id)) ? assetOf(eq.id) : undefined;
         return screens && asset ? [{ id: eq.id, asset, screens }] : [];
       }),
-    [equipment, locations, assetOf]
+    [equipment, locations, assetOf, near]
   );
-  const { sets: screenSets, version: screenVersion } = useTwinParameterSets(
-    screenEquipment.map(({ asset }) => asset.id)
+  // one batched call for every screen (not one parameter list per equipment)
+  const screenAliases = useMemo(
+    () => [...new Set(screenEquipment.map(({ asset }) => asset.alias))].sort(),
+    [screenEquipment]
   );
-  // biome-ignore lint/correctness/useExhaustiveDependencies: redraw when any screen's parameters refresh (screenVersion), not on every render
+  const { data: screenData } = useTwinOverview(screenAliases, LIVE_MS.parameters);
   useEffect(() => {
     const viewer = viewerRef.current;
-    if (!viewer) return;
-    screenEquipment.forEach(({ id, asset, screens }, i) => {
-      const params = screenSets[i];
+    if (!viewer || !screenData) return;
+    const live = new Map(screenData.map((a) => [a.alias, a.params]));
+    screenEquipment.forEach(({ id, asset, screens }) => {
+      const params = live.get(asset.alias);
       if (!params) return;
-      const byAlias = new Map(params.map((p) => [p.alias, p]));
       const row = ({ alias, label }: TwinScreenRow): [string, string] => {
-        const p = byAlias.get(alias);
+        const p = params[alias];
         return [label, p ? `${formatParamValue(p)} ${p.unit}`.trim() : '--'];
       };
       const status = statusLabel(asset.status).toUpperCase();
@@ -228,7 +231,7 @@ export const useTwinLive = ({
       if (screens.vfd)
         viewer.setScreenRows(id, 'VFD_Display', [row(screens.vfd)], status, statusColor);
     });
-  }, [viewerRef, screenEquipment, screenVersion]);
+  }, [viewerRef, screenEquipment, screenData]);
 
   /** equipment node that owns a node of the drill-down hierarchy */
   const equipmentOf = useCallback(

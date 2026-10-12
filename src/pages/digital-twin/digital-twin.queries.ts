@@ -17,6 +17,7 @@ import {
   getTwinControlRequests,
   getTwinLiveOverview,
   getTwinParameterTrend,
+  getTwinToolActivity,
   TwinAsset,
   TwinParameter,
 } from './api/digital-twin.api';
@@ -43,16 +44,19 @@ export const TWIN_QUERY = {
   controls: (assetId: number) => ['DIGITAL_TWIN_CONTROLS', assetId] as const,
   /** simulated overhead transport (FAB1 OHT vehicles and FOUPs) */
   amhs: ['DIGITAL_TWIN_AMHS'] as const,
+  /** a FAB1 process tool's runs (in process and of the last 24 h) */
+  tool: (assetId: number) => ['DIGITAL_TWIN_TOOL', assetId] as const,
 };
 
 export const LIVE_MS = {
   assets: 10_000,
-  parameters: 20_000,
+  parameters: 30_000,
   summary: 15_000,
   trend: 10_000,
   controls: 10_000,
   motion: 5_000,
   amhs: 3_000,
+  tool: 15_000,
 };
 
 /** Live metadata loaded once per replay (names, units, decimals, limits, controls) */
@@ -107,54 +111,6 @@ export const useTwinParameters = (assetId: number) => {
   );
   if (!replay) return { data: live.data, isLoading: live.isLoading };
   return { data: replayed, isLoading: !replayed && (replay.isLoading || template.isLoading) };
-};
-
-/**
- * Parameter lists of several equipment (HMI / VFD screens). `version` changes whenever any list
- * does, for effects that redraw on refresh.
- */
-export const useTwinParameterSets = (assetIds: readonly number[]) => {
-  const source = useTwinSource();
-  const replay = source.replay;
-  const live = useQueries({
-    queries: assetIds.map((id) => ({
-      queryKey: [...TWIN_QUERY.parameters(id), source.key],
-      queryFn: () => getTwinAssetParameters(id),
-      enabled: !replay,
-      refetchInterval: source.poll ? LIVE_MS.parameters : (false as const),
-      refetchOnWindowFocus: false,
-    })),
-  });
-  const templates = useQueries({
-    queries: assetIds.map((id) => parametersTemplate(id, !!replay)),
-  });
-  const index = replay?.index;
-  const step = replay?.step ?? 0;
-  const tplVersion = templates.map((q) => q.dataUpdatedAt).join();
-  const idsKey = assetIds.join();
-  // biome-ignore lint/correctness/useExhaustiveDependencies: the template results are a new array every render; tplVersion / idsKey say when they changed
-  const replayed = useMemo(
-    () =>
-      index
-        ? assetIds.map((id, i) => {
-            const tpl = templates[i];
-            return tpl?.data || tpl?.isError
-              ? replayParameters(index, id, step, tpl.data)
-              : undefined;
-          })
-        : [],
-    [index, step, tplVersion, idsKey]
-  );
-  if (!replay) {
-    return {
-      sets: live.map((q) => q.data),
-      version: live.map((q) => q.dataUpdatedAt).join(),
-    };
-  }
-  return {
-    sets: replayed,
-    version: `${index?.jobId ?? ''}:${index?.variant ?? ''}:${step}:${tplVersion}`,
-  };
 };
 
 /** Batched state and values of several equipment, in the requested order */
@@ -333,4 +289,20 @@ export const useReplayControlEvents = (alias: string, limit: number) => {
     () => (index && limit > 0 ? replayEventsOf(index, alias, ['control'], step, limit) : []),
     [index, alias, step, limit]
   );
+};
+
+/**
+ * What a FAB1 process tool is doing (live only: a replay has no lots). Asked once for any
+ * equipment; polled on while it is a tool.
+ */
+export const useTwinToolActivity = (assetId: number) => {
+  const source = useTwinSource();
+  const { data } = useQuery({
+    queryKey: [...TWIN_QUERY.tool(assetId), source.key],
+    queryFn: () => getTwinToolActivity(assetId),
+    enabled: !source.replay,
+    refetchInterval: (q) => (source.poll && q.state.data?.tool ? LIVE_MS.tool : false),
+    refetchOnWindowFocus: false,
+  });
+  return source.replay ? undefined : data;
 };
