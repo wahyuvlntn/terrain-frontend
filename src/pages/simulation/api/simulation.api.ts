@@ -319,15 +319,29 @@ export const SIM_QUERY = {
 export type ListJobsParams = {
   status?: readonly SimJobStatus[];
   origin?: SimJobOrigin;
+  /** job kinds (empty = all) */
+  kind?: readonly SimJobKind[];
   /** ≤ 100 (backend default 20) */
   limit?: number;
   offset?: number;
 };
 
-export const listJobs = async ({ status, origin, limit = 20, offset = 0 }: ListJobsParams = {}) => {
+export const listJobs = async ({
+  status,
+  origin,
+  kind,
+  limit = 20,
+  offset = 0,
+}: ListJobsParams = {}) => {
   const data = await jsRequest({
     url: '/simulation/listjobs',
-    data: { status: status?.length ? status.join(',') : undefined, origin, limit, offset },
+    data: {
+      status: status?.length ? status.join(',') : undefined,
+      origin,
+      kind: kind?.length ? kind.join(',') : undefined,
+      limit,
+      offset,
+    },
   });
   return z
     .object({ total: z.number(), jobs: z.array(jobRowSchema) })
