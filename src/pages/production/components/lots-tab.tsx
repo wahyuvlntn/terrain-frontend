@@ -7,10 +7,11 @@ import {
   Search,
   Table,
 } from '@digital-twin/components';
-import { InformationCircle, Layers } from '@digital-twin/icons';
+import { Cube, InformationCircle, Layers } from '@digital-twin/icons';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import {
   getLot,
@@ -28,31 +29,28 @@ import {
   fmtDuration,
   fmtInt,
   fmtTime,
+  LOT_FILTERS,
   LOT_STATUS_COLOR,
   LOT_STATUS_LABEL,
+  lotsFilters,
+  lotTwinAsset,
   stepBase,
   toolTag,
+  withFilters,
 } from '../production.utils';
-import { Empty, Facts, Pill } from './shared';
-
-const FILTERS: { value: LotFilter; label: string }[] = [
-  { value: 'wip', label: 'In the fab' },
-  { value: 'hold', label: 'On hold' },
-  { value: 'done', label: 'Completed' },
-  { value: 'all', label: 'All lots' },
-];
+import { Empty, Facts, Pill, useTwinLink } from './shared';
 
 const COLUMNS = [
   { key: 'lot', name: 'Lot' },
-  { key: 'product', name: 'Product', width: 84 },
-  { key: 'status', name: 'Status', width: 116 },
+  { key: 'product', name: 'Product', width: 76 },
+  { key: 'status', name: 'Status', width: 100 },
   { key: 'step', name: 'Step' },
-  { key: 'layer', name: 'Layer', width: 84 },
-  { key: 'tool', name: 'Tool', width: 90 },
-  { key: 'wafers', name: 'Wafers', width: 74 },
-  { key: 'progress', name: 'Progress', width: 108 },
-  { key: 'released', name: 'Released', width: 116 },
-  { key: 'cycle', name: 'Cycle time', width: 100 },
+  { key: 'layer', name: 'Layer', width: 64 },
+  { key: 'tool', name: 'Tool', width: 76 },
+  { key: 'wafers', name: 'Wafers', width: 68 },
+  { key: 'progress', name: 'Progress', width: 96 },
+  { key: 'released', name: 'Released', width: 92 },
+  { key: 'cycle', name: 'Cycle time', width: 88 },
 ];
 
 const PAGE_SIZE = 25;
@@ -75,12 +73,30 @@ const TRANSFER_KIND: Record<string, string> = {
   ship: 'Shipped',
 };
 
+/** What the lot's twin button says: where its FOUP is and where the walk starts */
+const lotTwinTitle = (l: Lot, asset: string) =>
+  l.location?.startsWith('STK-')
+    ? `Lot ${l.lotCode} waits in stocker ${l.location} (not shown in 3D): walk to its tool ${toolTag(asset)} in the digital twin`
+    : `Walk to lot ${l.lotCode}'s FOUP (${foupPlace(l.location ?? asset)}) in the digital twin`;
+
 /** Lots in the module or completed: table and the selected lot's route, history, metrology and scrap */
-export const LotsTab = () => {
-  const [filter, setFilter] = useState<LotFilter>('wip');
-  const [search, setSearch] = useState('');
+export const LotsTab = ({ canViewTwin = false }: { canViewTwin?: boolean }) => {
+  const twinLink = useTwinLink();
+  const [url, setUrl] = useSearchParams();
+  const [filter, setFilter] = useState<LotFilter>(() => lotsFilters(url).filter);
+  const [search, setSearch] = useState(() => lotsFilters(url).search);
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(() => lotsFilters(url).selected);
+  // the tab's filters live in the URL (assistant links, reload); defaults are left out
+  // biome-ignore lint/correctness/useExhaustiveDependencies: written on the filters' change only
+  useEffect(() => {
+    const next = withFilters(url, [
+      ['lot-status', filter, 'wip'],
+      ['lot-search', search, ''],
+      ['lot', selected ?? '', ''],
+    ]);
+    if (next) setUrl(next, { replace: true });
+  }, [filter, search, selected]);
   const params = { status: filter, search, page, limit: PAGE_SIZE };
   const lots = useQuery({
     queryKey: PRODUCTION_QUERY.lots(params),
@@ -92,65 +108,84 @@ export const LotsTab = () => {
   const now = Date.now();
   const rows = useMemo(
     () =>
-      (lots.data?.data ?? []).map((l: Lot) => ({
-        id: l.lotCode,
-        lot: (
-          <span>
-            <b>{l.lotCode}</b>
-            {l.priority === 1 ? (
-              <>
-                {' '}
-                <Pill color="critical" title="Hot lot (priority 1)">
-                  hot
-                </Pill>
-              </>
-            ) : null}
-            {l.reworkCount ? (
-              <>
-                {' '}
-                <Pill
-                  color="warning"
-                  title={`${l.reworkCount} rework${l.reworkCount === 1 ? '' : 's'}`}
+      (lots.data?.data ?? []).map((l: Lot) => {
+        const asset = canViewTwin ? lotTwinAsset(l) : null;
+        return {
+          id: l.lotCode,
+          lot: (
+            <span className={styles.lotCell}>
+              <span>
+                <b className={styles.lotCode}>{l.lotCode}</b>
+                {l.priority === 1 ? (
+                  <>
+                    {' '}
+                    <Pill color="critical" title="Hot lot (priority 1)">
+                      hot
+                    </Pill>
+                  </>
+                ) : null}
+                {l.reworkCount ? (
+                  <>
+                    {' '}
+                    <Pill
+                      color="warning"
+                      title={`${l.reworkCount} rework${l.reworkCount === 1 ? '' : 's'}`}
+                    >
+                      rework
+                    </Pill>
+                  </>
+                ) : null}
+              </span>
+              {asset ? (
+                <Link
+                  to={twinLink(asset)}
+                  className={styles.twinLink}
+                  title={lotTwinTitle(l, asset)}
+                  aria-label={lotTwinTitle(l, asset)}
+                  // opening the twin, not selecting the row
+                  onClick={(ev) => ev.stopPropagation()}
                 >
-                  rework
-                </Pill>
-              </>
-            ) : null}
-          </span>
-        ),
-        product: l.productCode,
-        status: <Pill color={LOT_STATUS_COLOR[l.status]}>{LOT_STATUS_LABEL[l.status]}</Pill>,
-        step: (
-          <span title={l.holdReason ?? l.stepName ?? undefined}>
-            {l.status === 'DONE'
-              ? 'Fab out'
-              : l.status === 'SCRAPPED'
-                ? 'Scrapped'
-                : `${l.stepCode ?? '--'} · ${l.stepName ?? ''}`}
-          </span>
-        ),
-        layer: l.status === 'DONE' || l.status === 'SCRAPPED' ? '--' : (l.layer ?? '--'),
-        tool: l.equipmentAlias ? toolTag(l.equipmentAlias) : '--',
-        wafers: l.wafers === l.wafersStart ? String(l.wafers) : `${l.wafers} / ${l.wafersStart}`,
-        progress:
-          l.status === 'DONE' ? '100 %' : `${fmtDec(l.progressPct, 0)} % · ${l.seq}/${l.steps}`,
-        released: fmtTime(l.releasedAt),
-        cycle: (
-          <span title={l.dueAt ? `Due ${fmtTime(l.dueAt)}` : undefined}>
-            {fmtDays(l.cycleTimeDays)}
-            {l.late ? (
-              <>
-                {' '}
-                <Pill color="critical" title="Past its due date">
-                  late
-                </Pill>
-              </>
-            ) : null}
-          </span>
-        ),
-      })),
-    [lots.data]
+                  <Cube width={16} height={16} />
+                </Link>
+              ) : null}
+            </span>
+          ),
+          product: l.productCode,
+          status: <Pill color={LOT_STATUS_COLOR[l.status]}>{LOT_STATUS_LABEL[l.status]}</Pill>,
+          step: (
+            <span title={l.holdReason ?? l.stepName ?? undefined}>
+              {l.status === 'DONE'
+                ? 'Fab out'
+                : l.status === 'SCRAPPED'
+                  ? 'Scrapped'
+                  : `${l.stepCode ?? '--'} · ${l.stepName ?? ''}`}
+            </span>
+          ),
+          layer: l.status === 'DONE' || l.status === 'SCRAPPED' ? '--' : (l.layer ?? '--'),
+          tool: l.equipmentAlias ? toolTag(l.equipmentAlias) : '--',
+          wafers: l.wafers === l.wafersStart ? String(l.wafers) : `${l.wafers} / ${l.wafersStart}`,
+          progress:
+            l.status === 'DONE' ? '100 %' : `${fmtDec(l.progressPct, 0)} % · ${l.seq}/${l.steps}`,
+          released: fmtTime(l.releasedAt),
+          cycle: (
+            <span title={l.dueAt ? `Due ${fmtTime(l.dueAt)}` : undefined}>
+              {fmtDays(l.cycleTimeDays)}
+              {l.late ? (
+                <>
+                  {' '}
+                  <Pill color="critical" title="Past its due date">
+                    late
+                  </Pill>
+                </>
+              ) : null}
+            </span>
+          ),
+        };
+      }),
+    [lots.data, canViewTwin, twinLink]
   );
+  // the chosen lot, else the first one: the detail panel never sits empty
+  const shown = selected ?? rows[0]?.id ?? null;
   const change = (apply: () => void) => {
     apply();
     setPage(1);
@@ -164,7 +199,7 @@ export const LotsTab = () => {
           variant="medium"
           background="dark"
           value={filter}
-          options={FILTERS}
+          options={LOT_FILTERS}
           onChange={(v) => change(() => setFilter(v as LotFilter))}
           wrapperClassName={styles.filter}
         />
@@ -172,7 +207,8 @@ export const LotsTab = () => {
           placeholder="Search lot code"
           background="dark"
           value={search}
-          onChange={(v) => change(() => setSearch(v.trim()))}
+          // at most 40 characters, as lotsFilters reads it back from the URL
+          onChange={(v) => change(() => setSearch(v.trim().slice(0, 40)))}
           wrapperClassName={styles.search}
         />
         <span className={styles.muted}>{lots.data ? `${fmtInt(lots.data.count)} lots` : ''}</span>
@@ -194,7 +230,7 @@ export const LotsTab = () => {
                 rows={rows}
                 selectable
                 selectVariant="highlight"
-                selectedRowIds={selected ? [selected] : []}
+                selectedRowIds={shown ? [shown] : []}
                 onSelectRow={(id, isSelected) => setSelected(isSelected ? id : null)}
               />
             ) : (
@@ -212,14 +248,15 @@ export const LotsTab = () => {
           </div>
         </Container>
         <Container
-          title={selected ? `Lot ${selected}` : 'Lot detail'}
+          data-nav-section="lot-detail"
+          title={shown ? `Lot ${shown}` : 'Lot detail'}
           icon={<InformationCircle />}
           background="none"
           className={styles.split__side}
           contentWrapperProps={{ style: { overflow: 'hidden', gap: 12, minHeight: 0 } }}
         >
-          {selected ? (
-            <LotDetailPanel key={selected} code={selected} now={now} />
+          {shown ? (
+            <LotDetailPanel key={shown} code={shown} now={now} />
           ) : (
             <Empty>Select a lot</Empty>
           )}
@@ -333,7 +370,7 @@ const LotDetailPanel = ({ code, now }: { code: string; now: number }) => {
             return (
               <tr
                 key={s.id}
-                className={s.isRework ? 'rework' : undefined}
+                className={s.isRework ? styles.rework : undefined}
                 title={s.isRework ? 'Rework' : undefined}
               >
                 <td title={s.operation}>

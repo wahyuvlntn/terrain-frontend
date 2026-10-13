@@ -9,7 +9,8 @@ import {
 import { ParetoChart, SPCChart, TableChart } from '@digital-twin/icons';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import ReactECharts, { EChartsOption } from 'echarts-for-react';
-import { useContext, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import {
   getQuality,
@@ -22,7 +23,16 @@ import {
 } from '../api/production.api';
 import { chartAxis, chartTooltip } from '../production.charts';
 import styles from '../production.module.scss';
-import { fmtDec, fmtInt, fmtPct, fmtTime, toolTag } from '../production.utils';
+import {
+  fmtDec,
+  fmtInt,
+  fmtPct,
+  fmtTime,
+  QUALITY_WINDOWS,
+  qualityFilters,
+  toolTag,
+  withFilters,
+} from '../production.utils';
 import { Empty, Pill, Tile } from './shared';
 
 const DISPOSITION: Record<string, string> = {
@@ -35,12 +45,6 @@ const DISPOSITION: Record<string, string> = {
     'Particle and pattern defect adders since the previous inspection on 1 - 2 wafers (30 - 100 % of the lots by layer). Over 30: hold the tool that added most, scrub and inspect again once, then scrap the two worst wafers.',
   wat: 'Wafer acceptance test of every wafer of every finished lot: share of the scribe-line parametric test sites in specification (Vt, Idsat, leakage, contact / via chains, sheet resistances). Below 92 %: the wafer is scrapped.',
 };
-
-const WINDOWS = [
-  { value: '24', label: '24 h' },
-  { value: '168', label: '7 days' },
-  { value: '720', label: '30 days' },
-];
 
 const SpcChart = ({ q }: { q: ProductionQuality }) => {
   const { colors } = useContext(ThemeContext);
@@ -237,9 +241,20 @@ const cpkColor = (cpk: number | null, n: number) =>
  * capability summary of every characteristic.
  */
 export const QualityTab = ({ tools }: { tools: ProductionTool[] }) => {
-  const [charKey, setCharKey] = useState('');
-  const [hours, setHours] = useState('168');
-  const [toolId, setToolId] = useState('');
+  const [url, setUrl] = useSearchParams();
+  const [charKey, setCharKey] = useState(() => qualityFilters(url).charKey);
+  const [hours, setHours] = useState(() => qualityFilters(url).hours);
+  const [toolId, setToolId] = useState(() => qualityFilters(url).toolId);
+  // the tab's filters live in the URL (assistant links, reload); defaults are left out
+  // biome-ignore lint/correctness/useExhaustiveDependencies: written on the filters' change only
+  useEffect(() => {
+    const next = withFilters(url, [
+      ['char', charKey, ''],
+      ['quality-window', hours, '168'],
+      ['quality-tool', toolId, ''],
+    ]);
+    if (next) setUrl(next, { replace: true });
+  }, [charKey, hours, toolId]);
   const keys = useQuery({
     queryKey: PRODUCTION_QUERY.qualityKeys(Number(hours)),
     queryFn: () => getQualityKeys(Number(hours)),
@@ -247,8 +262,12 @@ export const QualityTab = ({ tools }: { tools: ProductionTool[] }) => {
     placeholderData: keepPreviousData,
     meta: { toastId: 'productionQualityKeys' },
   });
+  // a char key the window doesn't have (an old link) falls back like none
   const key =
-    charKey || keys.data?.find((k) => k.fails > 0)?.charKey || keys.data?.[0]?.charKey || '';
+    (charKey && keys.data?.some((k) => k.charKey === charKey) ? charKey : '') ||
+    keys.data?.find((k) => k.fails > 0)?.charKey ||
+    keys.data?.[0]?.charKey ||
+    '';
   const meta = keys.data?.find((k) => k.charKey === key);
   const params = {
     charKey: key,
@@ -322,7 +341,7 @@ export const QualityTab = ({ tools }: { tools: ProductionTool[] }) => {
           variant="medium"
           background="dark"
           value={hours}
-          options={WINDOWS}
+          options={QUALITY_WINDOWS}
           onChange={(v) => {
             setHours(v);
             setToolId('');
@@ -371,6 +390,7 @@ export const QualityTab = ({ tools }: { tools: ProductionTool[] }) => {
         />
       </div>
       <Container
+        data-nav-section="characteristic"
         title={title}
         icon={<SPCChart />}
         titleSuffixIcon={info ? <InfoTooltip title={title} content={info} /> : undefined}
@@ -387,6 +407,7 @@ export const QualityTab = ({ tools }: { tools: ProductionTool[] }) => {
       </Container>
       <div className={styles.grid2}>
         <Container
+          data-nav-section="capability"
           title="Capability by chamber"
           icon={<TableChart />}
           background="none"
@@ -447,6 +468,7 @@ export const QualityTab = ({ tools }: { tools: ProductionTool[] }) => {
           )}
         </Container>
         <Container
+          data-nav-section="scrap"
           title="Scrap by reason"
           icon={<ParetoChart />}
           background="none"
@@ -460,6 +482,7 @@ export const QualityTab = ({ tools }: { tools: ProductionTool[] }) => {
         </Container>
       </div>
       <Container
+        data-nav-section="capability-summary"
         title="Capability summary (lowest Cpk first)"
         icon={<TableChart />}
         background="none"
@@ -486,6 +509,7 @@ export const QualityTab = ({ tools }: { tools: ProductionTool[] }) => {
                     setCharKey(k.charKey);
                     setToolId('');
                   }}
+                  className={k.charKey === key ? styles.toolTable__selected : undefined}
                   style={{ cursor: 'pointer' }}
                 >
                   <td title={k.name ?? undefined}>

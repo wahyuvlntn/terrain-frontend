@@ -11,9 +11,8 @@ import {
   STATUS_BADGE,
   TOOL_TYPE_LABEL,
   toolTag,
-  twinLink,
 } from '../production.utils';
-import { Empty, FactorBar, Pill } from './shared';
+import { Empty, FactorBar, Pill, useTwinLink } from './shared';
 
 type ToolTableProps = {
   tools: ProductionTool[];
@@ -27,6 +26,7 @@ type ToolTableProps = {
  * chambers available, queue, the window's A / O / R / Q / OEE, throughput and scrap.
  */
 export const ToolTable = ({ tools, now, canViewTwin }: ToolTableProps) => {
+  const twinLink = useTwinLink();
   if (!tools.length) return <Empty>No process tools in your locations</Empty>;
   return (
     <table className={styles.toolTable}>
@@ -52,7 +52,6 @@ export const ToolTable = ({ tools, now, canViewTwin }: ToolTableProps) => {
           >
             Scrap / rework
           </th>
-          {canViewTwin ? <th /> : null}
         </tr>
       </thead>
       <tbody>
@@ -62,9 +61,22 @@ export const ToolTable = ({ tools, now, canViewTwin }: ToolTableProps) => {
           return (
             <tr key={t.id}>
               <td>
-                <div className={styles.toolTable__tool}>
-                  <b>{toolTag(t.alias)}</b>
-                  <span className={styles.muted}>{TOOL_TYPE_LABEL[t.toolType]}</span>
+                <div className={styles.toolTable__name}>
+                  <div className={styles.toolTable__tool}>
+                    <b>{toolTag(t.alias)}</b>
+                    <span className={styles.muted}>{TOOL_TYPE_LABEL[t.toolType]}</span>
+                  </div>
+                  {/* first column: the jump into the twin stays in view in the wide table */}
+                  {canViewTwin ? (
+                    <Link
+                      to={twinLink(t.alias)}
+                      className={styles.twinLink}
+                      title={`Walk to ${toolTag(t.alias)} in the digital twin`}
+                      aria-label={`Walk to ${toolTag(t.alias)} in the digital twin`}
+                    >
+                      <Cube width={18} height={18} />
+                    </Link>
+                  ) : null}
                 </div>
               </td>
               <td>
@@ -132,17 +144,6 @@ export const ToolTable = ({ tools, now, canViewTwin }: ToolTableProps) => {
               <td className={styles.toolTable__num}>
                 {fmtInt(t.scrapped)} / {fmtInt(t.reworked)}
               </td>
-              {canViewTwin ? (
-                <td>
-                  <Link
-                    to={twinLink(t.alias)}
-                    className={styles.link}
-                    title={`Show ${toolTag(t.alias)} in the digital twin`}
-                  >
-                    <Cube width={18} height={18} />
-                  </Link>
-                </td>
-              ) : null}
             </tr>
           );
         })}

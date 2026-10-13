@@ -68,6 +68,7 @@ export const OverviewTab = ({
     <div className={styles.scroll}>
       <div className={styles.grid2}>
         <Container
+          data-nav-section="oee-losses"
           title="OEE losses"
           icon={<ParetoChart />}
           titleSuffixIcon={<InfoTooltip title="OEE losses" content={LOSS_INFO} />}
@@ -83,6 +84,7 @@ export const OverviewTab = ({
           )}
         </Container>
         <Container
+          data-nav-section="oee-trend"
           title={`OEE trend (${days} days)`}
           icon={<ChartLine />}
           background="none"
@@ -97,6 +99,7 @@ export const OverviewTab = ({
           )}
         </Container>
         <Container
+          data-nav-section="outs"
           title="Wafer outs and moves per day"
           icon={<BarChart />}
           background="none"
@@ -110,6 +113,7 @@ export const OverviewTab = ({
           )}
         </Container>
         <Container
+          data-nav-section="wip-area"
           title="WIP by process area"
           icon={<StackBarChart />}
           background="none"
@@ -123,6 +127,7 @@ export const OverviewTab = ({
           )}
         </Container>
         <Container
+          data-nav-section="cycle-time"
           title={`Cycle time and WIP (${days} days)`}
           icon={<ChartLine />}
           background="none"
@@ -136,6 +141,7 @@ export const OverviewTab = ({
           )}
         </Container>
         <Container
+          data-nav-section="line-profile"
           title="Line profile (WIP by mask layer)"
           icon={<StackBarChart />}
           titleSuffixIcon={<InfoTooltip title="Line profile" content={LINE_INFO} />}
@@ -151,6 +157,7 @@ export const OverviewTab = ({
         </Container>
       </div>
       <Container
+        data-nav-section="products"
         title="Products"
         icon={<BarChart />}
         titleSuffixIcon={<InfoTooltip title="Products" content={PRODUCT_INFO} />}
@@ -202,6 +209,7 @@ export const OverviewTab = ({
         )}
       </Container>
       <Container
+        data-nav-section="tool-table"
         title="Production tools"
         icon={<MachineDetails />}
         background="none"

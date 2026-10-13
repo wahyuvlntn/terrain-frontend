@@ -2,7 +2,8 @@ import { Container, Dropdown, InfoTooltip, Loading, ThemeContext } from '@digita
 import { BarChartH, ScheduleChart } from '@digital-twin/icons';
 import { useQuery } from '@tanstack/react-query';
 import ReactECharts, { EChartsOption } from 'echarts-for-react';
-import { useContext, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import {
   getTimeline,
@@ -19,16 +20,16 @@ import {
   stateColors,
 } from '../production.charts';
 import styles from '../production.module.scss';
-import { E10_LABEL, TOOL_TYPE_LABEL, toolTag } from '../production.utils';
+import {
+  E10_LABEL,
+  TIMELINE_WINDOWS,
+  TOOL_TYPE_LABEL,
+  timelineWindow,
+  toolTag,
+  withFilters,
+} from '../production.utils';
 import { Empty } from './shared';
 import { ToolTimeline } from './tool-timeline';
-
-const TIMELINE_WINDOWS = [
-  { value: '12', label: '12 h' },
-  { value: '24', label: '24 h' },
-  { value: '72', label: '3 days' },
-  { value: '168', label: '7 days' },
-];
 
 const TIMELINE_INFO =
   'Each tool: its SEMI E10 state (the band) and its runs above it. Hover a bar for the lot, step and times; drag or scroll to zoom the time axis.';
@@ -140,7 +141,14 @@ type ToolsTabProps = {
 /** Tool time states and runs (Gantt), OEE by tool and by tool type */
 export const ToolsTab = ({ tools, overview, now }: ToolsTabProps) => {
   const { colors } = useContext(ThemeContext);
-  const [hours, setHours] = useState('24');
+  const [url, setUrl] = useSearchParams();
+  const [hours, setHours] = useState(() => timelineWindow(url));
+  // the window lives in the URL (assistant links, reload); the default is left out
+  // biome-ignore lint/correctness/useExhaustiveDependencies: written on the window's change only
+  useEffect(() => {
+    const next = withFilters(url, [['timeline-window', hours, '24']]);
+    if (next) setUrl(next, { replace: true });
+  }, [hours]);
   const timeline = useQuery({
     queryKey: PRODUCTION_QUERY.timeline(Number(hours)),
     queryFn: () => getTimeline(Number(hours)),
@@ -153,6 +161,7 @@ export const ToolsTab = ({ tools, overview, now }: ToolsTabProps) => {
   return (
     <div className={styles.scroll}>
       <Container
+        data-nav-section="timeline"
         title="Tool time states and runs"
         icon={<ScheduleChart />}
         titleSuffixIcon={<InfoTooltip title="Timeline" content={TIMELINE_INFO} />}
@@ -199,6 +208,7 @@ export const ToolsTab = ({ tools, overview, now }: ToolsTabProps) => {
       </Container>
       <div className={styles.grid2}>
         <Container
+          data-nav-section="oee-by-tool"
           title="OEE by tool"
           icon={<BarChartH />}
           background="none"
@@ -207,6 +217,7 @@ export const ToolsTab = ({ tools, overview, now }: ToolsTabProps) => {
           {tools.length ? <ToolFactors tools={tools} /> : <Empty>No process tools</Empty>}
         </Container>
         <Container
+          data-nav-section="oee-by-type"
           title="OEE by tool type"
           icon={<BarChartH />}
           background="none"
