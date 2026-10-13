@@ -36,13 +36,6 @@ $gap: $spacingXL;
     min-width: 0;
   }
 
-  &__title {
-    margin: 0;
-    color: $neutral-text-title-heading;
-    font-size: 18px;
-    font-weight: 600;
-  }
-
   &__meta {
     color: $neutral-text-caption;
   }
@@ -53,13 +46,141 @@ $gap: $spacingXL;
 }
 
 // ------------------------------------------------------------------ KPI strip
+// headline numbers: three cards (equipment, output, flow); the equipment card is wider
 .strip {
   display: grid;
   flex: 0 0 auto;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
+
+  @media (max-width: 1400px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 860px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
+.kpiCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 14px 12px;
+  border-radius: var(--look-radius);
+  border: 1px solid var(--look-line);
+  background: $background-low;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+
+    h4 {
+      margin: 0;
+      color: $neutral-text-caption;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    span {
+      overflow: hidden;
+      color: $neutral-text-caption;
+      font-size: 14px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  &__body {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    align-items: start;
+  }
+
+  // OEE and its four factors as donuts
+  &--oee &__body {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 2px;
+  }
+
+  @media (max-width: 1400px) {
+    &--oee {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-left: 10px;
+  border-left: 3px solid $border-light;
+
+  &__label {
+    overflow: hidden;
+    color: $neutral-text-caption;
+    font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__value {
+    color: $neutral-text-title-heading;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+
+    small {
+      margin-left: 4px;
+      color: $neutral-text-caption;
+      font-size: 14px;
+      font-weight: 400;
+    }
+  }
+
+  &__sub {
+    color: $neutral-text-caption;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+}
+
+// an OEE factor as a donut (PctDonut), its name and info icon above
+.donut {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+
+  &__label {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    max-width: 100%;
+    color: $neutral-text-caption;
+    // "Availability" / "Operational" and their info icon fit a donut's column at 1440
+    font-size: 13px;
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+// a KPI tile (Tile: quality tab)
 .kpi {
   height: 100%;
   min-height: 92px;
@@ -75,15 +196,31 @@ $gap: $spacingXL;
   }
 }
 
+// definitions behind a card's info icon
+.kpiDefs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 360px;
+  margin: 0;
+
+  dt {
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
 // ------------------------------------------------------------------ tabs
 .tabs {
   flex: 1 0 0;
   min-height: 0;
 
+  // layout only: the shared tab sets an inline width: 100%; its look (size, underline) stays shared
   &__tab {
     width: auto !important;
-    padding: 8px 20px !important;
-    font-size: 16px;
     white-space: nowrap;
   }
 
@@ -188,7 +325,7 @@ $gap: $spacingXL;
   }
 
   &__side {
-    flex: 0 0 clamp(420px, 38%, 600px);
+    flex: 0 0 clamp(360px, 30%, 520px);
     align-self: stretch;
     min-width: 0;
     overflow: hidden;
@@ -203,6 +340,11 @@ $gap: $spacingXL;
   height: 0;
   min-height: 0;
   overflow: hidden;
+}
+
+// a lot code reads as one token
+.lotCode {
+  white-space: nowrap;
 }
 
 .tableArea {
@@ -252,6 +394,32 @@ $gap: $spacingXL;
   }
 }
 
+// lot code and pills, the twin button at the end of the cell
+.lotCell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+// a small square button into the digital twin (tools table, lots)
+.twinLink {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  box-sizing: border-box;
+  border: 1px solid var(--look-line-strong);
+  border-radius: var(--look-radius-sm);
+  color: $neutral-text-title-heading;
+
+  &:hover {
+    background: $background-high;
+    border-color: $brand-border-default-primary;
+  }
+}
+
 // ------------------------------------------------------------------ tool table
 .toolTable {
   width: 100%;
@@ -261,10 +429,13 @@ $gap: $spacingXL;
   th,
   td {
     padding: 8px 10px;
-    border-bottom: 1px solid $border-light;
     text-align: left;
     vertical-align: middle;
     white-space: nowrap;
+  }
+
+  td {
+    border-bottom: 1px solid var(--look-line);
   }
 
   th {
@@ -278,11 +449,28 @@ $gap: $spacingXL;
   }
 
   tbody tr:hover {
+    background: $background-default;
+  }
+
+  // selected row, as the shared Table: raised, with a brand bar on its left edge
+  tbody tr.toolTable__selected {
     background: $background-high;
+
+    > td:first-child {
+      box-shadow: inset 4px 0 0 $brand-surface-default-primary;
+    }
   }
 
   &__num {
     text-align: right !important;
+  }
+
+  // tool name and its twin button
+  &__name {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
   }
 
   &__tool {
@@ -394,7 +582,7 @@ $gap: $spacingXL;
   &__step {
     padding: 6px 4px;
     overflow: hidden;
-    border: 1px solid $border-light;
+    border: 1px solid var(--look-line);
     border-radius: 6px;
     font-size: 12px;
     text-align: center;
@@ -427,9 +615,12 @@ $gap: $spacingXL;
   th,
   td {
     padding: 5px 6px;
-    border-bottom: 1px solid $border-light;
     text-align: left;
     white-space: nowrap;
+  }
+
+  td {
+    border-bottom: 1px solid var(--look-line);
   }
 
   th {
