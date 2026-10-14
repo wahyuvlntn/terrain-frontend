@@ -171,7 +171,7 @@ export const JobDecision = ({ job }: { job: SimJob }) => {
         <>
           {proposed ? (
             <span className={styles.decision__lead}>
-              {job.origin === 'agent' ? 'Proposed by the AI assistant' : 'Waiting for approval'}
+              {job.origin === 'agent' ? 'Proposed by LEVO' : 'Waiting for approval'}
               <InfoTooltip
                 title="Approval"
                 content="A proposed simulation runs only once a person approves it."

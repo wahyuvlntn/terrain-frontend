@@ -18,7 +18,7 @@ export const STATUS_LABEL: Record<SimJobStatus, string> = {
 
 export const ORIGIN_LABEL: Record<SimJobOrigin, string> = {
   ui: 'User',
-  agent: 'AI assistant',
+  agent: 'LEVO',
   optimizer: 'Optimizer',
   analytics: 'Analytics',
 };

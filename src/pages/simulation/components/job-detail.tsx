@@ -1,5 +1,5 @@
 import { Button, Container, Dropdown, InfoTooltip, Loading } from '@digital-twin/components';
-import { Check, Close, Cube, Test } from '@digital-twin/icons';
+import { Check, Close, Cube } from '@digital-twin/icons';
 import {
   TabProduct as Tab,
   TabListProduct as TabList,
@@ -8,7 +8,7 @@ import {
 } from '@digital-twin/reusables';
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -19,6 +19,7 @@ import {
   SimJob,
   SimJobStatus,
 } from '../api/simulation.api';
+import { DomainBanner, DOMAINS, domainOf, SimDomain } from '../simulation.domain';
 import { replayLink } from '../simulation.links';
 import styles from '../simulation.module.scss';
 import { EventLog } from './event-log';
@@ -56,7 +57,7 @@ export const stepsOf = (job: SimJob): Step[] => {
       key: 'created',
       label: proposal ? 'Proposed' : 'Submitted',
       time: job.createdAt,
-      by: job.requestedByName ?? (job.origin === 'agent' ? 'AI assistant' : null),
+      by: job.requestedByName ?? (job.origin === 'agent' ? 'LEVO' : null),
       state: 'done',
     },
   ];
@@ -151,7 +152,14 @@ const Stepper = ({ job }: { job: SimJob }) => (
 type TabKey = 'results' | 'trends' | 'events' | 'scenario';
 
 /** One job: life cycle, decisions, and its results, trends, events and scenario in tabs */
-export const JobDetail = ({ jobId }: { jobId: number }) => {
+export const JobDetail = ({
+  jobId,
+  onDomain,
+}: {
+  jobId: number;
+  /** told the workspace of the loaded job (a deep link may open another workspace's job) */
+  onDomain?: (domain: SimDomain) => void;
+}) => {
   const navigate = useNavigate();
   const {
     data: job,
@@ -171,15 +179,14 @@ export const JobDetail = ({ jobId }: { jobId: number }) => {
   });
   const [replayVariant, setReplayVariant] = useState<string | null>(null);
   const [tab, setTab] = useState<TabKey | null>(null);
+  const kind = job?.kind;
+  useEffect(() => {
+    if (kind) onDomain?.(domainOf(kind));
+  }, [kind, onDomain]);
 
   if (isLoading || isError || !job) {
     return (
-      <Container
-        title={`Simulation #${jobId}`}
-        icon={<Test width={24} height={24} />}
-        background="none"
-        className={styles.main}
-      >
+      <Container title={`Simulation #${jobId}`} background="none" className={styles.main}>
         <Loading isLoading={isLoading} />
         {isError ? (
           <Empty error>
@@ -191,6 +198,7 @@ export const JobDetail = ({ jobId }: { jobId: number }) => {
   }
 
   const production = job.kind === 'production';
+  const domain = domainOf(job.kind);
   const replayable = SIM_REPLAYABLE_STATUSES.includes(job.status) && !production;
   const variant =
     replayVariant && job.variants.includes(replayVariant)
@@ -212,42 +220,22 @@ export const JobDetail = ({ jobId }: { jobId: number }) => {
   return (
     <Container
       title={`#${job.id} ${job.title}`}
-      icon={<Test width={24} height={24} />}
+      icon={DOMAINS[domain].icon}
       background="none"
       className={styles.main}
       titleProps={{ style: { minWidth: 0, flex: '1 1 auto' } }}
       titleSuffixIcon={
         job.rationale ? <InfoTooltip title="Rationale" content={job.rationale} /> : undefined
       }
-      rightTopComponent={
-        <div className={styles.detail__actions}>
-          <StatusBadge status={job.status} progress={job.progress} />
-          {replayable && job.variants.length > 1 ? (
-            <Dropdown
-              options={job.variants.map((v) => ({ value: v, label: v }))}
-              value={variant ?? ''}
-              onChange={setReplayVariant}
-              background="dark"
-              wrapperClassName={styles['detail__variant']}
-            />
-          ) : null}
-          {replayable ? (
-            <Button
-              type="button"
-              color="default-secondary"
-              icon={<Cube width={20} height={20} />}
-              onClick={() => navigate(replayLink(job.id, variant))}
-            >
-              Replay in digital twin
-            </Button>
-          ) : null}
-        </div>
-      }
+      rightTopComponent={<StatusBadge status={job.status} progress={job.progress} />}
       contentWrapperProps={{ style: { overflow: 'hidden', gap: 16 } }}
     >
       <div className={styles.detail__head}>
         <Stepper job={job} />
         <div className={styles.detail__meta}>
+          <DomainBanner domain={domain}>
+            {job.kind === 'doe' ? 'Design of experiments' : null}
+          </DomainBanner>
           <OriginBadge origin={job.origin} />
           {job.simStart ? (
             <span>
@@ -257,6 +245,29 @@ export const JobDetail = ({ jobId }: { jobId: number }) => {
           ) : null}
           {job.requestedByName ? <span>Requested by {job.requestedByName}</span> : null}
           {job.status === 'RUNNING' ? <Progress value={job.progress} /> : null}
+          {/* below the header, so the title keeps the header's whole width */}
+          <div className={styles.detail__actions}>
+            {replayable && job.variants.length > 1 ? (
+              <Dropdown
+                options={job.variants.map((v) => ({ value: v, label: v }))}
+                value={variant ?? ''}
+                onChange={setReplayVariant}
+                background="dark"
+                wrapperClassName={styles['detail__variant']}
+              />
+            ) : null}
+            {replayable ? (
+              <Button
+                type="button"
+                color="default-secondary"
+                icon={<Cube width={20} height={20} />}
+                title="Replay in digital twin"
+                onClick={() => navigate(replayLink(job.id, variant))}
+              >
+                Replay
+              </Button>
+            ) : null}
+          </div>
         </div>
         {job.decisionNote && (job.status === 'REJECTED' || job.status === 'CANCELLED') ? (
           <p className={styles.detail__note} title={job.decisionNote}>
@@ -278,7 +289,7 @@ export const JobDetail = ({ jobId }: { jobId: number }) => {
         type="1"
         className={styles.tabs}
       >
-        <TabList className={styles.tabs__list}>
+        <TabList>
           {tabs.map((t) => (
             <Tab key={t.key} value={t.key} label={t.label} className={styles.tabs__tab} />
           ))}

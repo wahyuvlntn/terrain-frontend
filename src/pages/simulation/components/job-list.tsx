@@ -16,8 +16,9 @@ import {
   SIM_QUERY,
   SimJob,
   SimJobOrigin,
-  SimJobStatus,
 } from '../api/simulation.api';
+import { DOMAINS, SimDomain } from '../simulation.domain';
+import { STATUS_FILTERS } from '../simulation.links';
 import styles from '../simulation.module.scss';
 import {
   durationText,
@@ -37,25 +38,17 @@ const IDLE_MS = 30_000;
 const ROW_PX = 72;
 const HEADER_PX = 45;
 
-export const STATUS_FILTERS: { key: string; label: string; statuses: SimJobStatus[] }[] = [
-  { key: 'all', label: 'All statuses', statuses: [] },
-  { key: 'approval', label: 'Needs approval', statuses: ['PROPOSED'] },
-  { key: 'active', label: 'Queued / running', statuses: ['QUEUED', 'RUNNING', 'ANALYZING'] },
-  { key: 'succeeded', label: 'Succeeded', statuses: ['SUCCEEDED'] },
-  { key: 'failed', label: 'Failed', statuses: ['FAILED'] },
-  { key: 'closed', label: 'Rejected / cancelled', statuses: ['REJECTED', 'CANCELLED'] },
-];
-
+// the created time leads the sub line: the title gets the width (no cut titles)
 const COLUMNS: Column[] = [
   { key: 'title', name: 'Simulation' },
   { key: 'status', name: 'Status', width: 124 },
-  { key: 'created', name: 'Created', width: 100 },
 ];
 
-/** "4 h · 2 variants · Sarah Lim · AI assistant" */
+/** "14 Oct 08:47 · 4 h · 2 variants · Sarah Lim · AI assistant" */
 const subline = (job: SimJob) => {
   const minutes = jobMinutes(job);
   return [
+    fmtTime(job.createdAt),
     minutes !== null
       ? job.kind === 'production'
         ? `${Math.round(minutes / 1440)} days`
@@ -75,23 +68,35 @@ type JobListProps = {
   /** key of `STATUS_FILTERS` */
   statusKey: string;
   origin: SimJobOrigin | '';
+  /** the workspace: lists its job kinds only */
+  domain: SimDomain;
   selectedId: number | null;
   onSelect: (jobId: number) => void;
+  /** the newest job of the list, once loaded */
+  onLoaded?: (jobId: number) => void;
 };
 
 /** Simulation jobs, newest first, one page sized to the panel */
-export const JobList = ({ statusKey, origin, selectedId, onSelect }: JobListProps) => {
+export const JobList = ({
+  statusKey,
+  origin,
+  domain,
+  selectedId,
+  onSelect,
+  onLoaded,
+}: JobListProps) => {
   const [page, setPage] = useState(1);
   const [box, setBox] = useState<HTMLDivElement | null>(null);
   const limit = useRowsThatFit(box, ROW_PX, HEADER_PX, 0);
   const statuses = STATUS_FILTERS.find((f) => f.key === statusKey)?.statuses ?? [];
 
   const { data, isError, error, isFetching } = useQuery({
-    queryKey: [...SIM_QUERY.jobs, statusKey, origin, page, limit],
+    queryKey: [...SIM_QUERY.jobs, statusKey, origin, domain, page, limit],
     queryFn: () =>
       listJobs({
         status: statuses,
         origin: origin || undefined,
+        kind: DOMAINS[domain].kinds,
         limit,
         offset: (page - 1) * limit,
       }),
@@ -109,6 +114,10 @@ export const JobList = ({ statusKey, origin, selectedId, onSelect }: JobListProp
   useEffect(() => {
     if (data && page > pages) setPage(pages);
   }, [data, page, pages]);
+  const newest = page === 1 ? data?.jobs[0]?.id : undefined;
+  useEffect(() => {
+    if (newest !== undefined) onLoaded?.(newest);
+  }, [newest, onLoaded]);
 
   const rows = (data?.jobs ?? []).map((job) => ({
     id: String(job.id),
@@ -122,17 +131,19 @@ export const JobList = ({ statusKey, origin, selectedId, onSelect }: JobListProp
       </button>
     ),
     status: <StatusBadge status={job.status} progress={job.progress} />,
-    created: <span className={styles.caption}>{fmtTime(job.createdAt)}</span>,
   }));
 
   return (
     <Container
-      title="Simulations"
+      title={domain === 'chiller' ? 'Scenarios' : 'Production plans'}
       icon={<ListAlt width={24} height={24} />}
       background="none"
       className={styles.list}
       titleSuffixIcon={
-        <InfoTooltip title="Simulations" content="Newest first. Pick one to see its results." />
+        <InfoTooltip
+          title={DOMAINS[domain].title}
+          content="Newest first. Pick one to see its results."
+        />
       }
       contentWrapperProps={{ style: { overflow: 'hidden', gap: 16 } }}
     >
@@ -143,8 +154,8 @@ export const JobList = ({ statusKey, origin, selectedId, onSelect }: JobListProp
         ) : data && !data.jobs.length ? (
           <Empty>
             {statusKey === 'all' && !origin
-              ? 'No simulations yet'
-              : 'No simulations match these filters'}
+              ? `No ${domain === 'chiller' ? 'scenarios' : 'production plans'} yet`
+              : 'Nothing matches these filters'}
           </Empty>
         ) : (
           <Table
