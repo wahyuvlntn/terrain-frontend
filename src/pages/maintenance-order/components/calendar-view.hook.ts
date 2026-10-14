@@ -269,6 +269,8 @@ export const useCalendarViewWeek = (startTime: Date, endTime: Date) => {
       endTime.toISOString(),
       JSON.stringify(filterData),
     ],
+    // switching from the list (a one-day range) renders once before the week range is set
+    enabled: endTime.getTime() > startTime.getTime(),
     queryFn: async () => {
       const data = await getMaintenanceCalendarWeekly(
         startTime.toISOString(),
