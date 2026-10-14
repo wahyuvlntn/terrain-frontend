@@ -257,50 +257,61 @@ export const ProductionResults = ({ job }: { job: SimJobDetail }) => {
           );
         })}
       </div>
+      {/* one card per chart (title with its chart), as the scenario results */}
       <div className={styles.compare}>
-        <h4 className={styles.section__title}>
-          Wafers out per day
-          <InfoTooltip
-            title="Wafers out"
-            content="Wafers of the lots completed each day (wafer acceptance test passed)."
-          />
-        </h4>
-        <DailyChart s={s} metric="wafers_out" title="wafers" />
-        <h4 className={styles.section__title}>Lots in the fab (WIP)</h4>
-        <DailyChart s={s} metric="wip" title="lots" />
-        <h4 className={styles.section__title}>Cycle time of the lots completed each day</h4>
-        <DailyChart s={s} metric="ct_days" title="days" />
-        <h4 className={styles.section__title}>
-          Utilization by process area
-          <InfoTooltip
-            title="Utilization"
-            content="Share of the horizon the area's tools were processing (the busiest area limits the fab)."
-          />
-        </h4>
-        <AreaChart s={s} />
-        <h4 className={styles.section__title}>Busiest tools</h4>
-        <table className={styles.planActions}>
-          <thead>
-            <tr>
-              <th>Tool</th>
-              <th>Area</th>
-              {s.order.map((n) => (
-                <th key={n}>{n}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {(s.variants[s.order[0]]?.tools ?? []).slice(0, 10).map((t) => (
-              <tr key={t.alias}>
-                <td>{t.alias.replace(/_/g, '-')}</td>
-                <td>{AREA_NAME[t.area] ?? t.area}</td>
+        <figure className={styles.chart}>
+          <figcaption>
+            Wafers out per day
+            <InfoTooltip
+              title="Wafers out"
+              content="Wafers of the lots completed each day (wafer acceptance test passed)."
+            />
+          </figcaption>
+          <DailyChart s={s} metric="wafers_out" title="wafers" />
+        </figure>
+        <figure className={styles.chart}>
+          <figcaption>Lots in the fab (WIP)</figcaption>
+          <DailyChart s={s} metric="wip" title="lots" />
+        </figure>
+        <figure className={styles.chart}>
+          <figcaption>Cycle time of the lots completed each day</figcaption>
+          <DailyChart s={s} metric="ct_days" title="days" />
+        </figure>
+        <figure className={styles.chart}>
+          <figcaption>
+            Utilization by process area
+            <InfoTooltip
+              title="Utilization"
+              content="Share of the horizon the area's tools were processing (the busiest area limits the fab)."
+            />
+          </figcaption>
+          <AreaChart s={s} />
+        </figure>
+        <figure className={styles.chart}>
+          <figcaption>Busiest tools</figcaption>
+          <table className={styles.planActions}>
+            <thead>
+              <tr>
+                <th>Tool</th>
+                <th>Area</th>
                 {s.order.map((n) => (
-                  <td key={n}>{f1(s.variants[n]?.kpi.util[t.alias], 0)} %</td>
+                  <th key={n}>{n}</th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {(s.variants[s.order[0]]?.tools ?? []).slice(0, 10).map((t) => (
+                <tr key={t.alias}>
+                  <td>{t.alias.replace(/_/g, '-')}</td>
+                  <td>{AREA_NAME[t.area] ?? t.area}</td>
+                  {s.order.map((n) => (
+                    <td key={n}>{f1(s.variants[n]?.kpi.util[t.alias], 0)} %</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </figure>
       </div>
     </div>
   );

@@ -3,6 +3,14 @@
 
 // Simulation page: ribbon, job list (table) and the job detail / new scenario panel. The page
 // never scrolls; each panel has one scroll region (a tab panel or a table box).
+//
+// Two workspaces, chiller plant scenarios and fab production plans, accented in the theme's brand
+// color (--dom). `data-domain` on the page (and on a domain banner) sets it.
+[data-domain],
+.domains__tab--chiller,
+.domains__tab--fab {
+  --dom: #{$brand-surface-default-primary};
+}
 
 // ------------------------------------------------------------------ page
 .page {
@@ -31,6 +39,41 @@
   min-width: 0;
 }
 
+// workspace switch: the selected workspace underlined in its own color
+.domains {
+  flex: none;
+  width: auto !important;
+  margin-right: 8px;
+}
+
+.domains__list {
+  height: 52px;
+  border-bottom: none !important;
+}
+
+.domains__tab--chiller,
+.domains__tab--fab {
+  width: auto !important;
+  height: 52px !important;
+  padding: 0 18px !important;
+  font-size: 16px !important;
+
+  &[aria-selected='true'] {
+    background: color-mix(in srgb, var(--dom) 14%, transparent);
+    box-shadow: inset 0 -3px 0 var(--dom) !important;
+  }
+}
+
+.launch {
+  background: var(--dom) !important;
+  border-color: var(--dom) !important;
+  color: $neutral-text-body-light !important;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--dom) 82%, #{$background-lowest}) !important;
+  }
+}
+
 .ribbon__right {
   display: flex;
   align-items: center;
@@ -48,6 +91,12 @@
   min-height: 0;
 }
 
+// the workspace color along the top of both panels
+.list,
+.main {
+  box-shadow: inset 0 3px 0 var(--dom);
+}
+
 .list {
   flex: 0 0 34%;
   min-width: 420px;
@@ -62,6 +111,12 @@
   flex: 1 0 0;
   height: 0;
   overflow: auto;
+
+  // the title column takes what the fixed columns leave (no sideways scroll)
+  table {
+    table-layout: fixed;
+    width: 100%;
+  }
 }
 
 .main {
@@ -207,33 +262,14 @@
   color: $neutral-text-caption;
 }
 
-// ------------------------------------------------------------------ tabs (folder style)
+// ------------------------------------------------------------------ tabs (the app's underline tabs)
 .tabs {
   flex: 1 0 0;
   min-height: 0;
 }
 
-.tabs__list {
-  > div {
-    gap: 4px !important;
-    border-bottom: none !important;
-  }
-}
-
 .tabs__tab {
   width: auto !important;
-  height: 40px;
-  padding: 0 20px !important;
-  border-radius: 8px 8px 0 0;
-  background: transparent !important;
-  color: $neutral-text-caption !important;
-  font-size: 16px !important;
-  font-weight: 600 !important;
-
-  &[aria-selected='true'] {
-    background: $background-default !important;
-    color: $neutral-text-title-heading !important;
-  }
 }
 
 .tabs__panel {
@@ -242,10 +278,8 @@
   gap: $spacingXL;
   flex: 1 0 0;
   height: 0;
-  padding: $spacingXL !important;
+  padding: $spacingXL 0 0 !important;
   overflow: auto;
-  background: $background-default;
-  border-radius: 0 8px 8px 8px;
 }
 
 .tabs__panel--fill {
@@ -258,10 +292,15 @@
   align-items: center;
   gap: 8px;
   flex: none;
+  margin-left: auto;
+
+  &:empty {
+    display: none;
+  }
 }
 
 .detail__variant {
-  width: 180px;
+  width: 150px;
 }
 
 .detail__head {
@@ -381,7 +420,7 @@
   > i {
     border-color: $brand-surface-default-primary;
     color: $brand-border-light-primary;
-    box-shadow: 0 0 0 3px rgba(0, 141, 225, 0.25);
+    box-shadow: 0 0 0 3px color-mix(in srgb, #{$brand-surface-default-primary} 25%, transparent);
   }
 
   strong {
@@ -852,27 +891,11 @@
   flex: 0 1 auto;
 }
 
-.subtabs {
-  > div {
-    gap: 4px !important;
-    border-bottom: none !important;
-  }
-}
-
 .subtabs__tab {
   width: auto !important;
-  height: 36px;
+  height: 40px !important;
   padding: 0 14px !important;
-  border-radius: 8px;
-  background: $background-low !important;
-  color: $neutral-text-caption !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-
-  &[aria-selected='true'] {
-    background: $brand-surface-default-primary !important;
-    color: $neutral-text-body-light !important;
-  }
+  font-size: 15px !important;
 }
 
 .lists__variant {
@@ -985,7 +1008,6 @@
     font-weight: 500;
     color: $neutral-text-caption;
     padding: 6px 8px;
-    border-bottom: 1px solid $border-light;
   }
 
   td {
@@ -1002,4 +1024,46 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+// ------------------------------------------------------------------ domain banner
+.banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding-right: 12px;
+  border-right: 1px solid var(--look-line);
+}
+
+.banner__icon {
+  display: grid;
+  place-items: center;
+  color: var(--dom);
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.banner__label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dom);
+  white-space: nowrap;
+}
+
+.banner__model,
+.banner__extra {
+  color: $neutral-text-label;
+  white-space: nowrap;
+}
+
+.banner__extra::before {
+  content: '·';
+  margin-right: 8px;
+  color: $neutral-text-caption;
 }

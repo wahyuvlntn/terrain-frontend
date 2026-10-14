@@ -8,7 +8,7 @@ import {
   PermissionAliasEnum,
   PermissionGroupAliasEnum,
 } from '@digital-twin/components';
-import { Plus, TrashDelete } from '@digital-twin/icons';
+import { HardwareChip, Plus, TrashDelete } from '@digital-twin/icons';
 import { RadioButton } from '@digital-twin/reusables';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ReactNode, useContext, useMemo, useState } from 'react';
@@ -487,7 +487,8 @@ export const ProductionPlanForm = ({ onCreated, onCancel }: ProductionPlanFormPr
   const errors = planErrors(f, o);
   return (
     <Container
-      title="New production plan"
+      title="New fab production plan"
+      icon={<HardwareChip width={24} height={24} />}
       background="none"
       className={styles.main}
       titleSuffixIcon={

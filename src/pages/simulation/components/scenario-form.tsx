@@ -10,7 +10,7 @@ import {
   PermissionGroupAliasEnum,
   TextBox,
 } from '@digital-twin/components';
-import { ArrowRight, Plus, TrashDelete } from '@digital-twin/icons';
+import { ArrowRight, Plus, TempCold, TrashDelete } from '@digital-twin/icons';
 import {
   RadioButton,
   TabProduct as Tab,
@@ -167,8 +167,8 @@ export const ScenarioForm = ({ onCreated, onCancel }: ScenarioFormProps) => {
 
   return (
     <Container
-      title="New scenario"
-      icon={<Plus width={24} height={24} />}
+      title="New chiller plant scenario"
+      icon={<TempCold width={24} height={24} />}
       background="none"
       className={styles.main}
       titleSuffixIcon={
@@ -196,7 +196,7 @@ export const ScenarioForm = ({ onCreated, onCancel }: ScenarioFormProps) => {
           type="1"
           className={styles.tabs}
         >
-          <TabList className={styles.tabs__list}>
+          <TabList>
             {STEPS.map((s, i) => (
               <Tab key={s.key} value={s.key} className={styles.tabs__tab}>
                 <span className={styles.step}>
@@ -408,7 +408,7 @@ export const ScenarioForm = ({ onCreated, onCancel }: ScenarioFormProps) => {
                   type="2"
                   className={styles.lists__tabs}
                 >
-                  <TabList className={styles.subtabs}>
+                  <TabList>
                     {[
                       <Tab key="common" value="-1" className={styles.subtabs__tab}>
                         <span className={styles.step}>
