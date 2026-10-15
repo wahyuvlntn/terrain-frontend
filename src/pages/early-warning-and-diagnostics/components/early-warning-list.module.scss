@@ -1,3 +1,5 @@
+@import '../../../shared/components/lib/color';
+
 .container {
   display: flex;
   align-self: stretch;
@@ -97,10 +99,12 @@
   align-self: stretch;
   border-radius: 8px;
   cursor: pointer;
+  background: $background-default;
 
+  // same selected look as the shared Table row
   &--selected {
-    border-width: 1px;
-    border-style: solid;
+    background: $background-high;
+    box-shadow: inset 4px 0 0 $brand-surface-default-primary;
   }
 }
 
@@ -127,17 +131,31 @@
   align-self: stretch;
   gap: 8px;
   align-items: center;
+  min-width: 0;
+
+  > div:first-child {
+    flex: none;
+    white-space: nowrap;
+  }
 }
 
+// code - name on one line: the code never breaks, the name ellipsizes
 .issueContent {
   font-weight: 500;
   display: flex;
   align-items: center;
   gap: 4px;
-  max-width: 250px;
+  flex: 1 1 auto;
+  min-width: 0;
+
+  > div:first-child {
+    flex: none;
+    white-space: nowrap;
+  }
 }
 
 .separator {
+  flex: none;
   width: 8px;
   height: 2px;
 }

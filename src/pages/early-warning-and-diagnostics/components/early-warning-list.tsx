@@ -69,11 +69,7 @@ export const EarlyWarningCard = ({
   return (
     <div
       className={`${styles.card} ${isSelected ? styles['card--selected'] : ''}`}
-      style={{
-        background: isSelected ? COLOR.backgroundHigh : COLOR.backgroundDefault,
-        borderColor: isSelected ? COLOR.brandBorderLightPrimary : undefined,
-        ...wrapperStyle,
-      }}
+      style={wrapperStyle}
       onClick={() => onSelect(d.id.toString())}
     >
       <div className={styles.cardHeader}>
@@ -215,6 +211,7 @@ export const EarlyWarningList = () => {
 
   return (
     <Container
+      data-nav-section="list"
       title="Early Warning List"
       icon={<ListAlt width={24} height={24} />}
       className={styles.container}

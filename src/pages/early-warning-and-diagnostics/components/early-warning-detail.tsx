@@ -93,6 +93,7 @@ export const EarlyWarningDetail = () => {
 
   return (
     <Container
+      data-nav-section="diagnostics"
       title="Diagnostics"
       icon={<StackBarChart width={24} height={24} />}
       className={styles.container}
@@ -209,6 +210,7 @@ export const EarlyWarningDetail = () => {
           </div>
           <div className={styles.topRow}>
             <Container
+              data-nav-section="current-issues"
               title="Current Issues"
               icon={<AlertAlarm width={24} height={24} />}
               className={styles.issuesContainer}
@@ -258,6 +260,7 @@ export const EarlyWarningDetail = () => {
                 ))}
             </Container>
             <Container
+              data-nav-section="other-issues"
               title="Other Possible Issues"
               icon={<List width={24} height={24} />}
               className={styles.issuesContainer}
