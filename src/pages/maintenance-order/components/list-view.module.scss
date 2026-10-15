@@ -25,40 +25,12 @@
   overflow: hidden;
 }
 
-.tab-list {
-  .tab {
-    background-color: transparent;
-    border-top-right-radius: 8px;
-    border-top-left-radius: 8px;
-    height: 44px;
-    width: 160px !important;
-    padding: 0;
-    color: $neutral-text-label;
-    font-size: 20px;
-    font-weight: 700;
-  }
-
-  [aria-selected='true'] {
-    background-color: $background-default !important;
-    color: $neutral-text-title-heading !important;
-  }
-}
-
-.tab-list > div {
-  border-bottom: none !important;
-  gap: 4px !important;
-  background-color: $background-low;
-}
-
+// tabs use the shared underline look; the panel is transparent (no folder background/corners)
 .tab-panel {
   display: flex;
   height: 100%;
-  background-color: $background-default;
   padding: 0;
   overflow: hidden;
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
-  border-bottom-left-radius: 8px;
 }
 
 .tab-panel-progress {

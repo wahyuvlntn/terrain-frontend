@@ -31,7 +31,7 @@ import {
   submitMaintenanceOrder,
 } from '../api/maintenance-order';
 import { GeneralFilterType, MaintenanceOrderFilterType } from '../type';
-import { parseTimestamp } from '../utils/helper';
+import { parseTimestamp, validDay } from '../utils/helper';
 import { Details } from './details';
 import styles from './list-view.module.scss';
 import { RenderMaintenanceStatus } from './maintenance-order-card';
@@ -116,7 +116,7 @@ export const ListView = () => {
     }));
   }, [selected]);
 
-  const startDate = searchParams.get('start');
+  const startDate = validDay(searchParams.get('start'));
 
   useEffect(() => {
     setFilter((prev) => ({
@@ -125,7 +125,7 @@ export const ListView = () => {
     }));
   }, [startDate]);
 
-  const endDate = searchParams.get('end');
+  const endDate = validDay(searchParams.get('end'));
 
   useEffect(() => {
     setFilter((prev) => ({
@@ -418,10 +418,10 @@ export const MaintenanceDetail = ({
             type="1"
             className={styles['tab-provider']}
           >
-            <TabList className={styles['tab-list']}>
-              <Tab value="details" label="Details" className={styles['tab']} />
-              <Tab value="work-report" label="Work Report" className={styles['tab']} />
-              <Tab value="progress" label="Progress" className={styles['tab']} />
+            <TabList>
+              <Tab value="details" label="Details" />
+              <Tab value="work-report" label="Work Report" />
+              <Tab value="progress" label="Progress" />
             </TabList>
             {maintenanceId ? (
               <>
@@ -440,18 +440,10 @@ export const MaintenanceDetail = ({
                     autoSelectAfterDelete={autoSelectAfterDelete}
                   />
                 </TabPanel>
-                <TabPanel
-                  value="work-report"
-                  className={styles['tab-panel']}
-                  style={{ borderTopLeftRadius: '8px' }}
-                >
+                <TabPanel value="work-report" className={styles['tab-panel']}>
                   <WorkReport />
                 </TabPanel>
-                <TabPanel
-                  value="progress"
-                  className={styles['tab-panel']}
-                  style={{ borderTopLeftRadius: '8px' }}
-                >
+                <TabPanel value="progress" className={styles['tab-panel']}>
                   <Progress orderId={maintenanceId} initialData={initialData} />
                 </TabPanel>
                 <Loading isLoading={orderQuery.isFetching} />

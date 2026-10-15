@@ -157,6 +157,15 @@
   cursor: pointer;
 }
 
+// shared Table selection; the left stripe encodes priority, so the brand bar sits just right of it
+.maintenance-order-card.selected {
+  background-color: $background-high;
+
+  .detail {
+    box-shadow: inset 4px 0 0 $brand-surface-default-primary;
+  }
+}
+
 .maintenance-status {
   display: flex;
   width: 108px;

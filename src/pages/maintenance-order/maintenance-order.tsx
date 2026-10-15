@@ -50,6 +50,7 @@ import { format } from 'date-fns';
 import { CalendarLegend } from './components/calendar-legend';
 import { ListLegend } from './components/list-legend';
 import { useSearchParams } from 'react-router-dom';
+import { validDay } from './utils/helper';
 
 export const useGetMaintenanceOrderFilter = () => {
   const { setFilter, data, isReady, handleFilterDataChange, ...filter } = useGetFilter<
@@ -102,9 +103,11 @@ export const useGetMaintenanceOrderFilter = () => {
       },
       {
         key: 'start',
+        searchParamsParser: validDay,
       },
       {
         key: 'end',
+        searchParamsParser: validDay,
       },
     ],
   });
@@ -325,9 +328,10 @@ export const MaintenanceOrder = () => {
           </div>
         </div>
 
-        {viewContent && (
-          <div className={styles['content']}>
-            {filter.view === 'calendar' ? (
+        {/* stays mounted (only its view toggles): the assistant's section anchor */}
+        <div className={styles['content']} data-nav-section={filter.view}>
+          {viewContent &&
+            (filter.view === 'calendar' ? (
               <CalendarView
                 selectedStartDate={selectedStartDate}
                 selectedEndDate={selectedEndDate}
@@ -338,9 +342,8 @@ export const MaintenanceOrder = () => {
             ) : (
               // <div>Test</div>
               <ListView />
-            )}
-          </div>
-        )}
+            ))}
+        </div>
       </div>
     </Filter>
   );

@@ -61,7 +61,11 @@ export const MaintenanceOrderCard = ({
   // >();
   return (
     <div
-      className={clsx(styles['maintenance-order-card'], wrapperClassName)}
+      className={clsx(
+        styles['maintenance-order-card'],
+        selected && styles['selected'],
+        wrapperClassName
+      )}
       // onClick={() => {
       //   setFilter((prev) => ({
       //     ...prev,
@@ -71,15 +75,7 @@ export const MaintenanceOrderCard = ({
       // }}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
-      style={{
-        border:
-          // filter.selected === String(id) && filter.add !== 'true'
-          selected ? `2px solid ${COLOR.brandBorderLightPrimary}` : '',
-        backgroundColor:
-          // filter.selected === String(id) && filter.add !== 'true'
-          selected ? COLOR.backgroundHighest : '',
-        ...wrapperStyle,
-      }}
+      style={wrapperStyle}
     >
       <div
         className={styles['priority']}
