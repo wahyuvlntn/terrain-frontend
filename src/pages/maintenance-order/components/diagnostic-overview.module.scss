@@ -15,13 +15,12 @@
     color: $neutral-text-caption;
   }
 
+  // wraps onto a second line in a narrow panel instead of scrolling sideways
   .diagnostic-status {
     display: flex;
+    flex-wrap: wrap;
     width: 100%;
-    justify-content: space-between;
-    gap: 24px;
-    overflow-x: auto;
-    overflow-y: hidden;
+    gap: 8px 24px;
 
     &__key-val-1 {
       display: flex;

@@ -31,6 +31,8 @@
   .buttons {
     display: flex;
     justify-content: space-between;
+    // keep Save clear of the floating AI assistant launcher (bottom right)
+    padding-right: max(0px, var(--ai-launcher-inset, 0px) - 16px);
   }
   .buttons-right {
     display: flex;
