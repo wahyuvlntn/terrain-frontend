@@ -1,0 +1,482 @@
+@import '../../shared/components/lib/size';
+@import '../../shared/components/lib/color';
+
+// Plant overview: the location overview's structure (period filter, a grid of location cards)
+// in the demo build's look. Cards adapt to their own width (container queries), so they stay
+// readable with the sidebar open or collapsed.
+
+.plant-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  height: 100%;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+}
+
+.summary {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 14px 0 16px;
+  border-radius: var(--look-radius-sm);
+  background: $background-low;
+  border: 1px solid var(--look-line);
+  box-shadow: inset 4px 0 0 var(--tile-color);
+  white-space: nowrap;
+
+  dt {
+    font-size: 14px;
+    color: $neutral-text-label;
+  }
+
+  dd {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: $neutral-text-title-heading;
+  }
+}
+
+.periods {
+  display: inline-flex;
+  border: 1px solid var(--look-line-strong);
+  border-radius: var(--look-radius-sm);
+  overflow: hidden;
+}
+
+.period {
+  height: 38px;
+  padding: 0 18px;
+  background: transparent;
+  color: $neutral-text-label;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+
+  & + & {
+    border-left: 1px solid var(--look-line-strong);
+  }
+
+  &:hover {
+    background: $background-default;
+    color: $neutral-text-title-heading;
+  }
+}
+
+.period--active,
+.period--active:hover {
+  background: $brand-surface-default-primary;
+  color: $neutral-text-body-light;
+  font-weight: 600;
+}
+
+.grid {
+  position: relative;
+  display: grid;
+  // as many 520px+ columns as fit (room for the status shares); auto-fill keeps empty tracks,
+  // so a few cards don't stretch
+  grid-template-columns: repeat(auto-fill, minmax(520px, 1fr));
+  // rows as tall as their cards (cards clip their content, so auto rows would shrink them)
+  grid-auto-rows: max-content;
+  align-content: start;
+  gap: 16px;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.skeleton {
+  position: relative;
+  height: 520px;
+  border-radius: var(--look-radius);
+  border: 1px solid var(--look-line);
+  background: $background-low;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      100deg,
+      transparent 20%,
+      color-mix(in srgb, $neutral-text-title-heading 7%, transparent) 50%,
+      transparent 80%
+    );
+    background-size: 250% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+.refreshing {
+  display: none;
+}
+
+.empty {
+  padding: 24px;
+  color: $neutral-text-caption;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Card
+ * ------------------------------------------------------------------------------------------- */
+
+.card {
+  height: auto;
+  transition: border-color 150ms ease;
+}
+
+.card--drill {
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $brand-surface-default-primary;
+    outline: none;
+  }
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.card-content {
+  padding: 0 !important;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  cursor: default;
+}
+
+.equipment-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--look-radius-sm);
+  background: $background-default;
+  color: $neutral-text-label;
+  font-size: 14px;
+  white-space: nowrap;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    color: $neutral-text-title-heading;
+  }
+
+  b {
+    color: $neutral-text-title-heading;
+    font-size: 15px;
+  }
+}
+
+.twin-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid $brand-surface-default-primary;
+  border-radius: var(--look-radius-sm);
+  background: transparent;
+  color: $neutral-text-title-heading;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    color: $neutral-text-title-heading;
+  }
+
+  &:hover {
+    background: $brand-surface-default-primary;
+  }
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.top-section {
+  display: flex;
+  gap: 12px;
+  height: 140px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--look-line);
+}
+
+.image {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: center;
+  overflow: hidden;
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+    border-radius: var(--look-radius-sm);
+  }
+}
+
+.uptime {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 128px;
+}
+
+// the ring carries its own label; its info button sits in the corner
+.uptime-info {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  z-index: 1;
+}
+
+.no-drill {
+  display: inline-flex;
+}
+
+// condition beside the image and the uptime: three one-line tiles filling the column
+.condition {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-width: 150px;
+}
+
+.condition-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 0;
+  min-height: 0;
+
+  > * {
+    flex: 1 1 0;
+  }
+}
+
+.state-section,
+.activity-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px 12px 12px;
+}
+
+.state-section {
+  border-bottom: 1px solid var(--look-line);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 15px;
+  font-weight: 600;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.section-extra {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 400;
+  color: $neutral-text-caption;
+
+  b {
+    color: $neutral-text-title-heading;
+    font-weight: 600;
+  }
+}
+
+// rows fill: the last row's tiles grow instead of leaving empty cells
+.status-grid,
+.order-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  > * {
+    flex: 1 1 0;
+  }
+}
+
+// seven orders: four and three
+.order-grid > * {
+  flex-basis: 22%;
+}
+
+.alarm-grid {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 6px;
+}
+
+.grid-head {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: $neutral-text-caption;
+}
+
+.grid-row {
+  display: flex;
+  align-items: center;
+  padding-right: 4px;
+  font-size: 14px;
+  color: $neutral-text-label;
+}
+
+// a count on its state color, white icon and text (as the original location overview's metrics)
+.tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0;
+  min-height: 54px;
+  padding: 6px 8px;
+  box-sizing: border-box;
+  border-radius: var(--look-radius-sm);
+  background: var(--tile-color);
+  color: $neutral-text-body-light;
+}
+
+.tile--compact {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 10px;
+
+  .tile-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.tile--row {
+  flex-direction: row;
+  align-items: center;
+  min-height: 0;
+  padding: 0 10px;
+
+  .tile-value b {
+    font-size: 18px;
+  }
+}
+
+// nothing in this state: the color stays recognisable but steps back
+.tile--zero {
+  opacity: 0.45;
+}
+
+.tile-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+
+  // a long title wraps between words
+  span:last-child {
+    line-height: 1.2;
+  }
+}
+
+.tile-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: $neutral-text-body-light;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.tile-value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 4px;
+
+  .tile-icon {
+    align-self: center;
+  }
+
+  b {
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  // the share wraps under the number in a narrow tile rather than leaving it
+  span {
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0.85;
+  }
+}
