@@ -1,0 +1,3 @@
+[submodule "terrain-backend"]
+	path = terrain-backend
+	url = https://github.com/wahyuvlntn/terrain-backend.git
